@@ -1,0 +1,19 @@
+
+.blog-entry{
+    display: inline-block;
+    width: 68%;
+    margin-left: 2%;
+    float: left;
+}
+.blog-entry h3 a{
+    font-size: large;
+}
+.blog-entry h3{
+    font-size: small;
+}
+.blog-entry-footer{
+    text-align: right;
+}
+.blog-comment{
+    margin-bottom: 10px;
+}
