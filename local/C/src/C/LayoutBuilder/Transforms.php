@@ -1,64 +1,73 @@
 <?php
 namespace C\LayoutBuilder;
 
-use C\LayoutBuilder\Layout\Builder;
 use C\LayoutBuilder\Layout\Layout;
 use C\Misc\Utils;
 use C\Data\TaggedData;
 
 class Transforms{
 
-    public static function set($id, $options){
-        return function(Layout $layout) use($id, $options){
-            Builder::set($layout, $id, $options);
-        };
+    public $layout;
+
+    /**
+     * @param Layout $layout
+     */
+    public function __construct(Layout $layout) {
+        $this->layout = $layout;
     }
-    public static function setTemplate($id, $template){
-        return function(Layout $layout) use($id, $template){
-            $block = Builder::getOrCreate($layout, $id);
+
+    /**
+     * @param Layout $layout
+     * @return Transforms
+     */
+    public static function transform(Layout $layout) {
+        return new Transforms($layout);
+    }
+
+    public function set($id, $options){
+        $this->layout->set($id, $options);
+        return $this;
+    }
+    public function setTemplate($id, $template){
+            $block = $this->layout->getOrCreate($id);
             if ($block) {
                 $block->options['template'] = $template;
             }
-        };
+        return $this;
     }
-    public static function updateOptions($id, $options=[]){
-        return function(Layout $layout) use($id, $options){
-            $block = Builder::getOrCreate($layout, $id);
+    public function updateOptions($id, $options=[]){
+            $block = $this->layout->getOrCreate($id);
             $block->options = array_merge($options, $block->options);
-        };
+        return $this;
     }
 
-    public static function updateAssets($id, $assets=[]){
-        return function(Layout $layout) use($id, $assets){
-            $block = Builder::getOrCreate($layout, $id);
+    public function updateAssets($id, $assets=[]){
+            $block = $this->layout->getOrCreate($id);
             foreach($assets as $name => $files) {
                 if(!isset($block->assets[$name]))
                     $block->assets[$name] = [];
                 $block->assets[$name] =
                     array_merge($block->assets[$name], $files);
             }
-        };
+        return $this;
     }
 
-    public static function updateBlock($id, $meta=[], $data=[], $options=[]){
-        return function(Layout $layout) use($id, $meta, $data, $options){
-            $block = Builder::getOrCreate($layout, $id);
+    public function updateBlock($id, $meta=[], $data=[], $options=[]){
+            $block = $this->layout->getOrCreate($id);
             $block->meta = array_merge($block->meta, $meta);
             $block->data = array_merge($block->data, $data);
             $block->options = array_merge($block->options, $options);
-        };
+        return $this;
     }
 
-    public static function keepOnly($pattern){
-        return function(Layout $layout) use($pattern){
-            Builder::keepOnly($layout, $pattern);
-        };
+    public function keepOnly($pattern){
+        $this->layout->keepOnly($pattern);
+        return $this;
     }
 
 
-    public static function updateEtags(){
-        return function(Layout $layout){
-            foreach($layout->registry->blocks as $block) {
+    public function updateEtags(){
+            foreach($this->layout->registry->blocks as $block) {
                 $h = '';
                 $h .= $block->id . '-';
                 if ($block->options['template']) {
@@ -76,25 +85,25 @@ class Transforms{
                 });
                 $block->meta['etag'] = sha1($h);
             }
-        };
+        return $this;
     }
 
-    public static function insertAfter ($target, $id, $options){
-        return function(Layout $layout) use($target, $id, $options){
-            Builder::set($layout, $id, $options);
-            $layout->on('after_render_' . $target, function () use($layout, $id) {
+    public function insertAfter ($target, $id, $options){
+        $this->layout->set($id, $options);
+        $layout = $this->layout;
+        $this->layout->on('after_render_' . $target, function () use($layout, $id) {
                 $layout->displayBlock($id);
             });
-        };
+        return $this;
     }
 
-    public static function insertBefore ($target, $id, $options){
-        return function(Layout $layout) use($target, $id, $options){
-            Builder::set($layout, $id, $options);
-            $layout->on('before_render_' . $target, function () use($layout, $id) {
+    public function insertBefore ($target, $id, $options){
+        $this->layout->set($id, $options);
+        $layout = $this->layout;
+        $this->layout->on('before_render_' . $target, function () use($layout, $id) {
                 $layout->displayBlock($id);
             });
-        };
+        return $this;
     }
 
 }

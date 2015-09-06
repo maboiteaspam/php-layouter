@@ -55,7 +55,7 @@ $builder->create('blog_comment', function($table) {
     $table->integer('blog_entry_id');
 });
 
-$fixtureEntries = include(__DIR__ . 'local/app/src/MyBlog/fixtures/blog-entries.php');
+$fixtureEntries = include(__DIR__ . '/local/app/src/MyBlog/fixtures/blog-entries.php');
 foreach ($fixtureEntries as $entry) {
     $comments = $entry['comments'];
     unset($entry['comments']);

@@ -2,12 +2,21 @@
 
 namespace C\Blog;
 
-use C\HTMLLayoutBuilder\Layout\Builder;
-use C\LayoutBuilder\Layout\Layout;
+use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
 use C\Misc\Utils;
+use C\LayoutBuilder\Layout\Layout;
 
-class Transforms{
-    static function home ($options=[]) {
+class Transforms extends HTMLTransforms{
+
+    /**
+     * @param Layout $layout
+     * @return Transforms
+     */
+    public static function transform(Layout $layout) {
+        return new Transforms($layout);
+    }
+
+    function home ($options=[]) {
         $options = Utils::mergeMultiBlockOptions($options, [
             'body_content'=>[
                 'options'=>[
@@ -45,11 +54,10 @@ class Transforms{
                 ],
             ],
         ]);
-        return function(Layout $layout) use($options){
-            Builder::setMultiple($layout, $options);
-        };
+        $this->layout->setMultiple($options);
+        return $this;
     }
-    static function detail ($options=[]) {
+    function detail ($options=[]) {
         $options = Utils::mergeMultiBlockOptions($options, [
             'body_content'=>[
                 'options'=>[
@@ -84,8 +92,7 @@ class Transforms{
                 ],
             ],
         ]);
-        return function(Layout $layout) use($options){
-            Builder::setMultiple($layout, $options);
-        };
+        $this->layout->setMultiple($options);
+        return $this;
     }
 }

@@ -1,47 +1,68 @@
 <?php
 namespace C\HTMLLayoutBuilder;
 
-use C\LayoutBuilder\Layout\Layout;
-use C\HTMLLayoutBuilder\Layout\Builder as Builder;
+use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
+use C\LayoutBuilder\Layout\Layout;
+use C\LayoutBuilder\Layout\Block as BaseBlock;
+use C\HTMLLayoutBuilder\Layout\Block as Block;
 
-class Transforms{
+class Transforms extends BaseTransforms{
 
-    public static function createBase($options=[]){
+    /**
+     * @param Layout $layout
+     * @return Transforms
+     */
+    public static function transform(Layout $layout) {
+        return new Transforms($layout);
+    }
+
+    public function getOrCreate ($id){
+        if (!($id instanceof BaseBlock)) {
+            $block = $this->layout->registry->get($id);
+            if (!$block) {
+                $block = new Block($id);
+                $this->layout->registry->set($id, $block);
+            }
+        } else {
+            $block = $id;
+        }
+        return $block;
+    }
+
+    public function createBase($options=[]){
         $options = array_merge([
             'options'=>[
                 'template'=> __DIR__ . '/templates/1-column.php'
             ],
         ], $options);
-        return function(Layout $layout) use($options){
-            Builder::setRoot($layout, [
+            $this->layout->setRoot([
                 'options'=> [
                     'template'=>__DIR__.'/templates/html.php',
                 ],
             ]);
-            Builder::set($layout, 'html_begin', ['body'=>'<html>']);
-            Builder::set($layout, 'head', [
+            $this->set('html_begin', ['body'=>'<html>']);
+            $this->set('head', [
                 'options'=> [
                     'template' => __DIR__.'/templates/head.php',
                 ],
             ]);
-            Builder::set($layout, 'body', $options);
-            Builder::set($layout, 'footer', [
+            $this->set('body', $options);
+            $this->set('footer', [
                 'options'=> [
                     'template' => __DIR__.'/templates/footer.php',
                 ],
             ]);
-            Builder::set($layout, 'script_bottom', ['body'=>'']);
-            Builder::set($layout, 'html_end', ['body'=>'</html>']);
-        };
+            $this->set('script_bottom', ['body'=>'']);
+            $this->set('html_end', ['body'=>'</html>']);
+        return $this;
     }
 
-    public static function applyAssets($options=[]){
+    public function applyAssets($options=[]){
         $options = array_merge(['documentRoot'=>'www/', 'basePath'=>'assets/'], $options);
 
-        return function(Layout $layout) use($options){
             $files = [];
-            foreach ($layout->registry->blocks as $block) {
+            foreach ($this->layout->registry->blocks as $block) {
                 foreach ($block->assets as $target=>$assets) {
                     if (!isset($files[$target])) {
                         $files[$target] = [];
@@ -56,7 +77,7 @@ class Transforms{
                 $assetsPath = $documentRoot.$basePath;
 
                 foreach ($files as $target=>$assets) {
-                    $targetBlock = Builder::getOrCreate($layout, $target);
+                    $targetBlock = $this->getOrCreate($target);
 
                     if ($targetBlock) {
                         preg_match("/(css|js)$/", $target, $matches);
@@ -89,6 +110,6 @@ class Transforms{
                     }
                 }
             }
-        };
+        return $this;
     }
 }
