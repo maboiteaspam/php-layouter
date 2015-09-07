@@ -129,6 +129,8 @@ class Transforms extends BaseTransforms{
                                 if (!file_exists($assetFile)) {
                                     if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
                                     copy($asset, $assetFile);
+                                } else if (filemtime($assetFile)!==filemtime($asset)) {
+                                    copy($asset, $assetFile);
                                 }
 
                                 if ($ext==='js')
