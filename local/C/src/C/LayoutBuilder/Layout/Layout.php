@@ -2,6 +2,7 @@
 
 namespace C\LayoutBuilder\Layout;
 
+use Symfony\Component\EventDispatcher\GenericEvent;
 use C\Misc\Utils;
 
 class Layout{
@@ -48,21 +49,18 @@ class Layout{
     }
     public function getContent ($id){
         $block = $this->resolve($id);
-        $verbose = $this->config['debug'];
         $content = '';
         if ($block) {
-            if ($verbose) $content = "\n".'<!-- begin ' . $block->id .
-                ' ' . Utils::shorten($block->options['template']) . ' -->';
             $content .= $block->body;
-            if ($verbose) $content .= "\n".'<!-- end ' . $block->id .
-                ' ' . Utils::shorten($block->options['template']) . ' -->';
         }
         return $content;
     }
     public function displayBlock ($id){
+        $this->emit('before_block_render', $id);
         $this->emit('before_render_' . $id);
         echo $this->getContent($id);
         $this->emit('after_render_' . $id);
+        $this->emit('after_block_render', $id);
     }
 
     /**
@@ -146,8 +144,11 @@ class Layout{
 
 
     public function emit ($id){
+        $args = func_get_args();
+        $id = array_shift($args);
+        $event = new GenericEvent($id, $args);
         if ($this->config['dispatcher'])
-            call_user_func_array([$this->config['dispatcher'], 'dispatch'], func_get_args());
+            $this->config['dispatcher']->dispatch($id, $event);
     }
     public function on ($id, $fn){
         if ($this->config['dispatcher'])
