@@ -16,13 +16,9 @@ class Transforms extends HTMLTransforms{
     }
 
     public function baseTemplate () {
-        $this->set('body_top',[
-            'options'=>[
-                'template'=> __DIR__ . '/templates/top.php',
-            ],
-            'data'=>[
-                'logo'=> '',
-            ],
+        $this->setTemplate('body_top', __DIR__.'/templates/top.php');
+        $this->updateData('body_top', [
+            'logo'=> '',
         ]);
         $this->updateAssets('body', [
             'template_head_css'=>[
@@ -40,32 +36,42 @@ class Transforms extends HTMLTransforms{
     }
 
     public function home ($entries, $latestComments) {
+        $this->updateBlock('body_content',
+            ['from'      => 'home'],
+            ['entries'   => $entries]
+        );
         $this->updateBlock('body_content_right',
             ['from'      => 'home_rb'],
             ['comments'  => $latestComments],
             ['template'  => __DIR__ . '/templates/right-bar.php']
         );
-        $this->updateBlock('body_content',
-            ['from'      => 'home'],
-            ['entries'   => $entries]
-        );
         return $this;
     }
 
     public function detail ($entry, $comments, $latestComments) {
-        $this->updateBlock('body_content_right',
-            ['from'      => 'blog_rb'],
-            ['comments'  => $latestComments],
-            ['template'  => __DIR__ . '/templates/right-bar.php']
-        );
-        $this->updateBlock('body_content',
-            ['from'      => 'blog_detail'],
-            ['entry'     => $entry]
-        );
-        $this->updateBlock('blog_detail_comments',
-            ['from'      => 'blog_detail_comment'],
-            ['comments'  => $comments]
-        );
+
+        $this->updateData('body_content', [
+            'entry'  => $entry,
+        ]);
+        $this->updateMeta('body_content', [
+            'from'      => 'blog_detail',
+        ]);
+
+        $this->updateData('blog_detail_comments', [
+            'comments'  => $comments,
+        ]);
+        $this->updateMeta('blog_detail_comments', [
+            'from'      => 'blog_detail_comments',
+        ]);
+
+        $this->setTemplate('body_content_right', __DIR__.'/templates/right-bar.php');
+        $this->updateData('body_content_right', [
+            'comments'  => $latestComments,
+        ]);
+        $this->updateMeta('body_content_right', [
+            'from'      => 'blog_rb',
+        ]);
+
         return $this;
     }
 
