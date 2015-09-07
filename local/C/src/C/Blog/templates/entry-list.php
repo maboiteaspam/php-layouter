@@ -1,6 +1,6 @@
 <div class="blog-entries">
     <?php foreach($entries as $entry){ ?>
-        <div class="blog-entry">
+        <div class="blog-entries-item">
             <h3>
                 <a href="<?php echo $urlFor('blog_entry', $entry, ['id']).$urlArgs(); ?>">
                     <?php echo $entry['title']; ?>
