@@ -42,7 +42,7 @@ class Block{
                                 $$name = $data;
                             }
                         } else {
-                            throw new \Exception('Forbidden helper name block');
+                            throw new \Exception('Forbidden data name block called in block');
                         }
                     }
                     if ($helpers) {
@@ -50,7 +50,7 @@ class Block{
                             if ($name!='block') {
                                 $$name = $boundFn = $bcl2 = \Closure::bind($helper, $block);
                             } else {
-                                throw new \Exception('Forbidden helper name block');
+                                throw new \Exception('Forbidden helper name block called in block');
                             }
                         }
                     }

@@ -7,6 +7,11 @@ use C\Misc\Utils;
 
 class Layout{
 
+    /**
+     * id of the block to start display from
+     *
+     * @var string
+     */
     public $block;
     /**
      * @var RegistryBlock
@@ -19,6 +24,9 @@ class Layout{
 
     public function __construct ($config=[]) {
         $this->registry = new RegistryBlock();
+
+        $this->block = 'root';
+
         $this->config = array_merge(['helpers'=>[]],$config);
         $layout = $this;
         $this->config['helpers'] = array_merge([
@@ -72,7 +80,6 @@ class Layout{
     }
 
     function setRoot ($options){
-        $this->block = 'root';
         return $this->set( 'root', $options);
     }
 
