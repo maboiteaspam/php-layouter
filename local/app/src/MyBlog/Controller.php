@@ -9,6 +9,7 @@ use C\AppController\Silex as AppController;
 use C\AppController\Controller as BaseController;
 use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
 use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
+use C\DebugLayoutBuilder\Transforms as debugTransforms;
 
 use C\Blog\Transforms as BlogLayout;
 use MyBlog\Transforms as MyBlogLayout;
@@ -26,11 +27,16 @@ class Controller extends BaseController{
                 Eloquent::delayed('blog_entry')->take(20)->orderBy('created_at', 'DESC')->all(),
                 Eloquent::delayed('blog_comment')->take(5)->orderBy('created_at', 'DESC')->all()
             );
-            MyBlogLayout::transform($layout)
-                ->baseTemplate()
+
+            jQueryTransforms::transform($layout)->inject('page_footer_js');
+
+            MyBlogLayout::transform($layout)->baseTemplate();
+            debugTransforms::transform($layout)->debug();
+            HTMLTransforms::transform($layout)
                 ->applyAssets([
                     'concat'=>false,
                 ])->updateEtags();
+
             return AppController::respondLayout($request, $layout);
         };
     }
@@ -47,16 +53,20 @@ class Controller extends BaseController{
                 Eloquent::delayed('blog_comment')->where('blog_entry_id', '=', $id)->take(5)->orderBy('created_at','DESC')->all(),
                 Eloquent::delayed('blog_comment')->where('blog_entry_id', '!=', $id)->take(5)->orderBy('created_at','DESC')->all()
             );
+
             jQueryTransforms::transform($layout)->inject('page_footer_js');
             jQueryTransforms::transform($layout)->ajaxify('blog_detail_comments', [
                 'isAjax'=> $request->isXmlHttpRequest(),
                 'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
             ]);
-            MyBlogLayout::transform($layout)
-                ->baseTemplate()
+
+            MyBlogLayout::transform($layout)->baseTemplate();
+            debugTransforms::transform($layout)->debug();
+            HTMLTransforms::transform($layout)
                 ->applyAssets([
                     'concat'=>false,
                 ])->updateEtags();
+
             return AppController::respondLayout($request, $layout);
         };
     }
