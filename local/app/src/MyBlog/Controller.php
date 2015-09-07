@@ -26,7 +26,11 @@ class Controller extends BaseController{
                 Eloquent::delayed('blog_entry')->take(20)->orderBy('created_at', 'DESC')->all(),
                 Eloquent::delayed('blog_comment')->take(5)->orderBy('created_at', 'DESC')->all()
             );
-            MyBlogLayout::transform($layout)->baseTemplate();
+            MyBlogLayout::transform($layout)
+                ->baseTemplate()
+                ->applyAssets([
+                    'concat'=>false,
+                ])->updateEtags();
             return AppController::respondLayout($request, $layout);
         };
     }
@@ -48,8 +52,11 @@ class Controller extends BaseController{
                 'isAjax'=> $request->isXmlHttpRequest(),
                 'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
             ]);
-            MyBlogLayout::transform($layout)->baseTemplate();
-
+            MyBlogLayout::transform($layout)
+                ->baseTemplate()
+                ->applyAssets([
+                    'concat'=>false,
+                ])->updateEtags();
             return AppController::respondLayout($request, $layout);
         };
     }

@@ -36,8 +36,6 @@ class Transforms extends HTMLTransforms{
         $this->insertAfter('body_footer', 'extra_footer', [
             'body'=>'some'
         ]);
-        $this->applyAssets();
-        $this->updateEtags();
         return $this;
     }
 
