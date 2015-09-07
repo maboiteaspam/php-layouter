@@ -24,7 +24,9 @@ class Transforms extends BaseTransforms{
         $this->layout->on('before_block_render', function (GenericEvent $event) use($layout, $verbose, $debug) {
             $id = $event->getArgument(0);
             $block = $layout->get($id);
-            $p = Utils::shorten($block->options['template']);
+            $p = isset($block->options['template'])
+                ? Utils::shorten($block->options['template'])
+                : 'no template';
             if ($verbose) echo "\n".'<!-- begin ' . $block->id . ' ' . $p . ' -->';
             if ($debug) echo '<c_block_node id="'.$id.'">';
         });
@@ -32,7 +34,9 @@ class Transforms extends BaseTransforms{
         $this->layout->on('after_block_render', function (GenericEvent $event) use($layout, $verbose, $debug) {
             $id = $event->getArgument(0);
             $block = $layout->get($id);
-            $p = Utils::shorten($block->options['template']);
+            $p = isset($block->options['template'])
+                ? Utils::shorten($block->options['template'])
+                : 'no template';
             if ($debug) echo '</'.'c_block_node>';
             if ($verbose) echo "\n".'<!-- end ' . $block->id . ' ' . $p . ' -->';
         });
