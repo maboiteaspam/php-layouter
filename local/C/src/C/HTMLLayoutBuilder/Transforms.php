@@ -16,28 +16,15 @@ class Transforms extends BaseTransforms{
     }
 
     public function createBase($options=[]){
-        $options = array_merge([
+        $this->setTemplate('root', __DIR__.'/templates/html.php');
+        $this->set('html_begin', ['body'=>'<html>']);
+        $this->setTemplate('head', __DIR__.'/templates/head.php');
+        $this->set('body', array_merge([
             'options'=>[
                 'template'=> __DIR__ . '/templates/1-column.php'
             ],
-        ], $options);
-        $this->layout->setRoot([
-            'options'=> [
-                'template'=>__DIR__.'/templates/html.php',
-            ],
-        ]);
-        $this->set('html_begin', ['body'=>'<html>']);
-        $this->set('head', [
-            'options'=> [
-                'template' => __DIR__.'/templates/head.php',
-            ],
-        ]);
-        $this->set('body', $options);
-        $this->set('footer', [
-            'options'=> [
-                'template' => __DIR__.'/templates/footer.php',
-            ],
-        ]);
+        ], $options));
+        $this->setTemplate('footer', __DIR__.'/templates/footer.php');
         $this->set('script_bottom', ['body'=>'']);
         $this->set('html_end', ['body'=>'</html>']);
         return $this;

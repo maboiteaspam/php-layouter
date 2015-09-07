@@ -3,7 +3,6 @@
 namespace C\Blog;
 
 use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
-use C\Misc\Utils;
 use C\LayoutBuilder\Layout\Layout;
 
 class Transforms extends HTMLTransforms{
@@ -16,83 +15,57 @@ class Transforms extends HTMLTransforms{
         return new Transforms($layout);
     }
 
-    function home ($options=[]) {
-        $options = Utils::mergeMultiBlockOptions($options, [
-            'body_content'=>[
-                'options'=>[
-                    'template'=>__DIR__.'/templates/entry-list.php',
+    function home () {
+        $this->setTemplate('body_content', __DIR__.'/templates/entry-list.php');
+        $this->updateData('body_content', [
+            'entries'=>[
+                [
+                    'id'=>0,
+                    'date'=> date('Y-m-d H:i:s'),
+                    'author'=>'some',
+                    'img_alt'=>'some',
+                    'title'=>'some',
+                    'content'=>'blog entry',
+                    'comments'=>[],
                 ],
-                'data'=>[
-                    'entries'=>[
-                        [
-                            'id'=>0,
-                            'date'=> date('Y-m-d H:i:s'),
-                            'author'=>'some',
-                            'img_alt'=>'some',
-                            'title'=>'some',
-                            'content'=>'blog entry',
-                            'comments'=>[],
-                        ],
-                        [
-                            'id'=>0,
-                            'date'=> date('Y-m-d H:i:s'),
-                            'author'=>'some',
-                            'img_alt'=>'some',
-                            'title'=>'some',
-                            'content'=>'blog entry',
-                            'comments'=>[],
-                        ],
-                    ],
-                ],
-            ],
-            'body_footer'=>[
-                'options'=>[
-                    'template'=>__DIR__.'/templates/footer.php',
-                ],
-                'data'=>[
-                    'year'=> date('Y'),
-                ],
-            ],
-        ]);
-        $this->layout->setMultiple($options);
-        return $this;
-    }
-    function detail ($options=[]) {
-        $options = Utils::mergeMultiBlockOptions($options, [
-            'body_content'=>[
-                'options'=>[
-                    'template'=>__DIR__.'/templates/entry-detail.php',
-                ],
-                'data'=>[
-                    'entry'=>[
-                        'id'=>0,
-                        'date'=> date('Y-m-d H:i:s'),
-                        'author'=>'some',
-                        'img_alt'=>'some',
-                        'title'=>'some',
-                        'content'=>'blog entry',
-                        'comments'=>[],
-                    ],
-                ],
-            ],
-            'blog_detail_comments'=>[
-                'options'=>[
-                    'template'=>__DIR__.'/templates/entry-comments.php',
-                ],
-                'data'=>[
+                [
+                    'id'=>0,
+                    'date'=> date('Y-m-d H:i:s'),
+                    'author'=>'some',
+                    'img_alt'=>'some',
+                    'title'=>'some',
+                    'content'=>'blog entry',
                     'comments'=>[],
                 ],
             ],
-            'body_footer'=>[
-                'options'=>[
-                    'template'=>__DIR__.'/templates/footer.php',
-                ],
-                'data'=>[
-                    'year'=> date('Y'),
-                ],
+        ]);
+        $this->setTemplate('body_footer', __DIR__.'/templates/footer.php');
+        $this->updateData('body_footer', [
+            'year'=> date('Y'),
+        ]);
+        return $this;
+    }
+    function detail () {
+        $this->setTemplate('body_content', __DIR__.'/templates/entry-detail.php');
+        $this->updateData('body_content', [
+            'entry'=>[
+                'id'=>0,
+                'date'=> date('Y-m-d H:i:s'),
+                'author'=>'some',
+                'img_alt'=>'some',
+                'title'=>'some',
+                'content'=>'blog entry',
+                'comments'=>[],
             ],
         ]);
-        $this->layout->setMultiple($options);
+        $this->setTemplate('blog_detail_comments', __DIR__.'/templates/entry-comments.php');
+        $this->updateData('blog_detail_comments', [
+            'comments'=> [],
+        ]);
+        $this->setTemplate('body_footer', __DIR__.'/templates/footer.php');
+        $this->updateData('body_footer', [
+            'year'=> date('Y'),
+        ]);
         return $this;
     }
 }
