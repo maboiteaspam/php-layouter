@@ -59,7 +59,12 @@ class Transforms extends BaseTransforms{
     }
 
     public function applyAssets($options=[]){
-        $options = array_merge(['documentRoot'=>'www/', 'basePath'=>'assets/'], $options);
+        $options = array_merge([
+            'projectPath'   => getcwd(),
+            'documentRoot'  => 'www/',
+            'basePath'      => 'assets/',
+            'concat'        => true
+        ], $options);
 
             $files = [];
             foreach ($this->layout->registry->blocks as $block) {
@@ -76,36 +81,67 @@ class Transforms extends BaseTransforms{
                 $basePath = $options['basePath'];
                 $assetsPath = $documentRoot.$basePath;
 
+                if (!is_dir($assetsPath)) mkdir($assetsPath, 0700, true);
+
                 foreach ($files as $target=>$assets) {
                     $targetBlock = $this->getOrCreate($target);
+                    $filesContent = [];
 
                     if ($targetBlock) {
                         preg_match("/(css|js)$/", $target, $matches);
                         $ext = $matches[1];
-                        $h = Utils::fileToEtag(array_merge($assets, [__FILE__]));
-
-                        $assetName = $target.'-'.sha1($h).'.'.$ext;
-                        $assetFile = $assetsPath . $assetName;
-                        $assetUrl = $basePath . $assetName;
-
-                        if (!file_exists($assetFile)) {
-                            $c = '';
-                            foreach ($assets as $asset) {
-                                $fc = file_get_contents($asset);
-                                if ($ext==='js') $fc = ';'.$fc.';';
-                                $c .= $fc."\n";
-                            }
-                            if (!is_dir($assetsPath)) mkdir($assetsPath, 0700, true);
-                            file_put_contents($assetFile, $c);
-                        }
 
                         $targetBlock->body .= "\n";
-                        if ($ext==='js')
-                            $targetBlock->body .= sprintf(
-                                '<script src="/%s" type="text/javascript"></script>', $assetUrl);
-                        else
-                            $targetBlock->body .= sprintf(
-                                '<link href="/%s" rel="stylesheet" />', $assetUrl);
+
+                        if ($options['concat']===true) {
+
+                            $h = Utils::fileToEtag(array_merge($assets, [__FILE__]));
+
+                            $concatAssetName = $target.'-'.sha1($h).'.'.$ext;
+                            $concatAssetFile = $assetsPath . $concatAssetName;
+                            $concatAssetUrl = $basePath . $concatAssetName;
+
+                            if (!file_exists($concatAssetFile)) {
+                                foreach ($assets as $asset) {
+                                    $filesContent[$asset] = file_get_contents($asset);
+                                }
+                                if ($ext==='js') $c = ";\n" . join(";\n", $filesContent) . "\n";
+                                else $c = "" . join("\n", $filesContent) . "\n";
+                                file_put_contents($concatAssetFile, $c);
+                            }
+
+                            if ($ext==='js')
+                                $targetBlock->body .= sprintf(
+                                    '<script src="/%s" type="text/javascript"></script>', $concatAssetUrl);
+                            else
+                                $targetBlock->body .= sprintf(
+                                    '<link href="/%s" rel="stylesheet" />', $concatAssetUrl);
+
+                        } else {
+
+                            foreach ($assets as $asset) {
+                                $t = Utils::relativePath($asset, $options['projectPath']);
+                                if (substr($t,0,2)==='./') $t = substr($t,2);
+                                $assetName = str_replace('/', '_', $t);
+                                $assetFile = $assetsPath . $assetName;
+                                $assetUrl = $basePath . $assetName;
+
+                                if (!file_exists($assetFile)) {
+                                    if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
+                                    copy($asset, $assetFile);
+                                }
+
+                                if ($ext==='js')
+                                    $targetBlock->body .= sprintf(
+                                        '<script src="/%s" type="text/javascript"></script>', $assetUrl);
+                                else
+                                    $targetBlock->body .= sprintf(
+                                        '<link href="/%s" rel="stylesheet" />', $assetUrl);
+
+                                $targetBlock->body .= "\n";
+                            }
+
+                        }
 
                     }
                 }

@@ -7,7 +7,7 @@ class Utils{
     public static function fileToEtag ($file) {
         if (is_string($file)) $file = [$file];
         $h = '-';
-        foreach($file as $i=>$f){
+        foreach ($file as $i=>$f) {
             $h .= $i . '-';
             $h .= $f . '-';
             if (file_exists($f)) {
@@ -53,5 +53,56 @@ class Utils{
         }
         return $options;
     }
-}
 
+
+    /**
+     * @param $dest
+     * @param string $root
+     * @param string $dir_sep
+     * @return string
+     */
+    public static function relativePath($dest, $root = '', $dir_sep = DIRECTORY_SEPARATOR)
+    {
+        $root = explode($dir_sep, $root);
+        $dest = explode($dir_sep, $dest);
+        $path = '.';
+        $fix = '';
+        $diff = 0;
+        for($i = -1; ++$i < max(($rC = count($root)), ($dC = count($dest)));)
+        {
+            if(isset($root[$i]) and isset($dest[$i]))
+            {
+                if($diff)
+                {
+                    $path .= $dir_sep. '..';
+                    $fix .= $dir_sep. $dest[$i];
+                    continue;
+                }
+                if($root[$i] != $dest[$i])
+                {
+                    $diff = 1;
+                    $path .= $dir_sep. '..';
+                    $fix .= $dir_sep. $dest[$i];
+                    continue;
+                }
+            }
+            elseif(!isset($root[$i]) and isset($dest[$i]))
+            {
+                for($j = $i-1; ++$j < $dC;)
+                {
+                    $fix .= $dir_sep. $dest[$j];
+                }
+                break;
+            }
+            elseif(isset($root[$i]) and !isset($dest[$i]))
+            {
+                for($j = $i-1; ++$j < $rC;)
+                {
+                    $fix = $dir_sep. '..'. $fix;
+                }
+                break;
+            }
+        }
+        return $path. $fix;
+    }
+}
