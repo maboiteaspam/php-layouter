@@ -24,6 +24,16 @@ class Transforms{
         return new Transforms($layout);
     }
 
+    /**
+     * stub method
+     *
+     * @param Transforms $t
+     * @return $this
+     */
+    public function then(Transforms $t) {
+        return $this;
+    }
+
     public function set($id, $options){
         $this->layout->set($id, $options);
         return $this;
@@ -48,13 +58,14 @@ class Transforms{
         return $this;
     }
 
-    public function updateAssets($id, $assets=[]){
+    public function updateAssets($id, $assets=[], $first=false){
         $block = $this->layout->getOrCreate($id);
         foreach($assets as $name => $files) {
             if(!isset($block->assets[$name]))
                 $block->assets[$name] = [];
-            $block->assets[$name] =
-                array_merge($block->assets[$name], $files);
+            $block->assets[$name] = $first
+                ? array_merge($files, $block->assets[$name])
+                : array_merge($block->assets[$name], $files);
         }
         return $this;
     }

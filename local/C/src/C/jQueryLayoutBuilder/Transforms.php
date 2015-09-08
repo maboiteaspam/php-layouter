@@ -20,7 +20,7 @@ class Transforms extends HTMLTransforms{
         ], $options);
         $this->updateAssets('body', [
             $target=>[$options['jquery']],
-        ]);
+        ], true);
         return $this;
     }
 

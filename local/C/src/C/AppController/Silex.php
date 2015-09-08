@@ -44,6 +44,7 @@ class Silex{
         $etag = $layout->getEtag();
         $response->setETag($etag);
         $response->setPublic(true);
+        $response->setMaxAge(0);
 
         if ($response->isNotModified($request)) {
             return $response;

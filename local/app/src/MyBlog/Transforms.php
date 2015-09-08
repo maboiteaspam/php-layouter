@@ -3,9 +3,14 @@
 namespace MyBlog;
 
 use C\LayoutBuilder\Layout\Layout;
+
+use C\Blog\Transforms as BlogLayout;
+
 use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
 
-class Transforms extends HTMLTransforms{
+use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
+
+class Transforms extends BlogLayout{
 
     /**
      * @param Layout $layout
@@ -16,6 +21,7 @@ class Transforms extends HTMLTransforms{
     }
 
     public function baseTemplate () {
+        parent::baseTemplate();
         $this->setTemplate('body_top', __DIR__.'/templates/top.php');
         $this->updateData('body_top', [
             'logo'=> '',
@@ -32,10 +38,18 @@ class Transforms extends HTMLTransforms{
         $this->insertAfter('body_footer', 'extra_footer', [
             'body'=>'some'
         ]);
+        jQueryTransforms::transform($this->layout)->inject('page_footer_js');
+        return $this;
+    }
+
+    public function finalize ($options=[]) {
+        HTMLTransforms::transform($this->layout)
+            ->applyAssets($options)->updateEtags();
         return $this;
     }
 
     public function home ($entries, $latestComments) {
+        parent::home();
         $this->updateBlock('body_content',
             ['from'      => 'home'],
             ['entries'   => $entries]
@@ -49,7 +63,7 @@ class Transforms extends HTMLTransforms{
     }
 
     public function detail ($entry, $comments, $latestComments) {
-
+        parent::detail();
         $this->updateData('body_content', [
             'entry'  => $entry,
         ]);

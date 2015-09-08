@@ -11,19 +11,19 @@ class Transforms extends BaseTransforms{
      * @param Layout $layout
      * @return Transforms
      */
-    public static function transform(Layout $layout) {
+    public static function transform (Layout $layout) {
         return new Transforms($layout);
     }
 
-    public function createBase($options=[]){
+    public function baseTemplate () {
         $this->setTemplate('root', __DIR__.'/templates/html.php');
         $this->set('html_begin', ['body'=>'<html>']);
         $this->setTemplate('head', __DIR__.'/templates/head.php');
-        $this->set('body', array_merge([
+        $this->set('body', [
             'options'=>[
                 'template'=> __DIR__ . '/templates/1-column.php'
             ],
-        ], $options));
+        ]);
         $this->setTemplate('footer', __DIR__.'/templates/footer.php');
         $this->set('script_bottom', ['body'=>'']);
         $this->set('html_end', ['body'=>'</html>']);
