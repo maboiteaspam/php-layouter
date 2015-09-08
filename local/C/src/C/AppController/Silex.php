@@ -41,10 +41,9 @@ class Silex{
     public static function respondLayout(Request $request, Layout $layout) {
         $response = new Response();
 
-        $etag = $layout->getEtag();
-        $response->setETag($etag);
-        $response->setPublic(true);
-        $response->setMaxAge(0);
+        $response->setETag($layout->getEtag());
+        $response->mustRevalidate(true);
+        $response->setPrivate(true);
 
         if ($response->isNotModified($request)) {
             return $response;

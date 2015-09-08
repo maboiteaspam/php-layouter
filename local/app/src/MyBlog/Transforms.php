@@ -41,12 +41,6 @@ class Transforms extends BlogLayout{
         return $this;
     }
 
-    public function finalize ($options=[]) {
-        HTMLTransforms::transform($this->layout)
-            ->applyAssets($options)->updateEtags();
-        return $this;
-    }
-
     public function home ($entries, $latestComments) {
         parent::home();
         $this->updateBlock('body_content',

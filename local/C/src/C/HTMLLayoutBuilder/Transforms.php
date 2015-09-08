@@ -4,6 +4,7 @@ namespace C\HTMLLayoutBuilder;
 use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
 use C\LayoutBuilder\Layout\Layout;
+use C\Data\TaggedData;
 
 class Transforms extends BaseTransforms{
 
@@ -104,8 +105,14 @@ class Transforms extends BaseTransforms{
                                 if (!file_exists($assetFile)) {
                                     if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
                                     copy($asset, $assetFile);
+                                    touch($assetFile, filemtime($asset));
+                                    $assetUrl .= "?t=".filemtime($asset);
                                 } else if (filemtime($assetFile)!==filemtime($asset)) {
                                     copy($asset, $assetFile);
+                                    touch($assetFile, filemtime($asset));
+                                    $assetUrl .= "?t=".filemtime($asset);
+                                } else {
+                                    $assetUrl .= "?t=".filemtime($assetFile);
                                 }
 
                                 if ($ext==='js')
@@ -124,6 +131,35 @@ class Transforms extends BaseTransforms{
                 }
             }
         }
+        return $this;
+    }
+
+
+    public function updateEtags(){
+        foreach($this->layout->registry->blocks as $block) {
+            $h = '';
+            $h .= $block->id . '-';
+            if (isset($block->options['template'])) {
+                $h .= Utils::fileToEtag($block->options['template']);
+            }
+            foreach($block->assets as $assets) {
+                $h .= Utils::fileToEtag($assets);
+            }
+            array_walk_recursive($block->data, function($data) use(&$h){
+                if ($data instanceof TaggedData) {
+                    $h .= serialize($data->etag());
+                } else {
+                    $h .= serialize($data);
+                }
+            });
+            $block->meta['etag'] = sha1($h);
+        }
+        return $this;
+    }
+
+
+    public function finalize ($options=[]) {
+        $this->applyAssets($options)->updateEtags();
         return $this;
     }
 }
