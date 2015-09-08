@@ -26,7 +26,7 @@ class Controller extends BaseController{
                     Eloquent::delayed('blog_entry')->take(20)->orderBy('created_at', 'DESC')->all(),
                     Eloquent::delayed('blog_comment')->take(5)->orderBy('created_at', 'DESC')->all()
                 )->then(
-                    debugTransforms::transform($this->layout)->debug()
+                    debugTransforms::transform($this->layout)->debug(__CLASS__)
                 )
                 ->finalize([
                     'concat'=>false,
@@ -53,7 +53,7 @@ class Controller extends BaseController{
                         'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
                     ])
                 )->then(
-                    debugTransforms::transform($this->layout)->debug()
+                    debugTransforms::transform($this->layout)->debug(__CLASS__)
                 )
                 ->finalize([
                     'concat'=>false,

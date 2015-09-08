@@ -61,8 +61,7 @@ class Utils{
      * @param string $dir_sep
      * @return string
      */
-    public static function relativePath($dest, $root = '', $dir_sep = DIRECTORY_SEPARATOR)
-    {
+    public static function relativePath($dest, $root = '', $dir_sep = DIRECTORY_SEPARATOR) {
         $root = explode($dir_sep, $root);
         $dest = explode($dir_sep, $dest);
         $path = '.';
@@ -104,5 +103,39 @@ class Utils{
             }
         }
         return $path. $fix;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getStackTrace () {
+        $ex = new \Exception('An exception to generate a trace');
+        $stack = [];
+        foreach($ex->getTrace() as $trace){
+            unset($trace['args']);
+            $stack[] = (array)$trace;
+        }
+        return $stack;
+    }
+    /**
+     * @param array $stack
+     * @param $classType
+     * @return array|null
+     */
+    public static function findCaller ($stack, $classType) {
+        $caller = null;
+        $lineInfo = null;
+        foreach($stack as $trace) {
+            if (isset($trace['class'])) {
+                if ( is_subclass_of($trace['class'], $classType) || $trace['class']===$classType) {
+                    $caller = $trace;
+                    if (!isset($caller['line']) && $lineInfo) {
+                        $caller = array_merge($lineInfo, $caller);
+                    }
+                }
+            }
+            $lineInfo = $trace;
+        }
+        return $caller;
     }
 }

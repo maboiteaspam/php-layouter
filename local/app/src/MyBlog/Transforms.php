@@ -7,7 +7,6 @@ use C\LayoutBuilder\Layout\Layout;
 use C\Blog\Transforms as BlogLayout;
 
 use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
-
 use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 
 class Transforms extends BlogLayout{
@@ -38,7 +37,7 @@ class Transforms extends BlogLayout{
         $this->insertAfter('body_footer', 'extra_footer', [
             'body'=>'some'
         ]);
-        jQueryTransforms::transform($this->layout)->inject('page_footer_js');
+        jQueryTransforms::transform($this->layout)->inject();
         return $this;
     }
 

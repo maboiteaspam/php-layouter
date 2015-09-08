@@ -11,7 +11,6 @@ class Block{
     public $resolved = false;
 
     public $options = [
-        'template'  => false,
     ];
     public $data = [];
     public $assets = [
@@ -20,6 +19,7 @@ class Block{
         'from' => false,
         'etag' => '',
     ];
+    public $stack = [];
 
 
     public function __construct($id) {
@@ -28,7 +28,7 @@ class Block{
 
     public function resolve ($helpers){
         $block = $this;
-        if ($block && !$block->resolved && $block->options['template']) {
+        if ($block && !$block->resolved && isset($block->options['template']) && $block->options['template']) {
             $fn = $block->options['template'];
             if(!is_callable($block->options['template'])) {
                 $fn = function ($helpers, $block) {

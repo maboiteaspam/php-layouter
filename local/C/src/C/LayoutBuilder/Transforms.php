@@ -100,7 +100,7 @@ class Transforms{
         foreach($this->layout->registry->blocks as $block) {
             $h = '';
             $h .= $block->id . '-';
-            if ($block->options['template']) {
+            if (isset($block->options['template'])) {
                 $h .= Utils::fileToEtag($block->options['template']);
             }
             foreach($block->assets as $assets) {

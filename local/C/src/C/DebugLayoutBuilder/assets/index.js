@@ -1,20 +1,20 @@
 (function debugLayout () {
 
-  $("c_block_node").each(function(k, v){
-
-    if (!$(v).attr('id').match(/root/) ){
-      $(v).off('mouseover mouseout');
-      $(v).on('mouseover', function(ev){
-        ev.stopImmediatePropagation();
-        $(this).children().addClass('debug')
-      });
-      $(v).on('mouseout', function(ev){
-        ev.stopImmediatePropagation();
-        $(this).children().removeClass('debug')
-      });
-      $(v).on('mouseout', function(){
-      });
+  var setTooltipster = function(whatever, el){
+    el = $(el);
+    if (el.is('c_block_node[id]') && !el.attr('id').match(/root/) ){
+      el.children().attr('title', el.attr('caller')).tooltipster({
+        onlyOne: true,
+        functionBefore: function (o,continueTooltip) {
+          el.children().addClass('debug');
+          continueTooltip();
+        },
+        functionAfter: function () {
+          el.children().removeClass('debug');
+        }
+      })
     }
-  });
-
+  }
+  $("c_block_node").each(setTooltipster);
+  $(document).on('c_block_loaded', setTooltipster)
 })();

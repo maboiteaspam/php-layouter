@@ -14,13 +14,29 @@ class Transforms extends HTMLTransforms{
         return new Transforms($layout);
     }
 
-    public function inject($target, $options=[]){
+    public function inject($options=[]){
         $options = array_merge([
-            'jquery'=>__DIR__ . '/assets/jquery-2.1.3.min.js'
+            'jquery'=>__DIR__ . '/assets/jquery-2.1.3.min.js',
+            'target'=>'page_footer_js',
         ], $options);
         $this->updateAssets('body', [
-            $target=>[$options['jquery']],
+            $options['target']=>[$options['jquery']],
         ], true);
+        return $this;
+    }
+
+    public function tooltipster($options=[]){
+        $options = array_merge([
+            'js'=>__DIR__ . '/assets/tooltipster-master/js/jquery.tooltipster.min.js',
+            'css'=>__DIR__ . '/assets/tooltipster-master/css/tooltipster.css',
+            'theme'=>'',
+            'css_target'=>'page_head_css',
+            'js_target'=>'page_footer_js',
+        ], $options);
+        $this->updateAssets('body', [
+            $options['css_target']=>[$options['css'], $options['theme']],
+            $options['js_target']=>[$options['js']],
+        ]);
         return $this;
     }
 
@@ -35,6 +51,7 @@ class Transforms extends HTMLTransforms{
                 $this->updateData($target.'_ajax', [
                     'url'   => $options['url'],
                     'id'    => $id,
+                    'target'=> $target,
                 ]);
                 $layout = $this->layout;
                 $this->layout->on('after_render_page_footer_js', function () use($layout, $target) {

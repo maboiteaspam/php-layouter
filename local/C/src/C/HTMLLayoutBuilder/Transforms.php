@@ -75,7 +75,9 @@ class Transforms extends BaseTransforms{
 
                         if (!file_exists($concatAssetFile)) {
                             foreach ($assets as $asset) {
-                                $filesContent[$asset] = file_get_contents($asset);
+                                if (file_exists($asset)) {
+                                    $filesContent[$asset] = file_get_contents($asset);
+                                }
                             }
                             if ($ext==='js') $c = ";\n" . join(";\n", $filesContent) . "\n";
                             else $c = "" . join("\n", $filesContent) . "\n";
@@ -92,27 +94,29 @@ class Transforms extends BaseTransforms{
                     } else {
 
                         foreach ($assets as $asset) {
-                            $t = Utils::relativePath($asset, $options['projectPath']);
-                            if (substr($t,0,2)==='./') $t = substr($t,2);
-                            $assetName = str_replace('/', '_', $t);
-                            $assetFile = $assetsPath . $assetName;
-                            $assetUrl = $basePath . $assetName;
+                            if (file_exists($asset)) {
+                                $t = Utils::relativePath($asset, $options['projectPath']);
+                                if (substr($t,0,2)==='./') $t = substr($t,2);
+                                $assetName = str_replace('/', '_', $t);
+                                $assetFile = $assetsPath . $assetName;
+                                $assetUrl = $basePath . $assetName;
 
-                            if (!file_exists($assetFile)) {
-                                if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
-                                copy($asset, $assetFile);
-                            } else if (filemtime($assetFile)!==filemtime($asset)) {
-                                copy($asset, $assetFile);
+                                if (!file_exists($assetFile)) {
+                                    if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
+                                    copy($asset, $assetFile);
+                                } else if (filemtime($assetFile)!==filemtime($asset)) {
+                                    copy($asset, $assetFile);
+                                }
+
+                                if ($ext==='js')
+                                    $targetBlock->body .= sprintf(
+                                        '<script src="/%s" type="text/javascript"></script>', $assetUrl);
+                                else
+                                    $targetBlock->body .= sprintf(
+                                        '<link href="/%s" rel="stylesheet" />', $assetUrl);
+
+                                $targetBlock->body .= "\n";
                             }
-
-                            if ($ext==='js')
-                                $targetBlock->body .= sprintf(
-                                    '<script src="/%s" type="text/javascript"></script>', $assetUrl);
-                            else
-                                $targetBlock->body .= sprintf(
-                                    '<link href="/%s" rel="stylesheet" />', $assetUrl);
-
-                            $targetBlock->body .= "\n";
                         }
 
                     }

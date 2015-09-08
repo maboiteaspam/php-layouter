@@ -104,6 +104,9 @@ class Layout{
             if (!$block) {
                 $block = new Block($id);
                 $this->registry->set($id, $block);
+                if ($this->config['debug']) {
+                    $block->stack = Utils::getStackTrace();
+                }
             }
         } else {
             $block = $id;
