@@ -3,16 +3,15 @@
 namespace C\Blog;
 
 use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
-use C\LayoutBuilder\Layout\Layout;
 
 class Transforms extends HTMLTransforms{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout) {
-        return new Transforms($layout);
+    public static function transform ($options) {
+        return new Transforms($options);
     }
 
     function home () {

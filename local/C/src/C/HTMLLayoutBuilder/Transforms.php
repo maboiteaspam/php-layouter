@@ -3,17 +3,16 @@ namespace C\HTMLLayoutBuilder;
 
 use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
-use C\LayoutBuilder\Layout\Layout;
 use C\Data\TaggedData;
 
 class Transforms extends BaseTransforms{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform (Layout $layout) {
-        return new Transforms($layout);
+    public static function transform ($options) {
+        return new Transforms($options);
     }
 
     public function baseTemplate () {

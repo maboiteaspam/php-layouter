@@ -1,7 +1,6 @@
 <?php
 namespace C\AppController;
 
-use \C\LayoutBuilder\Layout\Layout;
 use \Silex\Application;
 use \Silex\Provider\HttpCacheServiceProvider;
 use \Silex\Provider\UrlGeneratorServiceProvider;
@@ -21,7 +20,7 @@ class Silex{
         return $app;
     }
 
-    public function getHelpers ($app) {
+    public function getHelpers (Application $app) {
         return [
             'urlFor'=> function ($name, $options=[], $only=[]) use($app) {
                 $options = Utils::arrayPick($options, $only);
@@ -38,17 +37,17 @@ class Silex{
         ];
     }
 
-    public static function respondLayout(Request $request, Layout $layout) {
+    public static function respond(Application $app, Request $request) {
         $response = new Response();
 
-        $response->setETag($layout->getEtag());
+        $response->setETag($app['layout']->getEtag());
         $response->mustRevalidate(true);
         $response->setPrivate(true);
 
         if ($response->isNotModified($request)) {
             return $response;
         }
-        $response->setContent($layout->getContent($layout->block));
+        $response->setContent($app['layout']->getContent($app['layout']->block));
         return $response;
     }
 }

@@ -4,10 +4,10 @@ namespace Blog;
 
 use C\AppController\Silex as AppController;
 
-use C\AppController\Controller as BaseController;
 use MyBlog\Transforms as BlogLayout;
 
 use Symfony\Component\HttpFoundation\Request;
+use Silex\Application;
 
 
 function getEntries () {
@@ -30,47 +30,38 @@ function getComments () {
 }
 
 
-class Controller extends BaseController{
+class Controller{
 
     public function entryList() {
-        $layout = $this->layout;
-        return function (Request $request) use($layout) {
-
-            BlogLayout::transform($layout)
+        return function (Application $app, Request $request) {
+            BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
                     'entries'=>getEntries()
                 ]);
-
-            return AppController::respondLayout($request, $layout);
+            return AppController::respond($app, $request);
         };
     }
 
     public function entryDetail() {
-        $layout = $this->layout;
-        return function (Request $request) use($layout) {
-
-            BlogLayout::transform($layout)
+        return function (Application $app, Request $request) {
+            BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
                     'entry'=>getEntries()[0]
                 ]);
-
-            return AppController::respondLayout($request, $layout);
+            return AppController::respond($app, $request);
         };
     }
 
     public function entryComments() {
-        $layout = $this->layout;
-        return function (Request $request) use($layout) {
-
-            BlogLayout::transform($layout)
+        return function (Application $app, Request $request) {
+            BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-comments.php')
                 ->setTemplate('root', [
                     'comments'=>getComments()
                 ]);
-
-            return AppController::respondLayout($request, $layout);
+            return AppController::respond($app, $request);
         };
     }
 

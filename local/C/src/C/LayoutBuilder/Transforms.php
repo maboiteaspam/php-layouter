@@ -1,25 +1,27 @@
 <?php
 namespace C\LayoutBuilder;
 
-use C\LayoutBuilder\Layout\Layout;
-
 class Transforms{
 
+    /**
+     * @var \C\LayoutBuilder\Layout\Layout
+     */
     public $layout;
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      */
-    public function __construct(Layout $layout) {
-        $this->layout = $layout;
+    public function __construct($options) {
+        $this->layout = $options['layout'];
+        $this->options = $options;
     }
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout) {
-        return new Transforms($layout);
+    public static function transform($options) {
+        return new Transforms($options);
     }
 
     /**

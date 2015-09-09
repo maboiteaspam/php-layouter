@@ -7,11 +7,12 @@ use C\AppController\Silex as AppController;
 use MyBlog\Controller as BlogController;
 
 $AppController = new AppController();
+
 $app = $AppController->getApp([
     'debug'=>true,
 ]);
 
-$layout = new Layout([
+$app['layout'] = new Layout([
     'debug'         => $app['debug'],
     'dispatcher'    => $app['dispatcher'],
     'helpers'       => $AppController->getHelpers($app),
@@ -68,7 +69,7 @@ foreach ($fixtureEntries as $entry) {
 
 
 
-$blog = new BlogController($app, $layout);
+$blog = new BlogController();
 
 $app->get( '/',
     $blog->home()

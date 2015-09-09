@@ -3,18 +3,17 @@ namespace C\DebugLayoutBuilder;
 
 use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
-use C\LayoutBuilder\Layout\Layout;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 
 class Transforms extends BaseTransforms{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout) {
-        return new Transforms($layout);
+    public static function transform ($options) {
+        return new Transforms($options);
     }
 
     public function debug ($fromClass=""){
@@ -68,7 +67,7 @@ class Transforms extends BaseTransforms{
             if ($verbose) echo "\n".'<!-- end ' . $id . ' ' . $p . ' -->';
         });
 
-        jQueryTransforms::transform($this->layout)->tooltipster();
+        jQueryTransforms::transform($this->options)->tooltipster();
         $this->updateAssets('body', [
             'template_head_css'=>[
                 __DIR__ . '/assets/index.css'

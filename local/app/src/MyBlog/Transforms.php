@@ -2,21 +2,19 @@
 
 namespace MyBlog;
 
-use C\LayoutBuilder\Layout\Layout;
 
 use C\Blog\Transforms as BlogLayout;
 
-use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
 use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 
 class Transforms extends BlogLayout{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout) {
-        return new Transforms($layout);
+    public static function transform ($options) {
+        return new Transforms($options);
     }
 
     public function baseTemplate () {
@@ -37,7 +35,7 @@ class Transforms extends BlogLayout{
         $this->insertAfter('body_footer', 'extra_footer', [
             'body'=>'some'
         ]);
-        jQueryTransforms::transform($this->layout)->inject();
+        jQueryTransforms::transform($this->options)->inject();
         return $this;
     }
 
