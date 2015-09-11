@@ -1,9 +1,9 @@
 <?php
 require 'vendor/autoload.php';
 
-use C\LayoutBuilder\Layout\Layout;
 
-use C\AppController\Silex as AppController;
+use C\Foundation\AppController;
+use C\Blog\Schema as BlogSchema;
 use MyBlog\Controller as BlogController;
 
 $AppController = new AppController();
@@ -11,63 +11,38 @@ $AppController = new AppController();
 $app = $AppController->getApp([
     'debug'=>true,
 ]);
-
-$app['layout'] = new Layout([
-    'debug'         => $app['debug'],
-    'dispatcher'    => $app['dispatcher'],
-    'helpers'       => $AppController->getHelpers($app),
+$layout = $AppController->getLayout([
     'imgUrls'       => [
-        'blog_detail' => '/images/blog/detail/:id.jpg',
-        'blog_list' => '/images/blog/list/:id.jpg',
-    ],
+        'blog_detail'   => '/images/blog/detail/:id.jpg',
+        'blog_list'     => '/images/blog/list/:id.jpg',
+    ]
 ]);
 
-
-use Illuminate\Database\Capsule\Manager as Capsule;
-$capsule = new Capsule;
-$capsule->addConnection([
+$database = __DIR__.'/database.sqlite';
+$isNewDb = !file_exists($database);
+touch($database);
+$capsule = $AppController->getDatabase([
     'driver'   => 'sqlite',
-    'database' => ':memory:',
+    'database' => $database,
     'prefix'   => '',
     'charset'   => 'utf8',
     'collation' => 'utf8_unicode_ci',
-]);
-use Illuminate\Events\Dispatcher;
-use Illuminate\Container\Container;
-$capsule->setEventDispatcher(new Dispatcher(new Container));
-$capsule->setAsGlobal();
-$capsule->bootEloquent();
-$builder = $capsule->getConnection()->getSchemaBuilder();
-$builder->create('blog_entry', function($table) {
-    $table->increments('id');
-    $table->string('title');
-    $table->string('author');
-    $table->string('img_alt');
-    $table->string('content');
-    $table->enum('status', array('VISIBLE', 'HIDDEN'));
-    $table->timestamps();
-});
-$builder->create('blog_comment', function($table) {
-    $table->increments('id');
-    $table->string('author');
-    $table->string('content');
-    $table->enum('status', array('VISIBLE', 'HIDDEN'));
-    $table->timestamps();
-    $table->integer('blog_entry_id');
-});
 
-$fixtureEntries = include(__DIR__ . '/local/app/src/MyBlog/fixtures/blog-entries.php');
-foreach ($fixtureEntries as $entry) {
-    $comments = $entry['comments'];
-    unset($entry['comments']);
-    $id = Capsule::table('blog_entry')->insertGetId($entry);
-    foreach ($comments as $comment) {
-        $comment['blog_entry_id'] = $id;
-        Capsule::table('blog_comment')->insert($comment);
-    }
+]);
+$app['layout'] = $layout;
+$app['capsule'] = $capsule;
+
+if ($isNewDb) {
+    $blogSchema = new BlogSchema();
+    $blogSchema->setup();
+    $blogSchema->load();
 }
 
-
+$AppController->registerAssetsPaths(getcwd(), 'builtin', [
+    'local/app/src/MyBlog/assets/',
+    'local/C/src/C/DebugLayoutBuilder/assets/',
+    'local/C/src/C/jQueryLayoutBuilder/assets/',
+]);
 
 $blog = new BlogController();
 
@@ -76,11 +51,15 @@ $app->get( '/',
 )->bind ('home');
 
 $app->get( '/blog/{id}',
-    $blog->detail()
+    $blog->detail('blog_entry_add_comment')
 )->bind ('blog_entry');
 
+$app->get( '/blog/{id}/add_comment',
+    $blog->postComment()
+)->bind ('blog_entry_add_comment');
+
 $app->get( '/blog/{id}/blog_detail_comments',
-    $blog->detail()
+    $blog->detail('blog_entry_add_comment')
 )->bind ('blog_entry_detail_comments');
 
 $app->run();

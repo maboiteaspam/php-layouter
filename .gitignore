@@ -1,3 +1,5 @@
+run/
 vendor/
 www/assets/
 composer.phar
+database.sqlite

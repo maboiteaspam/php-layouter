@@ -8,6 +8,8 @@ class Transforms{
      */
     public $layout;
 
+    public $options;
+
     /**
      * @param mixed $options
      */

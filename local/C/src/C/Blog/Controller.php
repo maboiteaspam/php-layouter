@@ -1,14 +1,8 @@
 <?php
 
-namespace Blog;
-
-use C\AppController\Silex as AppController;
+namespace C\Blog;
 
 use MyBlog\Transforms as BlogLayout;
-
-use Symfony\Component\HttpFoundation\Request;
-use Silex\Application;
-
 
 function getEntries () {
     $fixtureEntries = include(__DIR__ . '/fixtures/blog-entries.php');
@@ -21,7 +15,7 @@ function getEntries () {
 }
 function getComments () {
     $comments = [];
-    foreach (getEntryList () as $entry) {
+    foreach (getEntries () as $entry) {
         foreach ($entry['comments'] as $comment) {
             $comments[] = $comment;
         }
@@ -33,35 +27,35 @@ function getComments () {
 class Controller{
 
     public function entryList() {
-        return function (Application $app, Request $request) {
-            BlogLayout::transform($app)
+        return function ($options) {
+            BlogLayout::transform($options)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
                     'entries'=>getEntries()
                 ]);
-            return AppController::respond($app, $request);
+            return $options['layout']->render();
         };
     }
 
     public function entryDetail() {
-        return function (Application $app, Request $request) {
-            BlogLayout::transform($app)
+        return function ($options) {
+            BlogLayout::transform($options)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
                     'entry'=>getEntries()[0]
                 ]);
-            return AppController::respond($app, $request);
+            return $options['layout']->render();
         };
     }
 
     public function entryComments() {
-        return function (Application $app, Request $request) {
-            BlogLayout::transform($app)
+        return function ($options) {
+            BlogLayout::transform($options)
                 ->setTemplate('root', __DIR__.'/templates/entry-comments.php')
                 ->setTemplate('root', [
                     'comments'=>getComments()
                 ]);
-            return AppController::respond($app, $request);
+            return $options['layout']->render();
         };
     }
 

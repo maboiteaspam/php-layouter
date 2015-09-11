@@ -63,6 +63,10 @@ class Layout{
         }
         return $content;
     }
+    public function render (){
+        return $this->getContent($this->block);
+    }
+
     public function displayBlock ($id){
         $this->emit('before_block_render', $id);
         $this->emit('before_render_' . $id);

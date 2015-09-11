@@ -42,15 +42,15 @@ class Block{
                                 $$name = $data;
                             }
                         } else {
-                            throw new \Exception('Forbidden data name block called in block');
+                            throw new \Exception('Forbidden data name "block" called in block');
                         }
                     }
                     if ($helpers) {
                         foreach($helpers as $name => $helper){
                             if ($name!='block') {
-                                $$name = $boundFn = $bcl2 = \Closure::bind($helper, $block);
+                                $$name = $boundFn = $bcl2 = \Closure::bind($helper, $this);
                             } else {
-                                throw new \Exception('Forbidden helper name block called in block');
+                                throw new \Exception('Forbidden helper name "block" called in block');
                             }
                         }
                     }

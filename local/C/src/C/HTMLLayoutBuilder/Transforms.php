@@ -76,7 +76,7 @@ class Transforms extends BaseTransforms{
                         if (!file_exists($concatAssetFile)) {
                             foreach ($assets as $asset) {
                                 if (file_exists($asset)) {
-                                    $filesContent[$asset] = file_get_contents($asset);
+                                    $filesContent[$asset] = $this->readAndMakeAsset($options['projectPath'], $asset);
                                 }
                             }
                             if ($ext==='js') $c = ";\n" . join(";\n", $filesContent) . "\n";
@@ -97,9 +97,9 @@ class Transforms extends BaseTransforms{
                             if (file_exists($asset)) {
                                 $t = Utils::relativePath($asset, $options['projectPath']);
                                 if (substr($t,0,2)==='./') $t = substr($t,2);
-                                $assetName = str_replace('/', '_', $t);
+                                $assetName = $t;
                                 $assetFile = $assetsPath . $assetName;
-                                $assetUrl = $basePath . $assetName;
+                                $assetUrl = $assetName;
 
                                 if (!file_exists($assetFile)) {
                                     if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
@@ -133,6 +133,27 @@ class Transforms extends BaseTransforms{
         return $this;
     }
 
+    public function readAndMakeAsset ($projectPath, $assetFile){
+        $content    = file_get_contents($assetFile);
+        $assetFile  = realpath($assetFile);
+        $assetFile  = substr($assetFile, strlen($projectPath));
+        if (substr($assetFile,-4)==='.css') {
+            $matches = [];
+            preg_match_all('/url\s*\(([^)]+)\)/i', $content, $matches);
+            foreach($matches[1] as $i=>$match){
+                if (substr($match,0,1)==='"' || substr($match,0,1)==="'") {
+                    $match = substr($match, 1, -1);
+                }
+                $content = str_replace($matches[0][$i], "url(".dirname($assetFile)."/$match)", $content);
+                $content = "//$assetFile\n$content";
+            }
+        } else if (substr($assetFile,-3)==='.js') {
+            $content = "(function(modulePath){".$content."})('".dirname($assetFile)."/'');";
+        }
+
+        return $content;
+    }
+
 
     public function updateEtags(){
         foreach($this->layout->registry->blocks as $block) {
@@ -148,7 +169,11 @@ class Transforms extends BaseTransforms{
                 if ($data instanceof TaggedData) {
                     $h .= serialize($data->etag());
                 } else {
-                    $h .= serialize($data);
+                    try{
+                        $h .= serialize($data);
+                    }catch(\Exception $ex){
+
+                    }
                 }
             });
             $block->meta['etag'] = sha1($h);

@@ -12,6 +12,7 @@
     <?php } else { ?>
         No such blog entry !
     <?php } ?>
+    <?php $display('blog_form_comments'); ?>
     <div class="blog-entry-footer">
         <a href="<?php echo $urlFor('home').$urlArgs(); ?>">return to home</a>
     </div>

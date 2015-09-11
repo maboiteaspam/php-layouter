@@ -61,6 +61,10 @@ class Transforms extends HTMLTransforms{
         $this->updateData('blog_detail_comments', [
             'comments'=> [],
         ]);
+        $this->setTemplate('blog_form_comments', __DIR__.'/templates/form-comment.php');
+        $this->updateData('blog_form_comments', [
+            'form'=> null,
+        ]);
         $this->setTemplate('body_footer', __DIR__.'/templates/footer.php');
         $this->updateData('body_footer', [
             'year'=> date('Y'),
