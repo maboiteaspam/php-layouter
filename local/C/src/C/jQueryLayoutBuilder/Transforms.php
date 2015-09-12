@@ -28,7 +28,7 @@ class Transforms extends HTMLTransforms{
         $options = array_merge([
             'js'=>__DIR__ . '/assets/tooltipster-master/js/jquery.tooltipster.min.js',
             'css'=>__DIR__ . '/assets/tooltipster-master/css/tooltipster.css',
-            'theme'=>'',
+            'theme'=>__DIR__ . '/assets/tooltipster-master/css/themes/tooltipster-shadow.css',
             'css_target'=>'page_head_css',
             'js_target'=>'page_footer_js',
         ], $options);

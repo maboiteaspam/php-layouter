@@ -1,6 +1,7 @@
 <?php
 
 namespace C\FS;
+use C\Misc\Utils;
 
 class LocalFs {
 
@@ -9,7 +10,7 @@ class LocalFs {
     }
 
     public function __call ($method, $args) {
-        $calls[] = [$method, $args];
+        $this->calls[] = [$method, $args, Utils::getStackTrace()];
         return call_user_func_array($method, $args);
     }
 

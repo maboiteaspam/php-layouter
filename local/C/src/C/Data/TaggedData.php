@@ -21,6 +21,6 @@ class TaggedData{
     }
     public function etag() {
         $fn = $this->tagger;
-        return sha1($fn());
+        return sha1(serialize($fn()));
     }
 }

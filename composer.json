@@ -10,11 +10,13 @@
     "symfony/config": "^2.7",
     "symfony/translation": "^2.7",
     "symfony/security-csrf": "^2.7",
-    "symfony/twig-bridge": "^2.7"
+    "symfony/twig-bridge": "^2.7",
+    "igorw/config-service-provider": "^1.2"
   },
   "autoload": {
     "psr-4": {
       "MyBlog\\": "local/app/src/MyBlog",
+      "C\\BlogData\\": "local/BlogData/src/C",
       "C\\Blog\\": "local/Blog/src/C",
       "C\\": "local/C/src/C"
     }

@@ -18,8 +18,13 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Container\Container;
 
+use Igorw\Silex\ConfigServiceProvider;
+
 class AppController{
 
+    /**
+     * @var Application
+     */
     public $app;
 
     /**
@@ -28,13 +33,18 @@ class AppController{
      */
     public function getApp (array $values = array()) {
 
+        $env = getenv('APP_ENV') ? getenv('APP_ENV') : 'dev';
         $projectPath = $values['projectPath'];
 
-        $app = new Application($values);
+        $app = new Application(array_merge(['env'=>$env], $values));
         $this->app =  $app;
 
+        $app->register(new ConfigServiceProvider("$projectPath/config.php", [
+            'projectPath' => $projectPath,
+        ]));
+
         $app->register(new HttpCacheServiceProvider(), array(
-            'http_cache.cache_dir' => $values['public_build_dir']."/http_cache",
+            'http_cache.cache_dir' => $app['public_build_dir']."/http_cache",
         ));
         $app->register(new UrlGeneratorServiceProvider());
         $app->register(new FormServiceProvider());
@@ -42,8 +52,50 @@ class AppController{
         $app['capsule'] = new Capsule;
         $app['capsule']->setEventDispatcher(new Dispatcher(new Container));
 
+        $build_dir = $app['private_build_dir'];
+        if ($this->isEnv('dev') && !is_dir($build_dir)) mkdir($build_dir);
+        $app['dispatcher']->addListener('c_modules_loaded', function () use(&$app) {
+            $env = $app['env'];
+
+            $exists = false;
+            $settings = $app["capsule.settings.$env"];
+            $connection = $app["capsule.connection.$env"];
+
+            /* @var $connection callable */
+
+            if ($env==='dev') {
+                $exists = file_exists($settings['database']);
+                if ($exists) {
+                    if (!$app['schema_loader']->isFresh()) {
+                        unlink($settings['database']);
+                        $exists = false;
+                    }
+                }
+            }
+
+
+            if ($settings["driver"]==='sqlite') {
+                if ($settings["database"]!=='memory') {
+                    touch($settings["database"]);
+                }
+            }
+            $connection();
+            $app['capsule']->bootEloquent();
+            $app['capsule']->setAsGlobal();
+
+            if ($env==='dev') {
+                if (!$exists) {
+                    $app['schema_loader']->build();
+                    $app['schema_loader']->populate();
+                }
+            }
+        });
+
+
         $app['assetsFS'] = new KnownFs();
         $app['assetsFS']->setBasePath($projectPath);
+        $app['templatesFS'] = new KnownFs();
+        $app['templatesFS']->setBasePath($projectPath);
         $app['schemasFS'] = new Registry();
         $app['schemasFS']->setBasePath($projectPath);
 
@@ -68,33 +120,44 @@ class AppController{
             if ($response->isNotModified($request)) {
                 return $response;
             }
+            $app['layout']->emit('before_layout_render');
             $response->setContent($app['layout']->render());
+            $app['layout']->emit('after_layout_render');
             return $response;
         });
 
 
-        if (!is_dir("$projectPath/run/")) mkdir("$projectPath/run/");
-        $private_build_dir = $values['private_build_dir'];
 
-        $serverType = $values['server_type'];
-        $app['schemasFS']->loadFromFile($values['private_build_dir']."/schemas.php");
-        $app['assetsFS']->registry->loadFromFile($values['private_build_dir']."/assets.php");
+        $serverType = $app['server_type'];
+        $app['schemasFS']->loadFromFile($app['private_build_dir']."/schemas.php");
+        $app['templatesFS']->registry->loadFromFile($app['private_build_dir']."/templates.php");
+        $app['assetsFS']->registry->loadFromFile($app['private_build_dir']."/assets.php");
 
         $that = $this;
-        $app->finish(function () use(&$app, &$that, $private_build_dir, $serverType) {
-            if ($that->isEnv('dev')) {
-                $app['schemasFS']->saveToFile("$private_build_dir/schemas.php");
-                $app['assetsFS']->registry->saveToFile("$private_build_dir/assets.php");
-                $that->bridgeAssetsPath("$private_build_dir/assets_path_{$serverType}_bridge.php",
+        if ($that->isEnv('dev')) {
+            $app->after(function () use(&$app, &$that, $build_dir, $serverType) {
+                $app['schemasFS']->saveToFile("$build_dir/schemas.php");
+                $app['templatesFS']->registry->saveToFile("$build_dir/templates.php");
+                $app['assetsFS']->registry->saveToFile("$build_dir/assets.php");
+                $that->bridgeAssetsPath("$build_dir/assets_path_{$serverType}_bridge.php",
                     $serverType, $app['assetsFS']);
-//    $that->bridgeAssetsPath("$projectPath/run/assets_path_apache_bridge.conf", 'apache',
+
+//    $that->bridgeAssetsPath("$build_dir/assets_path_apache_bridge.conf", 'apache',
 // $context['assetsFS']);
-//    $that->bridgeAssetsPath("$projectPath/run/assets_path_nginx_bridge.conf", 'nginx',
+//    $that->bridgeAssetsPath("$build_dir/assets_path_nginx_bridge.conf", 'nginx',
 // $context['assetsFS']);
-//                var_dump($context['schemasFS']->calls);
-            }
-        });
+
+//            var_dump($app['assetsFS']->fs->calls);
+//            var_dump($app['templatesFS']->fs->calls);
+
+            });
+        }
         return $app;
+    }
+
+
+    public function isEnv($some) {
+        return $some==$this->app['env'];
     }
 
     public function bridgeAssetsPath ($file, $type, KnownFs $fs) {
@@ -138,9 +201,5 @@ class AppController{
                 return $query ? '?'.$query : '';
             }
         ];
-    }
-
-    public function isEnv($some) {
-        return true;
     }
 }

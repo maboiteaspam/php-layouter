@@ -1,5 +1,6 @@
 {
   "name": "app/MyBlog",
   "autoload": {
+    "MyBlog\\": "src/MyBlog"
   }
 }

@@ -84,4 +84,32 @@ return [
             ],
         ],
     ],
+    [
+        'id'        =>3,
+        'created_at'=> date('Y-m-d H:i:s'),
+        'updated_at'=> date('Y-m-d H:i:s'),
+        'title'     =>'some 2',
+        'author'    =>'maboiteaspam',
+        'img_alt'   =>'some',
+        'content'   =>'blog entry',
+        'status'    =>'VISIBLE',
+        'comments'  =>[
+            [
+                "id"        =>6,
+                "author"    => "Kenny McCormick",
+                "created_at"=>"215-09-02 21:21:21",
+                "updated_at"=>"215-09-02 21:21:21",
+                "content"   => "MHMhhmhMHMhhmMH  !!?",
+                'status'    =>'VISIBLE',
+            ],
+            [
+                "id"        =>7,
+                "author"    => "Eric Cartman",
+                "created_at"=>"215-09-02 21:21:21",
+                "updated_at"=>"215-09-02 21:21:21",
+                "content"   => "oh Fuck they killed kenny !",
+                'status'    =>'VISIBLE',
+            ],
+        ],
+    ],
 ];

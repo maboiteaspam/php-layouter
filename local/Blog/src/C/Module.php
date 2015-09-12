@@ -7,5 +7,8 @@ class Module {
         if (isset($options['assetsFS'])) {
             $options['assetsFS']->register(__DIR__.'/assets/');
         }
+        if (isset($options['templatesFS'])) {
+            $options['templatesFS']->register(__DIR__.'/templates/');
+        }
     }
 }

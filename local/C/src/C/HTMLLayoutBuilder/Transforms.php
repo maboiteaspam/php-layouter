@@ -33,92 +33,104 @@ class Transforms extends BaseTransforms{
     public function applyAssets(){
         $app = $this->app;
 
-        $documentRoot = $app['documentRoot'];
-        $basePath = $app['public_build_dir'];
-        $assetsFS = $app['assetsFS'];
-        $concat = $app['assets.concat'];
+        $app['dispatcher']->addListener('before_layout_render', function () use(&$app) {
 
-        $blockAssets = [];
-        foreach ($this->layout->registry->blocks as $block) {
-            foreach ($block->assets as $target=>$assets) {
-                if (!isset($blockAssets[$target])) {
-                    $blockAssets[$target] = [];
+            $documentRoot = $app['documentRoot'];
+            $basePath = $app['public_build_dir'];
+            $assetsFS = $app['assetsFS'];
+            $env = $app['env'];
+            $concat = $app['assets.concat'];
+
+            $blockAssets = [];
+            $blockToFile = [];
+            foreach ($this->layout->registry->blocks as $block) {
+                foreach ($block->assets as $target=>$assets) {
+                    if (!isset($blockAssets[$target])) {
+                        $blockAssets[$target] = [];
+                    }
+                    $blockAssets[$target] = array_merge($blockAssets[$target], $assets);
                 }
-                $blockAssets[$target] = array_merge($blockAssets[$target], $assets);
-            }
-        }
-
-        if (count($blockAssets)) {
-
-            if ($concat) {
-                if (!is_dir($basePath)) mkdir($basePath, 0700, true);
             }
 
-            foreach ($blockAssets as $target => $assets) {
-                $targetBlock = $this->layout->getOrCreate($target);
-                if ($targetBlock) {
-                    $filesContent = [];
-                    preg_match("/(css|js)$/", $target, $matches);
-                    $ext = $matches[1];
+            if (count($blockAssets)) {
 
-                    $targetBlock->body .= "\n";
+                if ($concat && $env==='dev' && !is_dir($basePath)) mkdir($basePath, 0700, true);
 
-                    if ($concat) {
+                foreach ($blockAssets as $target => $assets) {
+                    $targetBlock = $this->layout->getOrCreate($target);
+                    if ($targetBlock) {
+                        preg_match("/(css|js)$/", $target, $matches);
+                        $ext = strpos($target, 'js')===false?"css":"js";
 
-                        $h = '';
-                        foreach ($assets as $i=>$asset) {
-                            $a = $assetsFS->get($asset);
-                            if ($a) {
-                                $h .= $i . '-';
-                                $h .= $asset . '-';
-                                $h .= $a['sha1'] . '-';
-                            }
-                        }
-                        $h = sha1($h.Utils::fileToEtag(__FILE__));
+                        $targetBlock->body .= "\n";
 
-                        $concatAssetName = "$target-$h.$ext";
-                        $concatAssetFile = $basePath . $concatAssetName;
-                        $concatAssetUrl = substr($basePath, strlen($documentRoot)) . $concatAssetName;
+                        if ($concat) {
 
-                        if (!file_exists($concatAssetFile)) {
-                            foreach ($assets as $asset) {
+                            $h = '';
+                            foreach ($assets as $i=>$asset) {
                                 if ($assetsFS->file_exists($asset)) {
-                                    $filesContent[$asset] = $this->readAndMakeAsset($assetsFS, $asset);
+                                    $a = $assetsFS->get($asset);
+                                    $h .= $i . '-';
+                                    $h .= $asset . '-';
+                                    $h .= $a['sha1'] . '-';
                                 }
                             }
-                            if ($ext==='js') $c = ";\n" . join(";\n", $filesContent) . "\n";
-                            else $c = "" . join("\n", $filesContent) . "\n";
-                            file_put_contents($concatAssetFile, $c);
-                        }
 
-                        if ($ext==='js')
-                            $targetBlock->body .= sprintf(
-                                '<script src="/%s" type="text/javascript"></script>', $concatAssetUrl);
-                        else
-                            $targetBlock->body .= sprintf(
-                                '<link href="/%s" rel="stylesheet" />', $concatAssetUrl);
+                            if ($this->app['debug']) $h = sha1($h.Utils::fileToEtag(__FILE__));
+                            else $h = sha1($h);
 
-                    } else {
-                        foreach ($assets as $asset) {
-                            $a = $assetsFS->get($asset);
-                            if ($a) {
-                                $assetName = $a['dir'].$a['name'];
-                                $assetUrl = "$assetName?t=".$a['sha1'];
+                            $concatAssetName = "$target-$h.$ext";
+                            $blockToFile[$target] = $basePath . $concatAssetName;
+                            $concatAssetUrl = substr($basePath, strlen($documentRoot)) . $concatAssetName;
 
-                                if ($ext==='js')
-                                    $targetBlock->body .= sprintf(
-                                        '<script src="/%s" type="text/javascript"></script>', $assetUrl);
-                                else
-                                    $targetBlock->body .= sprintf(
-                                        '<link href="/%s" rel="stylesheet" />', $assetUrl);
+                            if ($ext==="js")
+                                $targetBlock->body .= sprintf(
+                                    '<script src="/%s" type="text/javascript"></script>', $concatAssetUrl);
+                            else
+                                $targetBlock->body .= sprintf(
+                                    '<link href="/%s" rel="stylesheet" />', $concatAssetUrl);
 
-                                $targetBlock->body .= "\n";
+                        } else {
+                            foreach ($assets as $asset) {
+                                if ($assetsFS->file_exists($asset)) {
+                                    $a = $assetsFS->get($asset);
+                                    $assetName = $a['dir'].$a['name'];
+                                    $assetUrl = "$assetName?t=".$a['sha1'];
+
+                                    if ($ext==="js")
+                                        $targetBlock->body .= sprintf(
+                                            '<script src="/%s" type="text/javascript"></script>', $assetUrl);
+                                    else
+                                        $targetBlock->body .= sprintf(
+                                            '<link href="/%s" rel="stylesheet" />', $assetUrl);
+
+                                    $targetBlock->body .= "\n";
+                                }
                             }
                         }
                     }
                 }
+
+                if ($concat) {
+                    $app->after(function()use(&$assetsFS, &$blockAssets, &$blockToFile){
+
+                        foreach ($blockAssets as $target => $assets) {
+                            if (!file_exists($blockToFile[$target])) {
+                                $filesContent = [];
+                                foreach ($assets as $asset) {
+                                    if ($assetsFS->file_exists($asset)) {
+                                        $filesContent[$asset] = $this->readAndMakeAsset($assetsFS, $asset);
+                                    }
+                                }
+                                if (strpos($target, 'js')!==false) $c = ";\n" . join(";\n", $filesContent) . "\n";
+                                else $c = "" . join("\n", $filesContent) . "\n";
+                                file_put_contents($blockToFile[$target], $c);
+                            }
+                        }
+                    });
+                }
             }
-        }
+        });
 
         return $this;
     }
@@ -147,27 +159,49 @@ class Transforms extends BaseTransforms{
 
 
     public function updateEtags(){
-        foreach($this->layout->registry->blocks as $block) {
+        $app = $this->app;
+        $assetsFS = $app['assetsFS'];
+        $templatesFS = $app['templatesFS'];
+
+        foreach($this->layout->registry->blocks as $e=>$block) {
             $h = '';
             $h .= $block->id . '-';
             if (isset($block->options['template'])) {
-                $h .= Utils::fileToEtag($block->options['template']);
+                $template = $block->options['template'];
+                if ($templatesFS->file_exists($template)) {
+                    $a = $templatesFS->get($template);
+                    $h .= $e . '-';
+                    $h .= $template . '-';
+                    $h .= $a['sha1'] . '-';
+                    $h = sha1($h);
+                }
             }
-            foreach($block->assets as $assets) {
-                $h .= Utils::fileToEtag($assets);
+            foreach($block->assets as $target=>$assets) {
+                foreach($assets as $i=>$asset){
+                    if ($assetsFS->file_exists($asset)) {
+                        $a = $assetsFS->get($asset);
+                        $h .= $target . '-';
+                        $h .= $i . '-';
+                        $h .= $asset . '-';
+                        $h .= $a['sha1'] . '-';
+                        $h = sha1($h);
+                    }
+                }
             }
             array_walk_recursive($block->data, function($data) use(&$h){
                 if ($data instanceof TaggedData) {
                     $h .= serialize($data->etag());
+                    $h = sha1($h);
                 } else {
                     try{
                         $h .= serialize($data);
+                        $h = sha1($h);
                     }catch(\Exception $ex){
 
                     }
                 }
             });
-            $block->meta['etag'] = sha1($h);
+            $block->meta['etag'] = $h;
         }
         return $this;
     }
