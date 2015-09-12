@@ -1,65 +1,70 @@
 <?php
 require 'vendor/autoload.php';
 
+//exec('rm -fr run/data*');
+//exec('rm -fr run/assets_*');
+if (!is_dir("run/")) mkdir("run/");
 
-use C\Foundation\AppController;
-use C\Blog\Schema as BlogSchema;
-use MyBlog\Controller as BlogController;
-
-$AppController = new AppController();
+$AppController = new C\Foundation\AppController();
 
 $app = $AppController->getApp([
-    'debug'=>true,
+    'debug' => true,
+    'server_type' => 'builtin',
+    'projectPath' => __DIR__,
+    'documentRoot' => 'www/',
+    'private_build_dir' => __DIR__.'/run/',
+    'public_build_dir' => __DIR__.'/www/run/',
+    'assets.concat' => false,
 ]);
-$layout = $AppController->getLayout([
-    'imgUrls'       => [
-        'blog_detail'   => '/images/blog/detail/:id.jpg',
-        'blog_list'     => '/images/blog/list/:id.jpg',
-    ]
-]);
+$appCtx = $AppController->appCtx;
 
-$database = __DIR__.'/database.sqlite';
-$isNewDb = !file_exists($database);
-touch($database);
-$capsule = $AppController->getDatabase([
-    'driver'   => 'sqlite',
-    'database' => $database,
-    'prefix'   => '',
-    'charset'   => 'utf8',
-    'collation' => 'utf8_unicode_ci',
+$blogModule = new MyBlog\Module();
+$cModule = new C\Module();
 
-]);
-$app['layout'] = $layout;
-$app['capsule'] = $capsule;
+$cModule->register($appCtx);
+$blogModule->register($appCtx);
 
-if ($isNewDb) {
-    $blogSchema = new BlogSchema();
-    $blogSchema->setup();
-    $blogSchema->load();
+$schemaIsFresh = false;
+if ($AppController->isEnv('dev')) {
+    $schemaIsFresh = $appCtx['schema_loader']->isFresh();
+    $exists = $appCtx['capsule.exists'];
+    $delete = $appCtx['capsule.delete'];
+    if ($exists() && !$schemaIsFresh) {
+        $delete();
+    }
 }
 
-$AppController->registerAssetsPaths(getcwd(), 'builtin', [
-    'local/app/src/MyBlog/assets/',
-    'local/C/src/C/DebugLayoutBuilder/assets/',
-    'local/C/src/C/jQueryLayoutBuilder/assets/',
-]);
+if ($AppController->isEnv('dev')) {
+    $dbConn = $appCtx['capsule.connection.dev'];
+    $dbConn();
+    $appCtx['capsule']->bootEloquent();
+    $appCtx['capsule']->setAsGlobal();
+}
 
-$blog = new BlogController();
+if ($AppController->isEnv('dev')) {
+    if (!$appCtx['capsule.exists']() || !$schemaIsFresh) {
+        $appCtx['schema_loader']->build();
+        $appCtx['schema_loader']->populate();
+    }
+}
+
+
+$blog = new MyBlog\Controller();
 
 $app->get( '/',
-    $blog->home()
+    $blog->home($appCtx)
 )->bind ('home');
 
 $app->get( '/blog/{id}',
-    $blog->detail('blog_entry_add_comment')
+    $blog->detail($appCtx, 'blog_entry_add_comment')
 )->bind ('blog_entry');
 
-$app->get( '/blog/{id}/add_comment',
-    $blog->postComment()
-)->bind ('blog_entry_add_comment');
-
 $app->get( '/blog/{id}/blog_detail_comments',
-    $blog->detail('blog_entry_add_comment')
+    $blog->detail($appCtx, 'blog_entry_add_comment')
 )->bind ('blog_entry_detail_comments');
+
+$app->get( '/blog/{id}/add_comment',
+    $blog->postComment($appCtx)
+)->bind ('blog_entry_add_comment');
 
 $app->run();

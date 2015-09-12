@@ -26,8 +26,8 @@ function getComments () {
 
 class Controller{
 
-    public function entryList() {
-        return function ($options) {
+    public function entryList($options) {
+        return function () use($options) {
             BlogLayout::transform($options)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
@@ -37,8 +37,8 @@ class Controller{
         };
     }
 
-    public function entryDetail() {
-        return function ($options) {
+    public function entryDetail($options) {
+        return function () use($options) {
             BlogLayout::transform($options)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
@@ -48,8 +48,8 @@ class Controller{
         };
     }
 
-    public function entryComments() {
-        return function ($options) {
+    public function entryComments($options) {
+        return function () use($options) {
             BlogLayout::transform($options)
                 ->setTemplate('root', __DIR__.'/templates/entry-comments.php')
                 ->setTemplate('root', [

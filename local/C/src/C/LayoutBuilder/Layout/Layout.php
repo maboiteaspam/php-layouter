@@ -143,6 +143,10 @@ class Layout{
         }
     }
 
+    function registerImgPattern($name, $pattern){
+        $this->config['imgUrls'][$name] = $pattern;
+    }
+
 
 
     /**

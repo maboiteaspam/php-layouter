@@ -13,6 +13,7 @@
   "autoload": {
     "psr-4": {
       "MyBlog\\": "local/app/src/MyBlog",
+      "MyDb\\": "local/app/src/MyDb",
       "C\\": "local/C/src/C"
     }
   }

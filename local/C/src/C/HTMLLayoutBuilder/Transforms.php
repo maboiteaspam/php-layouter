@@ -30,53 +30,59 @@ class Transforms extends BaseTransforms{
         return $this;
     }
 
-    public function applyAssets($options=[]){
-        $options = array_merge([
-            'projectPath'   => getcwd(),
-            'documentRoot'  => 'www/',
-            'basePath'      => 'assets/',
-            'concat'        => true
-        ], $options);
+    public function applyAssets(){
+        $appCtx = $this->options;
 
-        $files = [];
+        $documentRoot = $appCtx['documentRoot'];
+        $basePath = $appCtx['public_build_dir'];
+        $assetsFS = $appCtx['assetsFS'];
+        $concat = $appCtx['assets.concat'];
+
+        $blockAssets = [];
         foreach ($this->layout->registry->blocks as $block) {
             foreach ($block->assets as $target=>$assets) {
-                if (!isset($files[$target])) {
-                    $files[$target] = [];
+                if (!isset($blockAssets[$target])) {
+                    $blockAssets[$target] = [];
                 }
-                $files[$target] = array_merge($files[$target], $assets);
+                $blockAssets[$target] = array_merge($blockAssets[$target], $assets);
             }
         }
 
-        if (count($files)>0) {
-            $documentRoot = $options['documentRoot'];
-            $basePath = $options['basePath'];
-            $assetsPath = $documentRoot.$basePath;
+        if (count($blockAssets)) {
 
+            $assetsPath = $documentRoot.$basePath;
             if (!is_dir($assetsPath)) mkdir($assetsPath, 0700, true);
 
-            foreach ($files as $target=>$assets) {
+            foreach ($blockAssets as $target => $assets) {
                 $targetBlock = $this->layout->getOrCreate($target);
-                $filesContent = [];
-
                 if ($targetBlock) {
+                    $filesContent = [];
                     preg_match("/(css|js)$/", $target, $matches);
                     $ext = $matches[1];
 
                     $targetBlock->body .= "\n";
 
-                    if ($options['concat']===true) {
+                    if ($concat) {
 
-                        $h = Utils::fileToEtag(array_merge($assets, [__FILE__]));
+                        $h = '';
+                        foreach ($assets as $i=>$asset) {
+                            $a = $assetsFS->get($asset);
+                            if ($a) {
+                                $h .= $i . '-';
+                                $h .= $asset . '-';
+                                $h .= $a['sha1'] . '-';
+                            }
+                        }
+                        $h = sha1($h.Utils::fileToEtag(__FILE__));
 
-                        $concatAssetName = $target.'-'.sha1($h).'.'.$ext;
+                        $concatAssetName = "$target-$h-$ext";
                         $concatAssetFile = $assetsPath . $concatAssetName;
                         $concatAssetUrl = $basePath . $concatAssetName;
 
                         if (!file_exists($concatAssetFile)) {
                             foreach ($assets as $asset) {
-                                if (file_exists($asset)) {
-                                    $filesContent[$asset] = $this->readAndMakeAsset($options['projectPath'], $asset);
+                                if ($assetsFS->file_exists($asset)) {
+                                    $filesContent[$asset] = $this->readAndMakeAsset($assetsFS, $asset);
                                 }
                             }
                             if ($ext==='js') $c = ";\n" . join(";\n", $filesContent) . "\n";
@@ -92,27 +98,11 @@ class Transforms extends BaseTransforms{
                                 '<link href="/%s" rel="stylesheet" />', $concatAssetUrl);
 
                     } else {
-
                         foreach ($assets as $asset) {
-                            if (file_exists($asset)) {
-                                $t = Utils::relativePath($asset, $options['projectPath']);
-                                if (substr($t,0,2)==='./') $t = substr($t,2);
-                                $assetName = $t;
-                                $assetFile = $assetsPath . $assetName;
-                                $assetUrl = $assetName;
-
-                                if (!file_exists($assetFile)) {
-                                    if (!is_dir(dirname($assetFile))) mkdir($assetFile, 0777, true);
-                                    copy($asset, $assetFile);
-                                    touch($assetFile, filemtime($asset));
-                                    $assetUrl .= "?t=".filemtime($asset);
-                                } else if (filemtime($assetFile)!==filemtime($asset)) {
-                                    copy($asset, $assetFile);
-                                    touch($assetFile, filemtime($asset));
-                                    $assetUrl .= "?t=".filemtime($asset);
-                                } else {
-                                    $assetUrl .= "?t=".filemtime($assetFile);
-                                }
+                            $a = $assetsFS->get($asset);
+                            if ($a) {
+                                $assetName = $a['dir'].$a['name'];
+                                $assetUrl = "$assetName?t=".$a['sha1'];
 
                                 if ($ext==='js')
                                     $targetBlock->body .= sprintf(
@@ -124,31 +114,32 @@ class Transforms extends BaseTransforms{
                                 $targetBlock->body .= "\n";
                             }
                         }
-
                     }
-
                 }
             }
         }
+
         return $this;
     }
 
-    public function readAndMakeAsset ($projectPath, $assetFile){
+    public function readAndMakeAsset ($assetsFS, $assetFile){
         $content    = file_get_contents($assetFile);
-        $assetFile  = realpath($assetFile);
-        $assetFile  = substr($assetFile, strlen($projectPath));
-        if (substr($assetFile,-4)==='.css') {
+        $assetFile  = $assetsFS->realpath($assetFile);
+        $assetItem = $assetsFS->get($assetFile);
+//        var_dump($assetItem);die();
+        $assetFile  = $assetItem['dir'].$assetItem['name'];
+        if ($assetItem['extension']==='css') {
             $matches = [];
             preg_match_all('/url\s*\(([^)]+)\)/i', $content, $matches);
             foreach($matches[1] as $i=>$match){
                 if (substr($match,0,1)==='"' || substr($match,0,1)==="'") {
                     $match = substr($match, 1, -1);
                 }
-                $content = str_replace($matches[0][$i], "url(".dirname($assetFile)."/$match)", $content);
+                $content = str_replace($matches[0][$i], "url(".$assetItem['dir']."/$match)", $content);
                 $content = "//$assetFile\n$content";
             }
-        } else if (substr($assetFile,-3)==='.js') {
-            $content = "(function(modulePath){".$content."})('".dirname($assetFile)."/'');";
+        } else if ($assetItem['extension']==='.js') {
+            $content = "(function(modulePath){".$content."})('".$assetItem['dir']."/'');";
         }
 
         return $content;
@@ -182,8 +173,8 @@ class Transforms extends BaseTransforms{
     }
 
 
-    public function finalize ($options=[]) {
-        $this->applyAssets($options)->updateEtags();
+    public function finalize () {
+        $this->applyAssets()->updateEtags();
         return $this;
     }
 }

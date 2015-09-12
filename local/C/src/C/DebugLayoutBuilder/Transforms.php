@@ -21,7 +21,7 @@ class Transforms extends BaseTransforms{
         $debug = isset($this->layout->config['debug'])?$this->layout->config['debug']:false;
         $layout = $this->layout;
 
-        $this->layout->on('before_block_render', function (GenericEvent $event) use($layout, $fromClass, $verbose, $debug) {
+        $this->layout->on('before_block_render', function (GenericEvent $event) use(&$layout, $fromClass, $verbose, $debug) {
             $id = $event->getArgument(0);
             $block = $layout->get($id);
             $p = $id;
@@ -44,7 +44,7 @@ class Transforms extends BaseTransforms{
             if ($debug) echo '<c_block_node id="'.$id.'" caller="'.str_replace("\\","\\\\",$p).'">';
         });
 
-        $this->layout->on('after_block_render', function (GenericEvent $event) use($layout, $fromClass, $verbose, $debug) {
+        $this->layout->on('after_block_render', function (GenericEvent $event) use(&$layout, $fromClass, $verbose, $debug) {
             $id = $event->getArgument(0);
             $block = $layout->get($id);
             $p = $id;

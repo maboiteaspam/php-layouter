@@ -27,7 +27,7 @@ class EloquentBuilder extends QueryBuilder{
     public function byId($id, $columns = ['*'])
     {
         $obj = $this;
-        return new TaggedData(function () use($id, $obj, $columns) {
+        return new TaggedData(function () use($id, &$obj, &$columns) {
             return Utils::objectToArray($obj->find($id, $columns));
         },function () use($obj, $columns) {
             return $obj->toSql();
@@ -37,7 +37,7 @@ class EloquentBuilder extends QueryBuilder{
     public function one($columns = ['*'])
     {
         $obj = $this;
-        return new TaggedData(function () use($obj, $columns) {
+        return new TaggedData(function () use(&$obj, &$columns) {
             return Utils::objectToArray($obj->first($columns));
         },function () use($obj, $columns) {
             return $obj->toSql();
@@ -47,9 +47,9 @@ class EloquentBuilder extends QueryBuilder{
     public function all($columns = ['*'])
     {
         $obj = $this;
-        return new TaggedData(function () use($obj, $columns) {
+        return new TaggedData(function () use(&$obj, &$columns) {
             return Utils::objectToArray($obj->get($columns));
-        },function () use($obj, $columns) {
+        },function () use(&$obj, $columns) {
             return $obj->toSql();
         });
     }

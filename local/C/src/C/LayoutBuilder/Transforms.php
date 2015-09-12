@@ -102,7 +102,7 @@ class Transforms{
     public function insertAfter ($target, $id, $options){
         $this->layout->set($id, $options);
         $layout = $this->layout;
-        $this->layout->on('after_render_' . $target, function () use($layout, $id) {
+        $this->layout->on('after_render_' . $target, function () use(&$layout, $id) {
             $layout->displayBlock($id);
         });
         return $this;
@@ -111,7 +111,7 @@ class Transforms{
     public function insertBefore ($target, $id, $options){
         $this->layout->set($id, $options);
         $layout = $this->layout;
-        $this->layout->on('before_render_' . $target, function () use($layout, $id) {
+        $this->layout->on('before_render_' . $target, function () use(&$layout, $id) {
             $layout->displayBlock($id);
         });
         return $this;
