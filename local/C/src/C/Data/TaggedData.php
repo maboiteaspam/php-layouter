@@ -19,6 +19,14 @@ class TaggedData{
         $fn = $this->getter;
         return $fn();
     }
+    public function first() {
+        $fn = $this->getter;
+        return $fn();
+    }
+    public function find() {
+        $fn = $this->getter;
+        return $fn();
+    }
     public function etag() {
         $fn = $this->tagger;
         return sha1(serialize($fn()));

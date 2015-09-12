@@ -5,6 +5,9 @@ namespace C\BlogData;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use \C\Schema\ISchema;
 
+use \C\BlogData\Eloquent\Entry as Entry;
+use \C\BlogData\Eloquent\Comment as Comment;
+
 class Schema implements ISchema{
     public function build() {
         $builder = Capsule::connection()->getSchemaBuilder();
@@ -28,16 +31,18 @@ class Schema implements ISchema{
     }
     public function populate() {
         Capsule::connection()->transaction(function(){
+            $entryModel = new Entry();
+            $commentModel = new Comment();
             $fixtureEntries = include(__DIR__ . '/fixtures/blog-entries.php');
             foreach ($fixtureEntries as $entry) {
                 $comments = $entry['comments'];
                 unset($entry['comments']);
                 unset($entry['id']);
-                $id = Entry::insert($entry);
+                $id = $entryModel->insert($entry);
                 foreach ($comments as $comment) {
                     unset($comment['id']);
                     $comment['blog_entry_id'] = $id;
-                    Comment::insert($comment);
+                    $commentModel->insert($comment);
                 }
             }
         });

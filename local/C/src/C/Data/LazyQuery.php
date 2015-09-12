@@ -25,25 +25,18 @@ class LazyQuery{
 
     public function autoTag()
     {
-        $this->tagByUpdateDate(clone($this->query));
-        return $this;
+        return $this->tagByUpdateDate(clone($this->query));
     }
 
     public function tagByUpdateDate(QueryBuilder $query)
     {
-        $this->etagValue = $query->first(['updated_at']);
-        return $this;
+        return $this->setEtag($query->first(['updated_at']));
     }
 
     public function setEtag($etag)
     {
         $this->etagValue = $etag;
         return $this;
-    }
-
-    public function etag()
-    {
-        return $this->etagValue;
     }
 
     public function find($id, $columns = ['*']) {
@@ -53,8 +46,8 @@ class LazyQuery{
             $res = Utils::objectToArray($query->find($id, $columns));
             return $res;
         },function () use(&$query, &$that) {
-            if ($that->etag()) {
-                return $that->etag();
+            if ($that->etagValue) {
+                return $that->etagValue;
             }
             return $query->toSql();
         });
@@ -66,8 +59,8 @@ class LazyQuery{
             $res = Utils::objectToArray($query->first($columns));
             return $res;
         },function () use(&$query, &$that) {
-            if ($that->etag()) {
-                return $that->etag();
+            if ($that->etagValue) {
+                return $that->etagValue;
             }
             return $query->toSql();
         });
@@ -79,8 +72,8 @@ class LazyQuery{
             $res = Utils::objectToArray($query->get($columns));
             return $res;
         },function () use(&$query, &$that) {
-            if ($that->etag()) {
-                return $that->etag();
+            if ($that->etagValue) {
+                return $that->etagValue;
             }
             return $query->toSql();
         });

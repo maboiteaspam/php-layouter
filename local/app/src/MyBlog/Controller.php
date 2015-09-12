@@ -7,8 +7,8 @@ use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 use C\DebugLayoutBuilder\Transforms as debugTransforms;
 use MyBlog\Transforms as MyBlogLayout;
 use \C\Blog\CommentForm as MyCommentForm;
-use \C\BlogData\Entry as Entry;
-use \C\BlogData\Comment as Comment;
+use \C\BlogData\PO\Entry as Entry;
+use \C\BlogData\PO\Comment as Comment;
 use \C\Data\LazyCapsule as Lazy;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -18,11 +18,13 @@ class Controller{
 
     public function home() {
         return function (Application $app) {
+            $entryModel = new Entry();
+            $commentModel = new Comment();
             MyBlogLayout::transform($app)
                 ->baseTemplate()
                 ->home(
-                    Lazy::autoTagged(Entry::mostRecent())->get(),
-                    Lazy::autoTagged(Comment::mostRecent())->get()
+                    Lazy::autoTagged($entryModel->mostRecent())->get(),
+                    Lazy::autoTagged($commentModel->mostRecent())->get()
                 )->then(
                     debugTransforms::transform($app)->debug(__CLASS__)
                 )
@@ -44,12 +46,15 @@ class Controller{
 
             $form->handleRequest($request);
 
+            $entryModel = new Entry();
+            $commentModel = new Comment();
+
             MyBlogLayout::transform($app)
                 ->baseTemplate()
                 ->detail(
-                    Lazy::autoTagged(Entry::byId($id))->first(),
-                    Lazy::autoTagged(Comment::byEntryId($id))->get(),
-                    Lazy::autoTagged(Comment::mostRecent()->where('blog_entry_id', '!=', $id))->get()
+                    Lazy::autoTagged($entryModel->byId($id))->first(),
+                    Lazy::autoTagged($commentModel->byEntryId($id))->get(),
+                    Lazy::autoTagged($commentModel->mostRecent())->where('blog_entry_id', '!=', $id)->get()
                 )->updateData('blog_form_comments', [
                     'form'=> $form,
                 ])->then(
@@ -74,9 +79,11 @@ class Controller{
             $form->handleRequest($request);
 
             if ($form->isValid()) {
+
                 $data = $form->getData();
                 $data['blog_entry_id'] = $id;
-                $data['id'] = Comment::insert($data);
+                $commentModel = new Comment();
+                $commentModel->insert($data);
                 return $app->json($data);
             }
             $form->getErrors();

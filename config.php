@@ -6,7 +6,7 @@ return [
     'documentRoot' => '%projectPath%/www/',
     'private_build_dir' => '%projectPath%/run/',
     'public_build_dir' => '%projectPath%/www/run/',
-    'assets.concat' => !false,
+    'assets.concat' => false,
     'capsule.settings.dev' => [
         'driver'   => 'sqlite',
         'database' => '%projectPath%/run/database.sqlite',

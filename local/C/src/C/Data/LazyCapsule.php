@@ -2,7 +2,6 @@
 
 namespace C\Data;
 
-use C\Misc\Utils;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
@@ -13,7 +12,12 @@ class LazyCapsule extends Capsule{
      */
     public static function query($query)
     {
-        return new LazyQuery($query);
+        if ($query instanceof QueryBuilder) {
+            return new LazyQuery($query);
+        } else {
+            // $query is a kind of raw value
+            return new FakeQuery($query);
+        }
     }
     /**
      * @param $query
@@ -21,7 +25,6 @@ class LazyCapsule extends Capsule{
      */
     public static function autoTagged($query)
     {
-        $lazyQuery = new LazyQuery($query);
-        return $lazyQuery->autoTag();
+        return self::query($query)->autoTag();
     }
 }
