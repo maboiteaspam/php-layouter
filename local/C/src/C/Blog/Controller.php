@@ -26,36 +26,36 @@ function getComments () {
 
 class Controller{
 
-    public function entryList($options) {
-        return function () use($options) {
-            BlogLayout::transform($options)
+    public function entryList($app) {
+        return function () use($app) {
+            BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
                     'entries'=>getEntries()
                 ]);
-            return $options['layout']->render();
+            return $app['layout']->render();
         };
     }
 
-    public function entryDetail($options) {
-        return function () use($options) {
-            BlogLayout::transform($options)
+    public function entryDetail($app) {
+        return function () use($app) {
+            BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
                     'entry'=>getEntries()[0]
                 ]);
-            return $options['layout']->render();
+            return $app['layout']->render();
         };
     }
 
-    public function entryComments($options) {
-        return function () use($options) {
-            BlogLayout::transform($options)
+    public function entryComments($app) {
+        return function () use($app) {
+            BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-comments.php')
                 ->setTemplate('root', [
                     'comments'=>getComments()
                 ]);
-            return $options['layout']->render();
+            return $app['layout']->render();
         };
     }
 

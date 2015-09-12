@@ -10,11 +10,11 @@ use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 class Transforms extends BlogLayout{
 
     /**
-     * @param mixed $options
+     * @param mixed $app
      * @return Transforms
      */
-    public static function transform ($options) {
-        return new Transforms($options);
+    public static function transform ($app) {
+        return new Transforms($app);
     }
 
     public function baseTemplate () {
@@ -35,7 +35,7 @@ class Transforms extends BlogLayout{
         $this->insertAfter('body_footer', 'extra_footer', [
             'body'=>'some'
         ]);
-        jQueryTransforms::transform($this->options)->inject();
+        jQueryTransforms::transform($this->app)->inject();
         return $this;
     }
 

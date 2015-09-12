@@ -8,22 +8,22 @@ class Transforms{
      */
     public $layout;
 
-    public $options;
+    public $app;
 
     /**
-     * @param mixed $options
+     * @param mixed $app
      */
-    public function __construct($options) {
-        $this->layout = $options['layout'];
-        $this->options = $options;
+    public function __construct($app) {
+        $this->layout = $app['layout'];
+        $this->app = $app;
     }
 
     /**
-     * @param mixed $options
+     * @param mixed $app
      * @return Transforms
      */
-    public static function transform($options) {
-        return new Transforms($options);
+    public static function transform($app) {
+        return new Transforms($app);
     }
 
     /**

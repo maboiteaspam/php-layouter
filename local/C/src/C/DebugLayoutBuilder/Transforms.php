@@ -9,11 +9,11 @@ use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 class Transforms extends BaseTransforms{
 
     /**
-     * @param mixed $options
+     * @param mixed $app
      * @return Transforms
      */
-    public static function transform ($options) {
-        return new Transforms($options);
+    public static function transform ($app) {
+        return new Transforms($app);
     }
 
     public function debug ($fromClass=""){
@@ -67,7 +67,7 @@ class Transforms extends BaseTransforms{
             if ($verbose) echo "\n".'<!-- end ' . $id . ' ' . $p . ' -->';
         });
 
-        jQueryTransforms::transform($this->options)->tooltipster();
+        jQueryTransforms::transform($this->app)->tooltipster();
         $this->updateAssets('body', [
             'template_head_css'=>[
                 __DIR__ . '/assets/index.css'

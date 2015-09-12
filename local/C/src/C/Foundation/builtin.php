@@ -34,8 +34,8 @@ $reqUrl = $_SERVER['PHP_SELF'];
 $extension = substr(strrchr($reqUrl, "."), 1);
 
 if (in_array($extension, ['jpeg','jpg','png','gif','css','js'])) {
-    if (file_exists($reqUrl)) {
-        respondAsset($reqUrl, $extension);
+    if (file_exists("$wwwPath/$reqUrl")) {
+        respondAsset("$wwwPath/$reqUrl", $extension);
         return true;
     } else if(file_exists('run/assets_path_builtin_bridge.php')) {
         $paths = include 'run/assets_path_builtin_bridge.php';

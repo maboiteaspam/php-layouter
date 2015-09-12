@@ -6,28 +6,28 @@ use C\Blog\Schema as BlogSchema;
 use \C\Module as CModule;
 
 class Module extends CModule{
-    public function register($options) {
-        if (isset($options['assetsFS'])) {
-            $options['assetsFS']->register(__DIR__.'/assets/');
+    public function register($app) {
+        if (isset($app['assetsFS'])) {
+            $app['assetsFS']->register(__DIR__.'/assets/');
         }
-        if (isset($options['schema_loader'])) {
-            $options['schema_loader']->register(new BlogSchema);
+        if (isset($app['schema_loader'])) {
+            $app['schema_loader']->register(new BlogSchema);
         }
-        if (isset($options['layout'])) {
-            $options['layout']->registerImgPattern('blog_detail', '/images/blog/detail/:id.jpg');
-            $options['layout']->registerImgPattern('blog_list', '/images/blog/list/:id.jpg');
+        if (isset($app['layout'])) {
+            $app['layout']->registerImgPattern('blog_detail', '/images/blog/detail/:id.jpg');
+            $app['layout']->registerImgPattern('blog_list', '/images/blog/list/:id.jpg');
         }
-        if (isset($options['capsule'])) {
-            $database = $options['private_build_dir'].'database.sqlite';
+        if (isset($app['capsule'])) {
+            $database = $app['private_build_dir'].'database.sqlite';
             $exists = file_exists($database);
-            $options['capsule.exists'] = function () use ($exists) {
+            $app['capsule.exists'] = $app->protect(function () use ($exists) {
                 return $exists;
-            };
-            $options['capsule.delete'] = function () use (&$database) {
+            });
+            $app['capsule.delete'] = $app->protect(function () use (&$database) {
                 return unlink($database);
-            };
-            $capsule = $options['capsule'];
-            $options['capsule.connection.dev'] = function () use (&$capsule, &$database) {
+            });
+            $capsule = $app['capsule'];
+            $app['capsule.connection.dev'] = $app->protect(function () use (&$capsule, &$database) {
                 touch($database);
                 /* @var $capsule \Illuminate\Database\Capsule\Manager */
                 $capsule->addConnection([
@@ -37,7 +37,7 @@ class Module extends CModule{
                     'charset'   => 'utf8',
                     'collation' => 'utf8_unicode_ci',
                 ], 'default');
-            };
+            });
         }
     }
 }

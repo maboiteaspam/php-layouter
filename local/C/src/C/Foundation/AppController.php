@@ -20,7 +20,7 @@ use Illuminate\Container\Container;
 
 class AppController{
 
-    public $appCtx = [];
+    public $app;
 
     /**
      * @param array $values
@@ -31,10 +31,7 @@ class AppController{
         $projectPath = $values['projectPath'];
 
         $app = new Application($values);
-        $this->appCtx =  new \ArrayObject(
-            array_merge($this->appCtx, $values, ['app'=>$app])
-        );
-        $context = $this->appCtx;
+        $this->app =  $app;
 
         $app->register(new HttpCacheServiceProvider(), array(
             'http_cache.cache_dir' => $values['public_build_dir']."/http_cache",
@@ -42,54 +39,54 @@ class AppController{
         $app->register(new UrlGeneratorServiceProvider());
         $app->register(new FormServiceProvider());
 
-        $context['capsule'] = new Capsule;
-        $context['capsule']->setEventDispatcher(new Dispatcher(new Container));
+        $app['capsule'] = new Capsule;
+        $app['capsule']->setEventDispatcher(new Dispatcher(new Container));
 
-        $context['assetsFS'] = new KnownFs();
-        $context['assetsFS']->setBasePath($projectPath);
-        $context['schemasFS'] = new Registry();
-        $context['schemasFS']->setBasePath($projectPath);
+        $app['assetsFS'] = new KnownFs();
+        $app['assetsFS']->setBasePath($projectPath);
+        $app['schemasFS'] = new Registry();
+        $app['schemasFS']->setBasePath($projectPath);
 
-        $context['schema_loader'] = new SchemaLoader($context['schemasFS']);
+        $app['schema_loader'] = new SchemaLoader($app['schemasFS']);
 
-        $context['layout'] = new Layout([
-            'debug'         => $context['debug'],
+        $app['layout'] = new Layout([
+            'debug'         => $app['debug'],
             'dispatcher'    => $app['dispatcher'],
             'helpers'       => $this->getHelpers(),
             'imgUrls'       => [],
         ]);
 
-        $context['layout_responder'] = function () use (&$app, &$context) {
+        $app['layout_responder'] = $app->protect(function () use (&$app) {
             $request = $app['request'];
             /* @var $request \Symfony\Component\HttpFoundation\Request */
             $response = new Response();
 
-            $response->setETag($context['layout']->getEtag());
+            $response->setETag($app['layout']->getEtag());
             $response->mustRevalidate(true);
             $response->setPrivate(true);
 
             if ($response->isNotModified($request)) {
                 return $response;
             }
-            $response->setContent($context['layout']->render());
+            $response->setContent($app['layout']->render());
             return $response;
-        };
+        });
 
 
         if (!is_dir("$projectPath/run/")) mkdir("$projectPath/run/");
         $private_build_dir = $values['private_build_dir'];
 
         $serverType = $values['server_type'];
-        $context['schemasFS']->loadFromFile($values['private_build_dir']."/schemas.php");
-        $context['assetsFS']->registry->loadFromFile($values['private_build_dir']."/assets.php");
+        $app['schemasFS']->loadFromFile($values['private_build_dir']."/schemas.php");
+        $app['assetsFS']->registry->loadFromFile($values['private_build_dir']."/assets.php");
 
         $that = $this;
-        $app->finish(function () use(&$context, &$that, $private_build_dir, $serverType) {
+        $app->finish(function () use(&$app, &$that, $private_build_dir, $serverType) {
             if ($that->isEnv('dev')) {
-                $context['schemasFS']->saveToFile("$private_build_dir/schemas.php");
-                $context['assetsFS']->registry->saveToFile("$private_build_dir/assets.php");
+                $app['schemasFS']->saveToFile("$private_build_dir/schemas.php");
+                $app['assetsFS']->registry->saveToFile("$private_build_dir/assets.php");
                 $that->bridgeAssetsPath("$private_build_dir/assets_path_{$serverType}_bridge.php",
-                    $serverType, $context['assetsFS']);
+                    $serverType, $app['assetsFS']);
 //    $that->bridgeAssetsPath("$projectPath/run/assets_path_apache_bridge.conf", 'apache',
 // $context['assetsFS']);
 //    $that->bridgeAssetsPath("$projectPath/run/assets_path_nginx_bridge.conf", 'nginx',
@@ -126,7 +123,7 @@ class AppController{
     }
 
     public function getHelpers () {
-        $app = $this->appCtx['app'];
+        $app = $this->app;
         return [
             'urlFor'=> function ($name, $options=[], $only=[]) use(&$app) {
                 $options = Utils::arrayPick($options, $only);

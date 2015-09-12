@@ -11,40 +11,37 @@ $app = $AppController->getApp([
     'debug' => true,
     'server_type' => 'builtin',
     'projectPath' => __DIR__,
-    'documentRoot' => 'www/',
+    'documentRoot' => __DIR__.'/www/',
     'private_build_dir' => __DIR__.'/run/',
     'public_build_dir' => __DIR__.'/www/run/',
     'assets.concat' => false,
 ]);
-$appCtx = $AppController->appCtx;
 
 $blogModule = new MyBlog\Module();
 $cModule = new C\Module();
 
-$cModule->register($appCtx);
-$blogModule->register($appCtx);
+$cModule->register($app);
+$blogModule->register($app);
 
 $schemaIsFresh = false;
 if ($AppController->isEnv('dev')) {
-    $schemaIsFresh = $appCtx['schema_loader']->isFresh();
-    $exists = $appCtx['capsule.exists'];
-    $delete = $appCtx['capsule.delete'];
-    if ($exists() && !$schemaIsFresh) {
-        $delete();
+    $schemaIsFresh = $app['schema_loader']->isFresh();
+    $exists = $app['capsule.exists'];
+    if ($app['capsule.exists']() && !$schemaIsFresh) {
+        $app['capsule.delete']();
     }
 }
 
 if ($AppController->isEnv('dev')) {
-    $dbConn = $appCtx['capsule.connection.dev'];
-    $dbConn();
-    $appCtx['capsule']->bootEloquent();
-    $appCtx['capsule']->setAsGlobal();
+    $app['capsule.connection.dev']();
+    $app['capsule']->bootEloquent();
+    $app['capsule']->setAsGlobal();
 }
 
 if ($AppController->isEnv('dev')) {
-    if (!$appCtx['capsule.exists']() || !$schemaIsFresh) {
-        $appCtx['schema_loader']->build();
-        $appCtx['schema_loader']->populate();
+    if (!$app['capsule.exists']() || !$schemaIsFresh) {
+        $app['schema_loader']->build();
+        $app['schema_loader']->populate();
     }
 }
 
@@ -52,19 +49,19 @@ if ($AppController->isEnv('dev')) {
 $blog = new MyBlog\Controller();
 
 $app->get( '/',
-    $blog->home($appCtx)
+    $blog->home()
 )->bind ('home');
 
 $app->get( '/blog/{id}',
-    $blog->detail($appCtx, 'blog_entry_add_comment')
+    $blog->detail('blog_entry_add_comment')
 )->bind ('blog_entry');
 
 $app->get( '/blog/{id}/blog_detail_comments',
-    $blog->detail($appCtx, 'blog_entry_add_comment')
+    $blog->detail('blog_entry_add_comment')
 )->bind ('blog_entry_detail_comments');
 
 $app->get( '/blog/{id}/add_comment',
-    $blog->postComment($appCtx)
+    $blog->postComment()
 )->bind ('blog_entry_add_comment');
 
 $app->run();

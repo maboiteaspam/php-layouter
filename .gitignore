@@ -1,4 +1,4 @@
 run/
 vendor/
-www/assets/
+www/run/
 composer.phar

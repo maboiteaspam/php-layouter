@@ -6,11 +6,11 @@ use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
 class Transforms extends HTMLTransforms{
 
     /**
-     * @param mixed $options
+     * @param mixed $app
      * @return Transforms
      */
-    public static function transform($options) {
-        return new Transforms($options);
+    public static function transform($app) {
+        return new Transforms($app);
     }
 
     public function inject($options=[]){

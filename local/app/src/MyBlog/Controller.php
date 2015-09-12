@@ -17,24 +17,24 @@ use Silex\Application;
 
 class Controller{
 
-    public function home($appCtx) {
-        return function () use($appCtx) {
-            MyBlogLayout::transform($appCtx)
+    public function home() {
+        return function (Application $app) {
+            MyBlogLayout::transform($app)
                 ->baseTemplate()
                 ->home(
                     Eloquent::delayed('blog_entry')->take(20)->orderBy('created_at', 'DESC')->all(),
                     Eloquent::delayed('blog_comment')->take(5)->orderBy('created_at', 'DESC')->all()
                 )->then(
-                    debugTransforms::transform($appCtx)->debug(__CLASS__)
+                    debugTransforms::transform($app)->debug(__CLASS__)
                 )
                 ->finalize();
-            return $appCtx['layout_responder']();
+            return $app['layout_responder']();
         };
     }
 
-    public function detail($appCtx, $postCommentUrl) {
-        return function (Application $app, Request $request, $id) use($appCtx, $postCommentUrl) {
-            $urlFor = $appCtx['layout']->config['helpers']['urlFor'];
+    public function detail($postCommentUrl) {
+        return function (Application $app, Request $request, $id) use($postCommentUrl) {
+            $urlFor = $app['layout']->config['helpers']['urlFor'];
 
             $comment = new MyCommentForm();
             /* @var $form \Symfony\Component\Form\Form*/
@@ -45,7 +45,7 @@ class Controller{
 
             $form->handleRequest($request);
 
-            MyBlogLayout::transform($appCtx)
+            MyBlogLayout::transform($app)
                 ->baseTemplate()
                 ->detail(
                     Eloquent::delayed('blog_entry')->where('id', '=', $id)->one(),
@@ -54,15 +54,15 @@ class Controller{
                 )->updateData('blog_form_comments', [
                     'form'=> $form,
                 ])->then(
-                    jQueryTransforms::transform($appCtx)->ajaxify('blog_detail_comments', [
+                    jQueryTransforms::transform($app)->ajaxify('blog_detail_comments', [
                         'isAjax'=> $request->isXmlHttpRequest(),
                         'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
                     ])
                 )->then(
-                    debugTransforms::transform($appCtx)->debug(__CLASS__)
+                    debugTransforms::transform($app)->debug(__CLASS__)
                 )
                 ->finalize();
-            return $appCtx['layout_responder']();
+            return $app['layout_responder']();
         };
     }
 

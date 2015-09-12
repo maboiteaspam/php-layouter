@@ -8,11 +8,11 @@ use C\Data\TaggedData;
 class Transforms extends BaseTransforms{
 
     /**
-     * @param mixed $options
+     * @param mixed $app
      * @return Transforms
      */
-    public static function transform ($options) {
-        return new Transforms($options);
+    public static function transform ($app) {
+        return new Transforms($app);
     }
 
     public function baseTemplate () {
@@ -31,12 +31,12 @@ class Transforms extends BaseTransforms{
     }
 
     public function applyAssets(){
-        $appCtx = $this->options;
+        $app = $this->app;
 
-        $documentRoot = $appCtx['documentRoot'];
-        $basePath = $appCtx['public_build_dir'];
-        $assetsFS = $appCtx['assetsFS'];
-        $concat = $appCtx['assets.concat'];
+        $documentRoot = $app['documentRoot'];
+        $basePath = $app['public_build_dir'];
+        $assetsFS = $app['assetsFS'];
+        $concat = $app['assets.concat'];
 
         $blockAssets = [];
         foreach ($this->layout->registry->blocks as $block) {
@@ -50,8 +50,9 @@ class Transforms extends BaseTransforms{
 
         if (count($blockAssets)) {
 
-            $assetsPath = $documentRoot.$basePath;
-            if (!is_dir($assetsPath)) mkdir($assetsPath, 0700, true);
+            if ($concat) {
+                if (!is_dir($basePath)) mkdir($basePath, 0700, true);
+            }
 
             foreach ($blockAssets as $target => $assets) {
                 $targetBlock = $this->layout->getOrCreate($target);
@@ -75,9 +76,9 @@ class Transforms extends BaseTransforms{
                         }
                         $h = sha1($h.Utils::fileToEtag(__FILE__));
 
-                        $concatAssetName = "$target-$h-$ext";
-                        $concatAssetFile = $assetsPath . $concatAssetName;
-                        $concatAssetUrl = $basePath . $concatAssetName;
+                        $concatAssetName = "$target-$h.$ext";
+                        $concatAssetFile = $basePath . $concatAssetName;
+                        $concatAssetUrl = substr($basePath, strlen($documentRoot)) . $concatAssetName;
 
                         if (!file_exists($concatAssetFile)) {
                             foreach ($assets as $asset) {
@@ -126,7 +127,6 @@ class Transforms extends BaseTransforms{
         $content    = file_get_contents($assetFile);
         $assetFile  = $assetsFS->realpath($assetFile);
         $assetItem = $assetsFS->get($assetFile);
-//        var_dump($assetItem);die();
         $assetFile  = $assetItem['dir'].$assetItem['name'];
         if ($assetItem['extension']==='css') {
             $matches = [];
@@ -135,11 +135,11 @@ class Transforms extends BaseTransforms{
                 if (substr($match,0,1)==='"' || substr($match,0,1)==="'") {
                     $match = substr($match, 1, -1);
                 }
-                $content = str_replace($matches[0][$i], "url(".$assetItem['dir']."/$match)", $content);
-                $content = "//$assetFile\n$content";
+                $content = str_replace($matches[0][$i], "url(/".$assetItem['dir']."/$match)", $content);
             }
-        } else if ($assetItem['extension']==='.js') {
-            $content = "(function(modulePath){".$content."})('".$assetItem['dir']."/'');";
+            $content = "/* $assetFile */ \n$content";
+        } else if ($assetItem['extension']==='js') {
+            $content = "(function(modulePath){".$content."})('".$assetItem['dir']."');";
         }
 
         return $content;
