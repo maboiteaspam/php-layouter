@@ -28,28 +28,37 @@ function respondAsset ($f, $extension) {
     header('Expires: ' . gmdate('D, d M Y H:i:s', time() + (60*60*24*45)) . ' GMT');
 
     echo $content;
+
+    return true;
 }
 
 $reqUrl = $_SERVER['PHP_SELF'];
 $extension = substr(strrchr($reqUrl, "."), 1);
 
 if (in_array($extension, ['jpeg','jpg','png','gif','css','js'])) {
+
+    $found = false;
     if (file_exists("$wwwPath/$reqUrl")) {
+        $found = true;
         respondAsset("$wwwPath/$reqUrl", $extension);
-        return true;
     } else if(file_exists('run/assets_path_builtin_bridge.php')) {
         $paths = include 'run/assets_path_builtin_bridge.php';
         $reqUrl = $_SERVER['PHP_SELF'];
         $d = dirname($reqUrl);
         $f = basename($reqUrl);
         foreach( $paths as $alias=>$path ){
-            if ($alias===substr($d, 0, strlen($alias))) {
+            if (!$found && $alias===substr($d, 0, strlen($alias))) {
                 $f = str_replace($alias, $path, $reqUrl);
                 if (file_exists($f)) {
+                    $found = true;
                     respondAsset($f, $extension);
                 }
             }
         }
+    }
+
+    if (!$found) {
+        header("HTTP/1.0 404 Not Found");
     }
     return true;
 }
