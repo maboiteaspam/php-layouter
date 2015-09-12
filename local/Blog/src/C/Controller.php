@@ -2,7 +2,7 @@
 
 namespace C\Blog;
 
-use MyBlog\Transforms as BlogLayout;
+use C\Blog\Transforms as BlogLayout;
 
 function getEntries () {
     $fixtureEntries = include(__DIR__ . '/fixtures/blog-entries.php');

@@ -17,11 +17,13 @@ $app = $AppController->getApp([
     'assets.concat' => false,
 ]);
 
-$blogModule = new MyBlog\Module();
+$myBlogModule = new MyBlog\Module();
+$cBlogModule = new C\Blog\Module();
 $cModule = new C\Module();
 
 $cModule->register($app);
-$blogModule->register($app);
+$cBlogModule->register($app);
+$myBlogModule->register($app);
 
 $schemaIsFresh = false;
 if ($AppController->isEnv('dev')) {

@@ -1,4 +1,6 @@
 {
+  "name":"my/blog",
+  "description":"myblog",
   "require": {
     "silex/silex": "~1.3",
     "illuminate/events": "^5.1",
@@ -13,8 +15,9 @@
   "autoload": {
     "psr-4": {
       "MyBlog\\": "local/app/src/MyBlog",
-      "MyDb\\": "local/app/src/MyDb",
+      "C\\Blog\\": "local/Blog/src/C",
       "C\\": "local/C/src/C"
     }
-  }
+  },
+  "license": "WTF"
 }

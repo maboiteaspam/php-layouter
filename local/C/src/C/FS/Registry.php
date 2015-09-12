@@ -125,14 +125,19 @@ class Registry {
     }
     protected function recursiveReadPath () {
         $basePath = $this->config['basePath'];
-        foreach( $this->config['paths'] as $i=>$path) {
+        $paths = [];
+        foreach( $this->config['paths'] as $path) {
             $rp = realpath($path);
             if ($rp===false) {
                 $rp = realpath("$basePath/$path");
             }
-            $this->config['paths'][$i] = $rp;
+            if ($rp===false) {
+                // log that something is wrong in some assets path.
+            } else {
+                $paths[] = $rp;
+            }
         }
-        $paths = array_unique($this->config['paths']);
+        $paths = array_unique($paths);
         foreach( $paths as $path) {
             $Directory = new \RecursiveDirectoryIterator($path);
             $filter = new \RecursiveCallbackFilterIterator($Directory, function ($current, $key, $iterator) {
