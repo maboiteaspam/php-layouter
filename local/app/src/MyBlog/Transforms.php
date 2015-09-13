@@ -35,7 +35,7 @@ class Transforms extends BlogLayout{
         ])->insertAfter('body_footer', 'extra_footer', [
             'body'=>'some'
         ])->then(
-            Dashboard::transform($this->app)->show($this->app['end']!="prod", $fromClass)
+            Dashboard::transform($this->app)->show($this->app['env']!="prod", $fromClass)
         )->then(
             jQueryTransforms::transform($this->app)->inject()
         );
