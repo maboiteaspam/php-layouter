@@ -3,7 +3,6 @@ namespace C\HTMLLayoutBuilder;
 
 use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
-use C\Data\TaggedData;
 
 class Transforms extends BaseTransforms{
 
@@ -119,7 +118,6 @@ class Transforms extends BaseTransforms{
 
                 if ($concat) {
                     $app->after(function()use(&$assetsFS, &$blockAssets, &$blockToFile){
-
                         foreach ($blockAssets as $target => $assets) {
                             if (!file_exists($blockToFile[$target])) {
                                 $filesContent = [];
@@ -164,50 +162,10 @@ class Transforms extends BaseTransforms{
     }
 
 
-    public function updateEtags(){
+    public function updateEtags () {
         $app = $this->app;
-        $assetsFS = $app['assetsFS'];
-        $templatesFS = $app['templatesFS'];
-
         foreach($this->layout->registry->blocks as $e=>$block) {
-            $h = '';
-            $h .= $block->id . '-';
-            if (isset($block->options['template'])) {
-                $template = $block->options['template'];
-                if ($templatesFS->file_exists($template)) {
-                    $a = $templatesFS->get($template);
-                    $h .= $e . '-';
-                    $h .= $template . '-';
-                    $h .= $a['sha1'] . '-';
-                    $h = sha1($h);
-                }
-            }
-            foreach($block->assets as $target=>$assets) {
-                foreach($assets as $i=>$asset){
-                    if ($assetsFS->file_exists($asset)) {
-                        $a = $assetsFS->get($asset);
-                        $h .= $target . '-';
-                        $h .= $i . '-';
-                        $h .= $asset . '-';
-                        $h .= $a['sha1'] . '-';
-                        $h = sha1($h);
-                    }
-                }
-            }
-            array_walk_recursive($block->data, function($data) use(&$h){
-                if ($data instanceof TaggedData) {
-                    $h .= serialize($data->etag());
-                    $h = sha1($h);
-                } else {
-                    try{
-                        $h .= serialize($data);
-                        $h = sha1($h);
-                    }catch(\Exception $ex){
-
-                    }
-                }
-            });
-            $block->meta['etag'] = $h;
+            $block->meta['etag'] = $block->etagData($app['templatesFS'], $app['assetsFS']);
         }
         return $this;
     }

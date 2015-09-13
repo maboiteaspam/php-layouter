@@ -6,9 +6,9 @@ use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 
 use MyBlog\Transforms as MyBlogLayout;
 use \C\Blog\CommentForm as MyCommentForm;
-use \C\BlogData\PO\Entry as Entry;
-use \C\BlogData\PO\Comment as Comment;
-use \C\Data\LazyCapsule as Lazy;
+use \C\BlogData\Eloquent\Entry as Entry;
+use \C\BlogData\Eloquent\Comment as Comment;
+use \C\Data\Eloquent;
 
 use Symfony\Component\HttpFoundation\Request;
 use Silex\Application;
@@ -22,8 +22,8 @@ class Controller{
             MyBlogLayout::transform($app)
                 ->baseTemplate(__CLASS__)
                 ->home(
-                    Lazy::autoTagged($entryModel->mostRecent())->get(),
-                    Lazy::autoTagged($commentModel->mostRecent())->get()
+                    Eloquent::wrap($entryModel->mostRecent())->get(),
+                    Eloquent::wrap($commentModel->mostRecent())->get()
                 )->finalize();
             return $app['layout_responder']();
         };
@@ -48,9 +48,9 @@ class Controller{
             MyBlogLayout::transform($app)
                 ->baseTemplate(__CLASS__)
                 ->detail(
-                    Lazy::autoTagged($entryModel->byId($id))->first(),
-                    Lazy::autoTagged($commentModel->byEntryId($id))->get(),
-                    Lazy::autoTagged($commentModel->mostRecent())->where('blog_entry_id', '!=', $id)->get()
+                    Eloquent::wrap($entryModel->byId($id))->first(),
+                    Eloquent::wrap($commentModel->byEntryId($id))->get(),
+                    Eloquent::wrap($commentModel->mostRecent())->where('blog_entry_id', '!=', $id)->get()
                 )->updateData('blog_form_comments', [
                     'form' => $form,
                 ])->then(

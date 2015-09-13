@@ -44,16 +44,21 @@ class Transforms extends HTMLTransforms{
 
             if (!$options['isAjax']) {
                 $id = sha1($target.$options['url']);
-                $this->setTemplate($target, '');
-                $this->setBody($target, '<div id="'.$id.'"></div>');
-                $this->setTemplate($target.'_ajax', __DIR__.'/templates/ajaxified-block.php');
-                $this->updateData($target.'_ajax', [
+
+                $this->setTemplate($target,
+                    ''
+                )->setBody($target,
+                    '<div id="'.$id.'"></div>'
+                )->setTemplate($target.'_ajax',
+                    __DIR__.'/templates/ajaxified-block.php'
+                )->updateData($target.'_ajax', [
                     'url'   => $options['url'],
                     'id'    => $id,
                     'target'=> $target,
                 ]);
+
                 $layout = $this->layout;
-                $layout->afterBlockRender('page_footer_js', function ($ev, $layout, $target) {
+                $layout->afterBlockRender('page_footer_js', function ($ev, $layout, $id) use($target) {
                     $layout->displayBlock($target.'_ajax');
                 });
             } else {

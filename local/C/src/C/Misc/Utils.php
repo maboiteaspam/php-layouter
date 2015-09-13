@@ -31,7 +31,8 @@ class Utils{
         if (count($pick)>0 && $arr) {
             $opts = [];
             foreach($pick as $n) {
-                if (isset($arr[$n])) $opts[$n] = $arr[$n];
+                if (is_array($arr) && isset($arr[$n])) $opts[$n] = $arr[$n];
+                else if (is_object($arr) && isset($arr->{$n})) $opts[$n] = $arr->{$n};
             }
             $arr = $opts;
         }

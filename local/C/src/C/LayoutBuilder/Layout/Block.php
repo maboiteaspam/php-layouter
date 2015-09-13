@@ -2,7 +2,7 @@
 
 namespace C\LayoutBuilder\Layout;
 
-use C\Data\TaggedData;
+use \C\Data\ViewData;
 
 class Block{
 
@@ -37,17 +37,7 @@ class Block{
                 $fn = function ($helpers, $block) {
                     $block->resolved = true; // this will prevent recursive call when set above.
                     ob_start();
-                    foreach($block->data as $name => $data){
-                        if ($name!='block') {
-                            if ($data instanceof TaggedData) {
-                                $$name = $data->get();
-                            } else {
-                                $$name = $data;
-                            }
-                        } else {
-                            throw new \Exception('Forbidden data name "block" called in block');
-                        }
-                    }
+                    extract($block->unwrapData(['block']), EXTR_SKIP);
                     if ($helpers) {
                         foreach($helpers as $name => $helper){
                             if ($name!='block') {
@@ -69,5 +59,69 @@ class Block{
                 // weird stuff in template.
             }
         }
+    }
+
+    public function etagData ($templatesFS, $assetsFS){
+        $h = '';
+        $h .= $this->id . '-';
+        if (isset($this->options['template'])) {
+            $template = $this->options['template'];
+            if ($templatesFS->file_exists($template)) {
+                $a = $templatesFS->get($template);
+                $h .= $template . '-';
+                $h .= $a['sha1'] . '-';
+                $h = sha1($h);
+            }
+        }
+        foreach($this->assets as $target=>$assets) {
+            foreach($assets as $i=>$asset){
+                if ($assetsFS->file_exists($asset)) {
+                    $a = $assetsFS->get($asset);
+                    $h .= $target . '-';
+                    $h .= $i . '-';
+                    $h .= $asset . '-';
+                    $h .= $a['sha1'] . '-';
+                    $h = sha1($h);
+                }
+            }
+        }
+
+        foreach($this->unwrapEtags() as $name => $data){
+            $h = sha1($h.$name.$data);
+        }
+
+        return $h;
+    }
+
+    public function unwrapEtags (){
+        $unwrapped = [];
+        foreach($this->data as $name => $data){
+            try{
+                if ($data instanceof ViewData) {
+                    $unwrapped[$name] = serialize($data->getEtag());
+                } else {
+                    $unwrapped[$name] = serialize($data);
+                }
+            }catch(\Exception $ex) {
+                $unwrapped[$name] = "untaggable data $name";
+            }
+        }
+        return $unwrapped;
+    }
+
+    public function unwrapData ($notNames=[]) {
+        $unwrapped = [];
+        foreach($this->data as $name => $data){
+            if (!in_array($name, $notNames)) {
+                if ($data instanceof ViewData) {
+                    $unwrapped[$name] = $data->unwrap();
+                } else {
+                    $unwrapped[$name] = $data;
+                }
+            } else {
+                throw new \Exception("Forbidden data name '$name'' is forbidden and can t be overwritten");
+            }
+        }
+        return $unwrapped;
     }
 }
