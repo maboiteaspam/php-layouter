@@ -15,6 +15,9 @@ class Block{
     public $data = [];
     public $assets = [
     ];
+    public $displayed_block = [
+        /* [array,of,block,id,displayed]*/
+    ];
     public $meta = [
         'from' => false,
         'etag' => '',

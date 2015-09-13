@@ -36,12 +36,16 @@ class AppController{
         $env = getenv('APP_ENV') ? getenv('APP_ENV') : 'dev';
         $projectPath = $values['projectPath'];
 
-        $app = new Application(array_merge(['env'=>$env], $values));
+        $app = new Application();
         $this->app =  $app;
 
         $app->register(new ConfigServiceProvider("$projectPath/config.php", [
             'projectPath' => $projectPath,
         ]));
+        $values = array_merge(['env'=>$env], $values);
+        foreach( $values as $key=>$value ){
+            $app[$key] = $value;
+        }
 
         $app->register(new HttpCacheServiceProvider(), array(
             'http_cache.cache_dir' => $app['public_build_dir']."/http_cache",
@@ -121,8 +125,11 @@ class AppController{
                 return $response;
             }
             $app['layout']->emit('before_layout_render');
-            $response->setContent($app['layout']->render());
+            $app['layout']->render();
             $app['layout']->emit('after_layout_render');
+            $response->setContent(
+                $app['layout']->getRoot()->body
+            );
             return $response;
         });
 

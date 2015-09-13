@@ -16,17 +16,23 @@ class Transforms extends BaseTransforms{
     }
 
     public function baseTemplate () {
-        $this->setTemplate('root', __DIR__.'/templates/html.php');
-        $this->set('html_begin', ['body'=>'<html>']);
-        $this->setTemplate('head', __DIR__.'/templates/head.php');
-        $this->set('body', [
+        $this->setTemplate('root',
+            __DIR__.'/templates/html.php'
+        )->set('html_begin', [
+            'body'=>'<html>'
+        ])->setTemplate('head',
+            __DIR__.'/templates/head.php'
+        )->set('body', [
             'options'=>[
                 'template'=> __DIR__ . '/templates/1-column.php'
             ],
+        ])->setTemplate('footer',
+            __DIR__.'/templates/footer.php'
+        )->set('script_bottom',  [
+            'body'=>''
+        ])->set('html_end',[
+            'body'=>'</html>'
         ]);
-        $this->setTemplate('footer', __DIR__.'/templates/footer.php');
-        $this->set('script_bottom', ['body'=>'']);
-        $this->set('html_end', ['body'=>'</html>']);
         return $this;
     }
 

@@ -21,14 +21,11 @@ class Controller{
             $entryModel = new Entry();
             $commentModel = new Comment();
             MyBlogLayout::transform($app)
-                ->baseTemplate()
+                ->baseTemplate(__CLASS__)
                 ->home(
                     Lazy::autoTagged($entryModel->mostRecent())->get(),
                     Lazy::autoTagged($commentModel->mostRecent())->get()
-                )->then(
-                    debugTransforms::transform($app)->debug(__CLASS__)
-                )
-                ->finalize();
+                )->finalize();
             return $app['layout_responder']();
         };
     }
@@ -50,22 +47,19 @@ class Controller{
             $commentModel = new Comment();
 
             MyBlogLayout::transform($app)
-                ->baseTemplate()
+                ->baseTemplate(__CLASS__)
                 ->detail(
                     Lazy::autoTagged($entryModel->byId($id))->first(),
                     Lazy::autoTagged($commentModel->byEntryId($id))->get(),
                     Lazy::autoTagged($commentModel->mostRecent())->where('blog_entry_id', '!=', $id)->get()
                 )->updateData('blog_form_comments', [
-                    'form'=> $form,
+                    'form' => $form,
                 ])->then(
                     jQueryTransforms::transform($app)->ajaxify('blog_detail_comments', [
                         'isAjax'=> $request->isXmlHttpRequest(),
                         'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
                     ])
-                )->then(
-                    debugTransforms::transform($app)->debug(__CLASS__)
-                )
-                ->finalize();
+                )->finalize();
             return $app['layout_responder']();
         };
     }

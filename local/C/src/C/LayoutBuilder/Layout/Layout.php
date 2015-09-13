@@ -22,6 +22,11 @@ class Layout{
         'options'=>[]
     ];
 
+    /**
+     * @var string
+     */
+    private $currentBlockInRender;
+
     public function __construct ($config=[]) {
         $this->registry = new RegistryBlock();
 
@@ -49,22 +54,32 @@ class Layout{
     }
 
     public function resolve ($id){
+        $parentBlock = null;
+        $currentBlock = $this->currentBlockInRender;
         $block = $this->registry->get($id);
+        if ($currentBlock) {
+            $parentBlock = $this->registry->get($currentBlock);
+            if ($parentBlock) $parentBlock->displayed_block[] = ['id'=>$id, 'shown'=>!!$block];
+        }
         if ($block) {
+            $this->currentBlockInRender = $id;
             $block->resolve($this->config['helpers']);
         }
+        $this->currentBlockInRender = $currentBlock;
         return $block;
     }
     public function getContent ($id){
         $block = $this->resolve($id);
-        $content = '';
         if ($block) {
-            $content .= $block->body;
+            return $block->body;
         }
-        return $content;
+        return '';
     }
     public function render (){
         return $this->getContent($this->block);
+    }
+    public function getRoot (){
+        return $this->get($this->block);
     }
 
     public function displayBlock ($id){
@@ -81,10 +96,6 @@ class Layout{
      */
     public function get ($id){
         return $this->registry->get($id);
-    }
-
-    function setRoot ($options){
-        return $this->set( 'root', $options);
     }
 
     function configureBlock ($block, $options=[]){
@@ -175,6 +186,58 @@ class Layout{
     public function off ($id, $fn){
         if ($this->config['dispatcher'])
             call_user_func_array([$this->config['dispatcher'], ' removeListener'], func_get_args());
+    }
+    public function beforeRender ($fn){
+        $layout = $this;
+        $this->on('before_layout_render', function($event) use($layout, $fn){
+            $fn($event, $layout);
+        });
+    }
+    public function afterRender ($fn){
+        $layout = $this;
+        $this->on('after_layout_render', function($event) use($layout, $fn){
+            $fn($event, $layout);
+        });
+    }
+    public function beforeRenderAnyBlock ($fn){
+        $layout = $this;
+        $this->on('before_block_render', function($event) use($layout, $fn){
+            $fn($event, $layout, $event->getArgument(0));
+        });
+    }
+    public function afterRenderAnyBlock ($fn){
+        $layout = $this;
+        $this->on('after_block_render', function($event) use($layout, $fn){
+            $fn($event, $layout, $event->getArgument(0));
+        });
+    }
+    public function beforeBlockRender ($id, $fn){
+        $layout = $this;
+        $this->on('before_render_'.$id, function($event) use($layout, $id, $fn){
+            $fn($event, $layout, $id);
+        });
+    }
+    public function afterBlockRender ($id, $fn){
+        $layout = $this;
+        $this->on('after_render_'.$id, function($event) use($layout, $id, $fn){
+            $fn($event, $layout, $id);
+        });
+    }
+
+
+    function traverseBlocksWithStructure (Block $block, Layout $layout, $then, $path=null){
+        $parentId = $block->id;
+        if ($path===null) {
+            $path = "/$parentId";
+            $then($parentId, null, $path, ['block'=>$block,'shown'=>true,'exists'=>true]);
+        }
+        foreach ($block->displayed_block as $displayed_block) {
+            $subId = $displayed_block['id'];
+            $sub = $layout->get($subId);
+            if ($sub) $subId = $sub->id;
+            $then($subId, $parentId, "$path/$subId", ['block'=>$sub,'shown'=>$displayed_block['shown'],'exists'=>!!$sub]);
+            if ($sub) $this->traverseBlocksWithStructure($sub, $layout, $then, "$path/$subId");
+        }
     }
 }
 

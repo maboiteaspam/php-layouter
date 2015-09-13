@@ -53,7 +53,7 @@ class Transforms extends HTMLTransforms{
                     'target'=> $target,
                 ]);
                 $layout = $this->layout;
-                $this->layout->on('after_render_page_footer_js', function () use(&$layout, $target) {
+                $layout->afterBlockRender('page_footer_js', function ($ev, $layout, $target) {
                     $layout->displayBlock($target.'_ajax');
                 });
             } else {

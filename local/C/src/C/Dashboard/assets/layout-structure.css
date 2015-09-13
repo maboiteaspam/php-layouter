@@ -1,0 +1,53 @@
+.layout-block .layout-block-path{
+    display: inline;
+    text-decoration: underline;
+    cursor: pointer;
+
+    margin-top: 0;
+    margin-bottom: 0;
+    transition-property: margin-top, margin-bottom;
+    transition-duration: .5s;
+}
+.layout-block .layout-block-path.open{
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.layout-block-meta {
+    background-color: whitesmoke;
+    height: 0;
+    transition-property: height, margin-top, margin-bottom;
+    transition-duration: .5s;
+    display: block;
+    overflow: hidden;
+    padding: 0;
+}
+.layout-block-meta.open {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.layout-block-meta-content{
+    padding: 20px;
+}
+.layout-block-meta-content h5{
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.layout-block .enable-help{
+    cursor: pointer;
+}
+.layout-block .enable-help .enabled-text{
+    display: none;
+}
+.layout-block .enable-help.enabled .disabled-text{
+    display: none;
+}
+.layout-block .enable-help.enabled .enabled-text{
+    display: inline;
+}
+
+
+.preview-enabled{
+    background-color: lightgrey;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
