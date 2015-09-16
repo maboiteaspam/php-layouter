@@ -66,7 +66,7 @@ class Block{
         $h .= $this->id . '-';
         if (isset($this->options['template'])) {
             $template = $this->options['template'];
-            if ($templatesFS->file_exists($template)) {
+            if ($template && $templatesFS->file_exists($template)) {
                 $a = $templatesFS->get($template);
                 $h .= $template . '-';
                 $h .= $a['sha1'] . '-';
@@ -75,7 +75,7 @@ class Block{
         }
         foreach($this->assets as $target=>$assets) {
             foreach($assets as $i=>$asset){
-                if ($assetsFS->file_exists($asset)) {
+                if ($asset && $assetsFS->file_exists($asset)) {
                     $a = $assetsFS->get($asset);
                     $h .= $target . '-';
                     $h .= $i . '-';

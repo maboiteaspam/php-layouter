@@ -3,6 +3,7 @@
 namespace C\Schema;
 
 use C\FS\Registry;
+use C\FS\LocalFs;
 
 class Loader implements ISchema{
 
@@ -23,10 +24,10 @@ class Loader implements ISchema{
     public function bootDb($settings, $env){
         if ($env==='dev') {
             if ($settings["driver"]==='sqlite') {
-                if ($settings["database"]!=='memory') {
-                    $exists = file_exists($settings['database']);
+                if ($settings["database"]!==':memory:') {
+                    $exists = LocalFs::file_exists($settings['database']);
                     if (!$exists) {
-                        touch($settings["database"]);
+                        LocalFs::touch($settings["database"]);
                     }
                 }
             }
@@ -35,7 +36,13 @@ class Loader implements ISchema{
                 $this->registry->addClassFile($schema);
             }
 
-            $this->refreshDb();
+            if ($settings["driver"]==='sqlite'
+                && $settings["database"]===':memory:') {
+                $this->createTables();
+                $this->populateTables();
+            } else {
+                $this->refreshDb();
+            }
         }
     }
 

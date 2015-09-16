@@ -10,6 +10,9 @@
                     <?php $display("dashboard-options"); ?>
                 </li>
                 <li>
+                    <?php $display("dashboard-stats"); ?>
+                </li>
+                <li>
                     <?php $display("dashboard-layout"); ?>
                 </li>
             </ul>

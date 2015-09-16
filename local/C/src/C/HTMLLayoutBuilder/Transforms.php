@@ -3,6 +3,7 @@ namespace C\HTMLLayoutBuilder;
 
 use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
+use C\FS\LocalFs;
 
 class Transforms extends BaseTransforms{
 
@@ -59,7 +60,7 @@ class Transforms extends BaseTransforms{
 
             if (count($blockAssets)) {
 
-                if ($concat && $env==='dev' && !is_dir($basePath)) mkdir($basePath, 0700, true);
+                if ($concat && $env==='dev' && !LocalFs::is_dir($basePath)) LocalFs::mkdir($basePath, 0700, true);
 
                 foreach ($blockAssets as $target => $assets) {
                     $targetBlock = $this->layout->getOrCreate($target);
@@ -116,14 +117,14 @@ class Transforms extends BaseTransforms{
                 if ($concat) {
                     $app->after(function()use(&$assetsFS, &$blockAssets, &$blockToFile){
                         foreach ($blockAssets as $target => $assets) {
-                            if (!file_exists($blockToFile[$target])) {
+                            if (!LocalFs::file_exists($blockToFile[$target])) {
                                 $filesContent = [];
                                 foreach ($assets as $asset) {
                                     $filesContent[$asset] = $this->readAndMakeAsset($assetsFS, $asset);
                                 }
                                 if (strpos($target, 'js')!==false) $c = join(";\n", $filesContent) . ";\n";
                                 else $c = join("\n", $filesContent) . "\n";
-                                file_put_contents($blockToFile[$target], $c);
+                                LocalFs::file_put_contents($blockToFile[$target], $c);
                             }
                         }
                     });
@@ -136,9 +137,9 @@ class Transforms extends BaseTransforms{
 
     public function readAndMakeAsset ($assetsFS, $assetFile){
         if ($assetsFS->file_exists($assetFile)) {
-            $content    = file_get_contents($assetFile);
+            $content    = LocalFs::file_get_contents($assetFile);
             $assetFile  = $assetsFS->realpath($assetFile);
-            $assetItem = $assetsFS->get($assetFile);
+            $assetItem  = $assetsFS->get($assetFile);
             $assetFile  = $assetItem['dir'].$assetItem['name'];
             if ($assetItem['extension']==='css') {
                 $matches = [];

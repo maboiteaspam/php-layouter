@@ -93,12 +93,16 @@ class Transforms extends BaseTransforms{
                 'options'=> []
             ]
         ])->updateAssets('dashboard-options', [
-            'template_head_css'=>[
-                __DIR__ . '/assets/options.css'
+        ]);
+
+        $this->set('dashboard-stats', [
+            'options' => [
+                'template'=>__DIR__.'/templates/stats.php'
             ],
-            'page_footer_js'=>[
-                __DIR__ . '/assets/options.js'
-            ],
+            'data' => [
+                'options'=> []
+            ]
+        ])->updateAssets('dashboard-options', [
         ]);
 
         $this->layout->beforeRenderAnyBlock(function ($ev, $layout, $id) use($fromClass) {

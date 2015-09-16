@@ -69,12 +69,12 @@ class Registry {
 
     public function saveToFile(){
         $dump = $this->createSignature()->build();
-        file_put_contents($this->file, "<?php return ".var_export($dump, true).";\n");
+        LocalFs::file_put_contents($this->file, "<?php return ".var_export($dump, true).";\n");
         return $dump;
     }
     public function clearFile(){
-        if (file_exists($this->file))
-            unlink($this->file);
+        if (LocalFs::file_exists($this->file))
+            LocalFs::unlink($this->file);
     }
 
     public function loadFromFile(){
@@ -100,9 +100,9 @@ class Registry {
         $basePath = $this->config['basePath'];
         $paths = [];
         foreach( $this->config['paths'] as $path) {
-            $rp = realpath($path);
+            $rp = LocalFs::realpath($path);
             if ($rp===false) {
-                $rp = realpath("$basePath/$path");
+                $rp = LocalFs::realpath("$basePath/$path");
             }
             if ($rp===false) {
                 // log that something is wrong in some assets path.
@@ -146,7 +146,7 @@ class Registry {
             'type'          => $path->isFile()?'file':'dir',
             'name'          => $path->getFilename()==='.'?basename($fp):$path->getFilename(),
             'dir'           => $p,
-            'sha1'          => $path->isFile()?sha1($path->getRealPath().file_get_contents($path->getRealPath())):'',
+            'sha1'          => $path->isFile()?sha1($path->getRealPath().LocalFs::file_get_contents($path->getRealPath())):'',
             'extension'     => $path->getExtension(),
             'file_mtime'    => $path->getMTime(),
             'file_atime'    => $path->getATime(),

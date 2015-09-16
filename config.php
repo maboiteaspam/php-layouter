@@ -10,6 +10,7 @@ return [
     'capsule.settings.dev' => [
         'driver'   => 'sqlite',
         'database' => '%projectPath%/run/database.sqlite',
+//        'database' => ':memory:',
         'prefix'   => '',
         'charset'   => 'utf8',
         'collation' => 'utf8_unicode_ci',

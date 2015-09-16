@@ -12,6 +12,7 @@ use C\Misc\Utils;
 use C\LayoutBuilder\Layout\Layout;
 use C\FS\KnownFs;
 use C\FS\Registry;
+use C\FS\LocalFs;
 use C\Schema\Loader as SchemaLoader;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
@@ -38,7 +39,6 @@ class AppController{
 
         $app = new Application();
         $this->app =  $app;
-
         $app->register(new ConfigServiceProvider("$projectPath/config.php", [
             'projectPath' => $projectPath,
         ]));
@@ -46,16 +46,17 @@ class AppController{
         foreach( $values as $key=>$value ){
             $app[$key] = $value;
         }
-
         $app->register(new HttpCacheServiceProvider(), array(
             'http_cache.cache_dir' => $app['public_build_dir']."/http_cache",
         ));
         $app->register(new UrlGeneratorServiceProvider());
         $app->register(new FormServiceProvider());
 
-        $build_dir = $app['private_build_dir'];
 
-        if ($this->isEnv('dev') && !is_dir($build_dir)) mkdir($build_dir);
+        LocalFs::$record = $app['debug'];
+
+        $build_dir = $app['private_build_dir'];
+        if ($this->isEnv('dev') && !LocalFs::is_dir($build_dir)) LocalFs::mkdir($build_dir);
 
         $app['dispatcher']->addListener('c_modules_loaded', function () use(&$app) {
             $env = $app['env'];
@@ -169,7 +170,7 @@ class AppController{
                 $aliases .= "Alias $p\t$path\n";
             }
         }
-        return file_put_contents($file, $aliases);
+        return LocalFs::file_put_contents($file, $aliases);
     }
 
     public function getHelpers () {

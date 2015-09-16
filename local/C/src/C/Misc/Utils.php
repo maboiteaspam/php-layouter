@@ -2,6 +2,8 @@
 
 namespace C\Misc;
 
+use C\FS\LocalFs;
+
 class Utils{
 
     public static function fileToEtag ($file) {
@@ -10,8 +12,8 @@ class Utils{
         foreach ($file as $i=>$f) {
             $h .= $i . '-';
             $h .= $f . '-';
-            if (file_exists($f)) {
-                $h .= filemtime($f) . '-';
+            if (LocalFs::file_exists($f)) {
+                $h .= LocalFs::filemtime($f) . '-';
             }
         }
         return $h;
@@ -40,7 +42,7 @@ class Utils{
     }
 
     public static function shorten ($path) {
-        $path = realpath($path);
+        $path = LocalFs::realpath($path);
         if (substr($path, 0, strlen(getcwd()))===getcwd()) {
             $path = substr($path, strlen(getcwd())+1);
         }
