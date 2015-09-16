@@ -70,7 +70,6 @@ class Block{
                 $a = $templatesFS->get($template);
                 $h .= $template . '-';
                 $h .= $a['sha1'] . '-';
-                $h = sha1($h);
             }
         }
         foreach($this->assets as $target=>$assets) {
@@ -81,16 +80,15 @@ class Block{
                     $h .= $i . '-';
                     $h .= $asset . '-';
                     $h .= $a['sha1'] . '-';
-                    $h = sha1($h);
                 }
             }
         }
 
         foreach($this->unwrapEtags() as $name => $data){
-            $h = sha1($h.$name.$data);
+            $h .= ($name.$data);
         }
 
-        return $h;
+        return sha1($h);
     }
 
     public function unwrapEtags (){

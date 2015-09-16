@@ -7,6 +7,11 @@ use \Silex\Provider\UrlGeneratorServiceProvider;
 
 use Symfony\Component\HttpFoundation\Response;
 use Silex\Provider\FormServiceProvider;
+use Silex\Provider\TranslationServiceProvider;
+use Silex\Provider\SessionServiceProvider;
+use Silex\Provider\RememberMeServiceProvider;
+use Silex\Provider\MonologServiceProvider;
+use Silex\Provider\SecurityServiceProvider;
 
 use C\Misc\Utils;
 use C\LayoutBuilder\Layout\Layout;
@@ -39,13 +44,27 @@ class AppController{
 
         $app = new Application();
         $this->app =  $app;
-        $app->register(new ConfigServiceProvider("$projectPath/config.php", [
-            'projectPath' => $projectPath,
-        ]));
-        $values = array_merge(['env'=>$env], $values);
+        $values = array_merge([
+            'env'=>$env,
+            'monolog.logfile' => __DIR__.'/run/development.log',
+            'security.firewalls' => [],
+        ], $values);
         foreach( $values as $key=>$value ){
             $app[$key] = $value;
         }
+        $app->register(new ConfigServiceProvider("$projectPath/config.php", [
+            'projectPath' => $projectPath,
+        ]));
+        $app->register(new SecurityServiceProvider([
+
+        ]));
+        $app->register(new RememberMeServiceProvider([
+
+        ]));
+        $app->register(new MonologServiceProvider([
+        ]));
+        $app->register(new SessionServiceProvider( ));
+        $app->register(new TranslationServiceProvider( ));
         $app->register(new HttpCacheServiceProvider(), array(
             'http_cache.cache_dir' => $app['public_build_dir']."/http_cache",
         ));
