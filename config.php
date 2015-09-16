@@ -11,6 +11,13 @@ return [
         'driver'   => 'sqlite',
         'database' => '%projectPath%/run/database.sqlite',
 //        'database' => ':memory:',
+
+//        'driver'    => 'mysql',
+//        'host'      => '127.0.0.1',
+//        'database'  => 'blog',
+//        'username'  => 'root',
+//        'password'  => '',
+
         'prefix'   => '',
         'charset'   => 'utf8',
         'collation' => 'utf8_unicode_ci',

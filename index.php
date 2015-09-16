@@ -6,9 +6,9 @@ require 'vendor/autoload.php';
 $AppController = new C\Foundation\AppController();
 
 $app = $AppController->getApp([
-//    'env' => 'prod',
+    'env' => 'prod',
     'assets.concat' => false,
-    'debug' => true,
+//    'debug' => true,
     'projectPath' => __DIR__,
 ]);
 
