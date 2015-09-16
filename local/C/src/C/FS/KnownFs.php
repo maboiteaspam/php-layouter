@@ -7,8 +7,8 @@ class KnownFs {
     public $registry;
     public $fs;
 
-    public function __construct( Registry $registry=null) {
-        $this->registry = $registry?$registry:new Registry();
+    public function __construct( Registry $registry) {
+        $this->registry = $registry;
         $this->fs = new LocalFs();
     }
 

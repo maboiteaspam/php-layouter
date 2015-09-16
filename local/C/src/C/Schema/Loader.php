@@ -20,25 +20,54 @@ class Loader implements ISchema{
         $this->schemas[] = $schema;
     }
 
-    public function isFresh(){
-        return $this->registry->signature===$this->registry->sign();
-    }
+    public function bootDb($settings, $env){
+        if ($env==='dev') {
+            if ($settings["driver"]==='sqlite') {
+                if ($settings["database"]!=='memory') {
+                    $exists = file_exists($settings['database']);
+                    if (!$exists) {
+                        touch($settings["database"]);
+                    }
+                }
+            }
 
-    public function build(){
+            foreach( $this->schemas as $schema) {
+                $this->registry->addClassFile($schema);
+            }
 
-        $this->registry->signature = $this->registry->sign();
-        foreach( $this->schemas as $schema) {
-            /* @var $schema \C\Schema\ISchema */
-            $schema->build();
-            $reflector = new \ReflectionClass($schema);
-            $this->registry->addItem($reflector->getFileName());
+            $this->refreshDb();
         }
     }
 
-    public function populate(){
+    public function refreshDb(){
+        if (!$this->registry->isFresh()) {
+            $this->registry->clearFile();
+            try{
+                $this->dropTables();
+            }catch(\Exception $ex){}
+            $this->createTables();
+            $this->populateTables();
+        }
+    }
+
+    public function createTables(){
         foreach( $this->schemas as $schema) {
             /* @var $schema \C\Schema\ISchema */
-            $schema->populate();
+            $schema->createTables();
+        }
+    }
+
+    public function dropTables(){
+        foreach( $this->schemas as $schema) {
+            /* @var $schema \C\Schema\ISchema */
+            $schema->dropTables();
+        }
+    }
+
+    public function populateTables(){
+        foreach( $this->schemas as $schema) {
+            /* @var $schema \C\Schema\ISchema */
+            $schema->populateTables();
         }
     }
 }

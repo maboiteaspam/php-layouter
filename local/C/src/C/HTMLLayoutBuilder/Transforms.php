@@ -64,7 +64,6 @@ class Transforms extends BaseTransforms{
                 foreach ($blockAssets as $target => $assets) {
                     $targetBlock = $this->layout->getOrCreate($target);
                     if ($targetBlock) {
-                        preg_match("/(css|js)$/", $target, $matches);
                         $ext = strpos($target, 'js')===false?"css":"js";
 
                         $targetBlock->body .= "\n";
@@ -75,9 +74,7 @@ class Transforms extends BaseTransforms{
                             foreach ($assets as $i=>$asset) {
                                 if ($assetsFS->file_exists($asset)) {
                                     $a = $assetsFS->get($asset);
-                                    $h .= $i . '-';
-                                    $h .= $asset . '-';
-                                    $h .= $a['sha1'] . '-';
+                                    $h .= $i . '-' . $a['sha1'] . '-';
                                 }
                             }
 
@@ -122,12 +119,10 @@ class Transforms extends BaseTransforms{
                             if (!file_exists($blockToFile[$target])) {
                                 $filesContent = [];
                                 foreach ($assets as $asset) {
-                                    if ($assetsFS->file_exists($asset)) {
-                                        $filesContent[$asset] = $this->readAndMakeAsset($assetsFS, $asset);
-                                    }
+                                    $filesContent[$asset] = $this->readAndMakeAsset($assetsFS, $asset);
                                 }
-                                if (strpos($target, 'js')!==false) $c = ";\n" . join(";\n", $filesContent) . "\n";
-                                else $c = "" . join("\n", $filesContent) . "\n";
+                                if (strpos($target, 'js')!==false) $c = join(";\n", $filesContent) . ";\n";
+                                else $c = join("\n", $filesContent) . "\n";
                                 file_put_contents($blockToFile[$target], $c);
                             }
                         }
@@ -140,22 +135,26 @@ class Transforms extends BaseTransforms{
     }
 
     public function readAndMakeAsset ($assetsFS, $assetFile){
-        $content    = file_get_contents($assetFile);
-        $assetFile  = $assetsFS->realpath($assetFile);
-        $assetItem = $assetsFS->get($assetFile);
-        $assetFile  = $assetItem['dir'].$assetItem['name'];
-        if ($assetItem['extension']==='css') {
-            $matches = [];
-            preg_match_all('/url\s*\(([^)]+)\)/i', $content, $matches);
-            foreach($matches[1] as $i=>$match){
-                if (substr($match,0,1)==='"' || substr($match,0,1)==="'") {
-                    $match = substr($match, 1, -1);
+        if ($assetsFS->file_exists($assetFile)) {
+            $content    = file_get_contents($assetFile);
+            $assetFile  = $assetsFS->realpath($assetFile);
+            $assetItem = $assetsFS->get($assetFile);
+            $assetFile  = $assetItem['dir'].$assetItem['name'];
+            if ($assetItem['extension']==='css') {
+                $matches = [];
+                preg_match_all('/url\s*\(([^)]+)\)/i', $content, $matches);
+                foreach($matches[1] as $i=>$match){
+                    if (substr($match,0,1)==='"' || substr($match,0,1)==="'") {
+                        $match = substr($match, 1, -1);
+                    }
+                    $content = str_replace($matches[0][$i], "url(/".$assetItem['dir']."/$match)", $content);
                 }
-                $content = str_replace($matches[0][$i], "url(/".$assetItem['dir']."/$match)", $content);
+                $content = "/* $assetFile */ \n$content";
+            } else if ($assetItem['extension']==='js') {
+                $content = "(function(modulePath){;".$content.";})('".$assetItem['dir']."');";
             }
-            $content = "/* $assetFile */ \n$content";
-        } else if ($assetItem['extension']==='js') {
-            $content = "(function(modulePath){".$content."})('".$assetItem['dir']."');";
+        } else {
+            $content = "\n/* assset not found $assetFile */\n";
         }
 
         return $content;

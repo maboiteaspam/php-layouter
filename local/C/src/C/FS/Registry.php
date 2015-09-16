@@ -4,6 +4,7 @@ namespace C\FS;
 
 class Registry {
 
+    public $file;
     public $signature;
 
     public $config = [
@@ -29,18 +30,12 @@ class Registry {
         ]
     ];
 
-    public function __construct ($config=[]) {
+    public function __construct ($file, $config=[]) {
         $this->config = array_merge($this->config, $config);
         $this->items = [];
+        $this->file = $file;
     }
 
-    public function build(){
-        $this->recursiveReadPath();
-        return [
-            'items'=>$this->items,
-            'signature'=>$this->signature,
-        ];
-    }
     public function load($dump){
         $this->items = $dump['items'];
         $this->signature = $dump['signature'];
@@ -54,23 +49,13 @@ class Registry {
         return $path;
     }
 
-    public function saveToFile($file){
-        $this->sign(null);
-        $dump = $this->build();
-        file_put_contents($file, "<?php return ".var_export($dump, true).";\n");
-        return $dump;
+    public function isFresh(){
+        return $this->signature && $this->signature===$this->sign();
     }
 
-    public function loadFromFile($file){
-        try {
-            @$dump = include($file);
-            if ($dump) {
-                $this->load($dump);
-            }
-        } catch(\Exception $ex) {
-            return false;
-        }
-        return true;
+    public function createSignature(){
+        $this->signature = $this->sign();
+        return $this;
     }
 
     public function sign($some=null){
@@ -82,12 +67,106 @@ class Registry {
         return $signature;
     }
 
-    public function each ($callback) {
-        $basePath = $this->config['basePath'];
-        foreach($this->items as $i=>$item) {
-            $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
-            $callback($item, $i);
+    public function saveToFile(){
+        $dump = $this->createSignature()->build();
+        file_put_contents($this->file, "<?php return ".var_export($dump, true).";\n");
+        return $dump;
+    }
+    public function clearFile(){
+        if (file_exists($this->file))
+            unlink($this->file);
+    }
+
+    public function loadFromFile(){
+        try {
+            @$dump = include($this->file);
+            if ($dump) {
+                $this->load($dump);
+            }
+        } catch(\Exception $ex) {
+            return false;
         }
+        return true;
+    }
+
+    public function build(){
+        $this->recursiveReadPath();
+        return [
+            'items'=>$this->items,
+            'signature'=>$this->signature,
+        ];
+    }
+    protected function recursiveReadPath () {
+        $basePath = $this->config['basePath'];
+        $paths = [];
+        foreach( $this->config['paths'] as $path) {
+            $rp = realpath($path);
+            if ($rp===false) {
+                $rp = realpath("$basePath/$path");
+            }
+            if ($rp===false) {
+                // log that something is wrong in some assets path.
+            } else {
+                $paths[] = $rp;
+            }
+        }
+        $paths = array_unique($paths);
+        foreach( $paths as $path) {
+            $Directory = new \RecursiveDirectoryIterator($path);
+            $filter = new \RecursiveCallbackFilterIterator($Directory, function ($current, $key, $iterator) {
+                if (in_array($current->getFilename(), ['..'])) {
+                    return FALSE;
+                }
+                return $current;
+            });
+            $Iterator = new \RecursiveIteratorIterator($filter, \RecursiveIteratorIterator::SELF_FIRST);
+
+            foreach( $Iterator as $Iterated ) {
+                /* @var $Iterated \SplFileInfo */
+                $this->addItem($Iterated);
+            }
+        }
+    }
+
+    public function addClassFile ($className) {
+        $reflector = new \ReflectionClass($className);
+        $this->addItem($reflector->getFileName());
+    }
+    public function addItem ($path) {
+        $basePath = $this->config['basePath'];
+
+        if (is_string($path)) {
+            $path = new \SplFileInfo($path);
+        }
+        /* @var $path \SplFileInfo */
+
+        $fp = substr($path->getRealPath(), strlen($basePath)+1);
+        $p = dirname($fp)."/";
+        $item = [
+            'type'          => $path->isFile()?'file':'dir',
+            'name'          => $path->getFilename()==='.'?basename($fp):$path->getFilename(),
+            'dir'           => $p,
+            'sha1'          => $path->isFile()?sha1($path->getRealPath().file_get_contents($path->getRealPath())):'',
+            'extension'     => $path->getExtension(),
+            'file_mtime'    => $path->getMTime(),
+            'file_atime'    => $path->getATime(),
+            'file_ctime'    => $path->getCTime(),
+        ];
+
+        $key = $fp.($path->isFile()?'':'/');
+        $this->items[$key] = $item;
+    }
+    public function removeItem ($path) {
+        $basePath = $this->config['basePath'];
+        if (is_string($path)) {
+            $path = new \SplFileInfo($path);
+        }
+        $fp = substr($path->getRealPath(), strlen($basePath)+1);
+        $key = $fp.($path->isFile()?'':'/');
+        unset($this->items[$key]);
+    }
+    public function refreshItem ($path) {
+        $this->addItem($path);
     }
     public function get($itemPath){
         $basePath = $this->config['basePath'];
@@ -123,73 +202,16 @@ class Registry {
         }
         return false;
     }
-    protected function recursiveReadPath () {
+    public function each ($callback) {
         $basePath = $this->config['basePath'];
-        $paths = [];
-        foreach( $this->config['paths'] as $path) {
-            $rp = realpath($path);
-            if ($rp===false) {
-                $rp = realpath("$basePath/$path");
-            }
-            if ($rp===false) {
-                // log that something is wrong in some assets path.
-            } else {
-                $paths[] = $rp;
-            }
-        }
-        $paths = array_unique($paths);
-        foreach( $paths as $path) {
-            $Directory = new \RecursiveDirectoryIterator($path);
-            $filter = new \RecursiveCallbackFilterIterator($Directory, function ($current, $key, $iterator) {
-                if (in_array($current->getFilename(), ['..'])) {
-                    return FALSE;
-                }
-                return $current;
-            });
-            $Iterator = new \RecursiveIteratorIterator($filter, \RecursiveIteratorIterator::SELF_FIRST);
-
-            foreach( $Iterator as $Iterated ) {
-                /* @var $Iterated \SplFileInfo */
-                $this->addItem($Iterated);
-            }
+        foreach($this->items as $i=>$item) {
+            $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
+            $callback($item, $i);
         }
     }
-    public function addItem ($path) {
-        $basePath = $this->config['basePath'];
 
-        if (is_string($path)) {
-            $path = new \SplFileInfo($path);
-        }
-        /* @var $path \SplFileInfo */
 
-        $fp = substr($path->getRealPath(), strlen($basePath)+1);
-        $p = dirname($fp)."/";
-        $item = [
-            'type'          => $path->isFile()?'file':'dir',
-            'name'          => $path->getFilename()==='.'?basename($fp):$path->getFilename(),
-            'dir'           => $p,
-            'sha1'          => $path->isFile()?sha1(file_get_contents($path->getRealPath())):'',
-            'extension'     => $path->getExtension(),
-            'file_mtime'    => $path->getMTime(),
-            'file_atime'    => $path->getATime(),
-            'file_ctime'    => $path->getCTime(),
-        ];
 
-        $key = $fp.($path->isFile()?'':'/');
-        $this->items[$key] = $item;
-    }
-    public function removeItem ($path) {
-        $basePath = $this->config['basePath'];
-        if (is_string($path)) {
-            $path = new \SplFileInfo($path);
-        }
-        $fp = substr($path->getRealPath(), strlen($basePath)+1);
-        $key = $fp.($path->isFile()?'':'/');
-        unset($this->items[$key]);
-    }
-    public function refreshItem ($path) {
-        $this->addItem($path);
-    }
 }
 
 function rp($path) {

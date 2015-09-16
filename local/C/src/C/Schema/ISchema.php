@@ -4,6 +4,7 @@ namespace C\Schema;
 
 
 interface ISchema {
-    public function build();
-    public function populate();
+    public function dropTables();
+    public function createTables();
+    public function populateTables();
 }

@@ -9,7 +9,7 @@ use \C\BlogData\Eloquent\Entry as Entry;
 use \C\BlogData\Eloquent\Comment as Comment;
 
 class Schema implements ISchema{
-    public function build() {
+    public function createTables() {
         $builder = Capsule::connection()->getSchemaBuilder();
         $builder->create('blog_entry', function($table) {
             $table->increments('id');
@@ -29,7 +29,12 @@ class Schema implements ISchema{
             $table->integer('blog_entry_id');
         });
     }
-    public function populate() {
+    public function dropTables() {
+        $builder = Capsule::connection()->getSchemaBuilder();
+        $builder->drop('blog_entry');
+        $builder->drop('blog_comment');
+    }
+    public function populateTables() {
         Capsule::connection()->transaction(function(){
             $entryModel = new Entry();
             $commentModel = new Comment();
