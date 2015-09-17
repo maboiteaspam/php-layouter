@@ -49,25 +49,23 @@ class AppController{
             'monolog.logfile' => __DIR__.'/run/development.log',
             'security.firewalls' => [],
         ], $values);
-        foreach( $values as $key=>$value ){
-            $app[$key] = $value;
-        }
         $app->register(new ConfigServiceProvider("$projectPath/config.php", [
             'projectPath' => $projectPath,
         ]));
-        $app->register(new SecurityServiceProvider([
-
-        ]));
-        $app->register(new RememberMeServiceProvider([
-
-        ]));
-        $app->register(new MonologServiceProvider([
-        ]));
-        $app->register(new SessionServiceProvider( ));
+        foreach( $values as $key=>$value ){
+            $app[$key] = $value;
+        }
+        //$app->register(new MonologServiceProvider([
+        //]));
+        //$app->register(new SessionServiceProvider( ));
+        //$app->register(new SecurityServiceProvider([
+        //]));
+        //$app->register(new RememberMeServiceProvider([
+        //]));
         $app->register(new TranslationServiceProvider( ));
-        $app->register(new HttpCacheServiceProvider(), array(
-            'http_cache.cache_dir' => $app['public_build_dir']."/http_cache",
-        ));
+        //$app->register(new HttpCacheServiceProvider(), array(
+        //    'http_cache.cache_dir' => $app['public_build_dir']."/http_cache",
+        //));
         $app->register(new UrlGeneratorServiceProvider());
         $app->register(new FormServiceProvider());
 
