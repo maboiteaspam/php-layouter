@@ -88,10 +88,10 @@ class Transforms extends BaseTransforms{
 
                             if ($ext==="js")
                                 $targetBlock->body .= sprintf(
-                                    '<script src="/%s" type="text/javascript"></script>', $concatAssetUrl);
+                                    '<script src="/%s" type="text/javascript"></script>', str_replace("\\", "/", $concatAssetUrl));
                             else
                                 $targetBlock->body .= sprintf(
-                                    '<link href="/%s" rel="stylesheet" />', $concatAssetUrl);
+                                    '<link href="/%s" rel="stylesheet" />', str_replace("\\", "/", $concatAssetUrl));
 
                         } else {
                             foreach ($assets as $asset) {
@@ -102,10 +102,10 @@ class Transforms extends BaseTransforms{
 
                                     if ($ext==="js")
                                         $targetBlock->body .= sprintf(
-                                            '<script src="/%s" type="text/javascript"></script>', $assetUrl);
+                                            '<script src="/%s" type="text/javascript"></script>', str_replace("\\", "/", $assetUrl));
                                     else
                                         $targetBlock->body .= sprintf(
-                                            '<link href="/%s" rel="stylesheet" />', $assetUrl);
+                                            '<link href="/%s" rel="stylesheet" />', str_replace("\\", "/", $assetUrl));
 
                                     $targetBlock->body .= "\n";
                                 }
