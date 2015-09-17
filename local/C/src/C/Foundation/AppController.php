@@ -49,12 +49,12 @@ class AppController{
             'monolog.logfile' => __DIR__.'/run/development.log',
             'security.firewalls' => [],
         ], $values);
-        foreach( $values as $key=>$value ){
-            $app[$key] = $value;
-        }
         $app->register(new ConfigServiceProvider("$projectPath/config.php", [
             'projectPath' => $projectPath,
         ]));
+        foreach( $values as $key=>$value ){
+            $app[$key] = $value;
+        }
         $app->register(new SecurityServiceProvider([
 
         ]));
@@ -114,6 +114,7 @@ class AppController{
             /* @var $request \Symfony\Component\HttpFoundation\Request */
             $response = new Response();
 
+            $response->setProtocolVersion('1.1'); // this is super important to get etag working properly. feel fre to set the max-age directive afterwards.
             $response->setETag($app['layout']->getEtag());
             $response->mustRevalidate(true);
             $response->setPrivate(true);
@@ -124,9 +125,8 @@ class AppController{
             $app['layout']->emit('before_layout_render');
             $app['layout']->render();
             $app['layout']->emit('after_layout_render');
-            $response->setContent(
-                $app['layout']->getRoot()->body
-            );
+            $body = $app['layout']->getRoot()->body;
+            $response->setContent( $body );
             return $response;
         });
 
@@ -140,7 +140,7 @@ class AppController{
         $app['assetsFS']->registry->loadFromFile();
 
         if ($that->isEnv('dev')) {
-            $app->after(function () use(&$app) {
+            $app['dispatcher']->addListener('c_modules_loaded', function () use(&$app) {
                 $app['schemasFS']->saveToFile();
                 $app['templatesFS']->registry->saveToFile();
                 $app['assetsFS']->registry->saveToFile();
@@ -159,6 +159,7 @@ class AppController{
 
             });
         }
+
         return $app;
     }
 
@@ -173,20 +174,24 @@ class AppController{
         $aliases = [];
         if ($type==='builtin') {
             foreach ($paths as $i=>$path) {
-                $aliases[substr(realpath($path), strlen(realpath($projectPath)))] = realpath($path);
+                $urlAlias = substr(realpath($path), strlen(realpath($projectPath)));
+                $urlAlias = str_replace(DIRECTORY_SEPARATOR, "/", $urlAlias);
+                $aliases[$urlAlias] = realpath($path);
             }
             $aliases = "<?php return ".var_export($aliases, true).";\n";
         } else if ($type==='apache') {
             $aliases = "";
             foreach ($paths as $path) {
-                $p = substr(realpath($path), strlen(realpath($projectPath))+1);
-                $aliases .= "Alias $p\t$path\n";
+                $urlAlias = substr(realpath($path), strlen(realpath($projectPath))+1);
+                $urlAlias = str_replace(DIRECTORY_SEPARATOR, "/", $urlAlias);
+                $aliases .= "Alias $urlAlias\t$path\n";
             }
         } else if ($type==='nginx') {
             $aliases = "";
             foreach ($paths as $path) {
-                $p = substr(realpath($path), strlen(realpath($projectPath))+1);
-                $aliases .= "Alias $p\t$path\n";
+                $urlAlias = substr(realpath($path), strlen(realpath($projectPath))+1);
+                $urlAlias = str_replace(DIRECTORY_SEPARATOR, "/", $urlAlias);
+                $aliases .= "Alias $urlAlias\t$path\n";
             }
         }
         return LocalFs::file_put_contents($file, $aliases);

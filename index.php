@@ -1,4 +1,8 @@
 <?php
+error_reporting(E_ALL ^ E_STRICT);
+
+
+
 require 'vendor/autoload.php';
 
 //exec('rm -fr run/data*');
@@ -6,9 +10,9 @@ require 'vendor/autoload.php';
 $AppController = new C\Foundation\AppController();
 
 $app = $AppController->getApp([
-    'env' => 'prod',
+//    'env' => 'prod',
     'assets.concat' => false,
-//    'debug' => true,
+    'debug' => true,
     'projectPath' => __DIR__,
 ]);
 

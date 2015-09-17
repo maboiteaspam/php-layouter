@@ -34,6 +34,9 @@ class Registry {
         $this->config = array_merge($this->config, $config);
         $this->items = [];
         $this->file = $file;
+        foreach($this->config['paths'] as $i => $path) {
+            $this->config['paths'][$i] = reliablePath($path);
+        }
     }
 
     public function load($dump){
@@ -41,7 +44,7 @@ class Registry {
         $this->signature = $dump['signature'];
     }
     public function registerPath($path){
-        $this->config['paths'][] = $path;
+        $this->config['paths'][] = reliablePath($path);
         return $path;
     }
     public function setBasePath($path){
@@ -68,7 +71,8 @@ class Registry {
     }
 
     public function saveToFile(){
-        $dump = $this->createSignature()->build();
+        $dump = $this->build();
+        $this->createSignature();
         LocalFs::file_put_contents($this->file, "<?php return ".var_export($dump, true).";\n");
         return $dump;
     }
@@ -102,7 +106,7 @@ class Registry {
         foreach( $this->config['paths'] as $path) {
             $rp = LocalFs::realpath($path);
             if ($rp===false) {
-                $rp = LocalFs::realpath("$basePath/$path");
+                $rp = LocalFs::realpath("$basePath".DIRECTORY_SEPARATOR."$path");
             }
             if ($rp===false) {
                 // log that something is wrong in some assets path.
@@ -141,7 +145,7 @@ class Registry {
         /* @var $path \SplFileInfo */
 
         $fp = substr($path->getRealPath(), strlen($basePath)+1);
-        $p = dirname($fp)."/";
+        $p = dirname($fp)."".DIRECTORY_SEPARATOR;
         $item = [
             'type'          => $path->isFile()?'file':'dir',
             'name'          => $path->getFilename()==='.'?basename($fp):$path->getFilename(),
@@ -153,7 +157,7 @@ class Registry {
             'file_ctime'    => $path->getCTime(),
         ];
 
-        $key = $fp.($path->isFile()?'':'/');
+        $key = $fp.($path->isFile()?'':DIRECTORY_SEPARATOR);
         $this->items[$key] = $item;
     }
     public function removeItem ($path) {
@@ -162,21 +166,22 @@ class Registry {
             $path = new \SplFileInfo($path);
         }
         $fp = substr($path->getRealPath(), strlen($basePath)+1);
-        $key = $fp.($path->isFile()?'':'/');
+        $key = $fp.($path->isFile()?'':DIRECTORY_SEPARATOR);
         unset($this->items[$key]);
     }
     public function refreshItem ($path) {
         $this->addItem($path);
     }
     public function get($itemPath){
+        $itemPath = reliablePath($itemPath);
         $basePath = $this->config['basePath'];
         if (isset($this->items[$itemPath])) {
             $item = $this->items[$itemPath];
-            $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
+            $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
             return $item;
         }
-        if (isset($this->items["$itemPath/"])) {
-            $item = $this->items["$itemPath/"];
+        if (isset($this->items["$itemPath".DIRECTORY_SEPARATOR])) {
+            $item = $this->items["$itemPath".DIRECTORY_SEPARATOR];
             $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
             return $item;
         }
@@ -186,17 +191,17 @@ class Registry {
                 $itemP = substr($itemPath, strlen($basePath)+1);
                 if (isset($this->items[$itemP])) {
                     $item = $this->items[$itemP];
-                    $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
+                    $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
                     return $item;
                 }
             }
         }
         foreach( $this->config['paths'] as $i=>$path) {
-            $p = rp("$basePath/$itemPath");
+            $p = rp("$basePath".DIRECTORY_SEPARATOR."$itemPath");
             $itemP = substr($p, strlen($basePath)+1);
             if (isset($this->items[$itemP])) {
                 $item = $this->items[$itemP];
-                $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
+                $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
                 return $item;
             }
         }
@@ -205,7 +210,7 @@ class Registry {
     public function each ($callback) {
         $basePath = $this->config['basePath'];
         foreach($this->items as $i=>$item) {
-            $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
+            $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
             $callback($item, $i);
         }
     }
@@ -216,9 +221,15 @@ class Registry {
 
 function rp($path) {
     $out=array();
-    foreach(explode('/', $path) as $i=>$fold){
+    foreach(explode(DIRECTORY_SEPARATOR, $path) as $i=>$fold){
         if ($fold=='' || $fold=='.') continue;
         if ($fold=='..' && $i>0 && end($out)!='..') array_pop($out);
         else $out[]= $fold;
-    } return ($path{0}=='/'?'/':'').join('/', $out);
+    } return ($path{0}==DIRECTORY_SEPARATOR?DIRECTORY_SEPARATOR:'').join(DIRECTORY_SEPARATOR, $out);
+}
+
+function reliablePath($path) {
+    $path = str_replace("/", DIRECTORY_SEPARATOR, $path);
+    $path = str_replace("\\", DIRECTORY_SEPARATOR, $path);
+    return $path;
 }
