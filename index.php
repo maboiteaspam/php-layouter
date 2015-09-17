@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ALL ^ E_STRICT);
+error_reporting(E_ALL ^ E_STRICT); // it is really undesired to respect strict standard for friendly coding.
 
 
 
