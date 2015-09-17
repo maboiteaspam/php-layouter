@@ -3,6 +3,7 @@
 namespace C\Data;
 
 use C\Misc\Utils;
+use \C\LayoutBuilder\Layout\TaggedResource;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class Eloquent extends ViewData{
@@ -25,6 +26,7 @@ class Eloquent extends ViewData{
         if ($query instanceof QueryBuilder) {
             $data = new Eloquent($query);
             $data->etagWith(clone($query));
+            $data->dataEtag->take(1);
         } else {
             $data = parent::wrap($query);
         }
@@ -33,14 +35,27 @@ class Eloquent extends ViewData{
 
     public function etagWith ($query) {
         $this->isTagged = false;
-        $this->etag = $query;
+        $this->dataEtag = $query;
         return $this;
+    }
+
+    public function getTaggedResource () {
+        $res = new TaggedResource();
+        if ($this->dataEtag)
+            $res->addResource('sql', $this->dataEtag->toSql());
+        else
+            $res->addResource('etag', $this->etag->toSql());
+        return $res;
+    }
+
+    public function getDataEtag () {
+        return $this->dataEtag;
     }
 
     public function getEtag () {
         if ($this->etag instanceof QueryBuilder) {
             if (!$this->isTagged) {
-                $this->etag = $this->etag->first(['updated_at']);
+                $this->etag = $this->dataEtag->first(/*['updated_at']*/);
                 $this->isTagged = true;
             }
             return $this->etag;

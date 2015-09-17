@@ -1,8 +1,6 @@
 <?php
 error_reporting(E_ALL ^ E_STRICT); // it is really undesired to respect strict standard for friendly coding.
 
-
-
 require 'vendor/autoload.php';
 
 //exec('rm -fr run/data*');
@@ -12,7 +10,7 @@ $AppController = new C\Foundation\AppController();
 $app = $AppController->getApp([
 //    'env' => 'prod',
     'assets.concat' => false,
-    'debug' => true,
+//    'debug' => true,
     'projectPath' => __DIR__,
 ]);
 
@@ -47,4 +45,4 @@ $app->get( '/blog/{id}/add_comment',
     $blog->postComment()
 )->bind ('blog_entry_add_comment');
 
-$app->run();
+return $app;

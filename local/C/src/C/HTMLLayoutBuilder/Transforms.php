@@ -162,17 +162,10 @@ class Transforms extends BaseTransforms{
     }
 
 
-    public function updateEtags () {
-        $app = $this->app;
-        foreach($this->layout->registry->blocks as $e=>$block) {
-            $block->meta['etag'] = $block->etagData($app['templatesFS'], $app['assetsFS']);
-        }
-        return $this;
-    }
 
 
     public function finalize () {
-        $this->applyAssets()->updateEtags();
+        $this->applyAssets();
         return $this;
     }
 }

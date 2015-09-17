@@ -20,6 +20,7 @@ class Transforms extends BaseTransforms{
         if (!$show) return $this;
 
         $app = $this->app;
+        $layout = $app['layout'];
 
         $this->insertBefore('html_end', 'dashboard', [
             'options' => [
@@ -50,9 +51,8 @@ class Transforms extends BaseTransforms{
                 'template'=>__DIR__.'/templates/layout-structure.php'
             ],
             'data' => [
-                'struct'=> function () use($app) {
+                'struct'=> function () use($layout) {
                     $struct = [];
-                    $layout = $app['layout'];
                     $root = $layout->get($layout->block);
                     $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use(&$struct) {
                         $block = $options['block'];

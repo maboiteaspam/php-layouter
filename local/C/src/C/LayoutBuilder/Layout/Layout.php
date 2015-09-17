@@ -160,16 +160,15 @@ class Layout{
 
 
 
-    /**
-     * @return String
-     */
-    public function getEtag (){
-        $h = '';
+
+    public function getTaggedResource () {
+        $res = new TaggedResource();
         foreach($this->registry->blocks as $block) {
-            $h .= $block->meta['etag'] . '-';
+            $res->addTaggedResource($block->getTaggedResource());
         }
-        return sha1($h);
+        return $res;
     }
+
 
 
     public function emit ($id){

@@ -61,50 +61,36 @@ class Block{
         }
     }
 
-    public function etagData ($templatesFS, $assetsFS){
-        $h = '';
-        $h .= $this->id . '-';
+
+
+    public function getTaggedResource (){
+        $res = new TaggedResource();
+
+        $res->addResource('raw', $this->id);
         if (isset($this->options['template'])) {
             $template = $this->options['template'];
-            if ($template && $templatesFS->file_exists($template)) {
-                $a = $templatesFS->get($template);
-                $h .= $template . '-';
-                $h .= $a['sha1'] . '-';
+            if ($template) {
+                $res->addResource('file', $template);
             }
         }
         foreach($this->assets as $target=>$assets) {
             foreach($assets as $i=>$asset){
-                if ($asset && $assetsFS->file_exists($asset)) {
-                    $a = $assetsFS->get($asset);
-                    $h .= $target . '-';
-                    $h .= $i . '-';
-                    $h .= $asset . '-';
-                    $h .= $a['sha1'] . '-';
+                if ($asset) {
+                    $res->addResource('raw', $target);
+                    $res->addResource('raw', $i);
+                    $res->addResource('file', $asset);
                 }
             }
         }
 
-        foreach($this->unwrapEtags() as $name => $data){
-            $h .= ($name.$data);
-        }
-
-        return sha1($h);
-    }
-
-    public function unwrapEtags (){
-        $unwrapped = [];
         foreach($this->data as $name => $data){
-            try{
-                if ($data instanceof ViewData) {
-                    $unwrapped[$name] = serialize($data->getEtag());
-                } else {
-                    $unwrapped[$name] = serialize($data);
-                }
-            }catch(\Exception $ex) {
-                $unwrapped[$name] = "untaggable data $name";
+            if ($data instanceof ViewData) {
+                $res->addTaggedResource($data->getTaggedResource());
+            } else {
+                $res->addResource('raw', $data);
             }
         }
-        return $unwrapped;
+        return $res;
     }
 
     public function unwrapData ($notNames=[]) {

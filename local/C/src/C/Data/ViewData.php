@@ -2,11 +2,13 @@
 
 namespace C\Data;
 
+use \C\LayoutBuilder\Layout\TaggedResource;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 class ViewData extends Capsule{
 
     public $data;
+    public $dataEtag;
     public $etag = false;
     public $isTagged = false;
 
@@ -27,7 +29,7 @@ class ViewData extends Capsule{
     }
 
     public function etagWith ($some) {
-        $this->etag = $some;
+        $this->dataEtag = $some;
         $this->isTagged = false;
         return $this;
     }
@@ -38,11 +40,24 @@ class ViewData extends Capsule{
         return $this;
     }
 
+    public function getTaggedResource () {
+        $res = new TaggedResource();
+        if ($this->dataEtag)
+            $res->addResource('raw', $this->dataEtag);
+        else
+            $res->addResource('etag', $this->etag);
+        return $res;
+    }
+
+    public function getDataEtag () {
+        return $this->dataEtag;
+    }
+
     public function getEtag () {
         if (!$this->isTagged) {
             $this->isTagged = true;
             try{
-                $this->etag = sha1(json_encode($this->etag));
+                $this->etag = sha1(json_encode($this->dataEtag));
             }catch(\Exception $ex) {
                 $this->etag = 'untaggable data';
             }

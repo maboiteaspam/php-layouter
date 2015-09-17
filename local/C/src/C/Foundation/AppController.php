@@ -5,7 +5,9 @@ use \Silex\Application;
 use \Silex\Provider\HttpCacheServiceProvider;
 use \Silex\Provider\UrlGeneratorServiceProvider;
 
+use Symfony\Component\EventDispatcher\Tests\CallableClass;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Silex\Provider\FormServiceProvider;
 use Silex\Provider\TranslationServiceProvider;
 use Silex\Provider\SessionServiceProvider;
@@ -107,25 +109,86 @@ class AppController{
             'imgUrls'       => [],
         ]);
 
-        $app['layout_responder'] = $app->protect(function () use (&$app) {
+        $app['layout_responder'] = $app->protect(function () use (&$app, $build_dir) {
             $request = $app['request'];
             /* @var $request \Symfony\Component\HttpFoundation\Request */
             $response = new Response();
 
-            $response->setProtocolVersion('1.1'); // this is super important to get etag working properly. feel fre to set the max-age directive afterwards.
-            $response->setETag($app['layout']->getEtag());
+
+            $TaggedResource = $app['layout']->getTaggedResource();
+            $conn = $app['capsule']->getConnection();
+            $templatesFS = $app['templatesFS'];
+            $assetsFS = $app['assetsFS'];
+            $sqlRun = function ($sql) use($conn) {
+                return $conn->select($sql);
+            };
+            $fsSign = function ($file) use($templatesFS, $assetsFS) {
+                $template = $templatesFS->get($file);
+                if ($template) {
+                    return $template['sha1'].$template['dir'].$template['name'];
+                } else  {
+                    $asset = $assetsFS->get($file);
+                    if ($asset) {
+                        return $template['sha1'].$template['dir'].$template['name'];
+                    }
+                }
+                return file_exists($file)?file_get_contents($file):'';
+            };
+            $etag = $TaggedResource->sign($sqlRun, $fsSign);
+
+            // this is super important to get etag working properly.
+            $response->setProtocolVersion('1.1');
             $response->mustRevalidate(true);
             $response->setPrivate(true);
+            $response->setETag($etag);
 
             if ($response->isNotModified($request)) {
                 return $response;
             }
+
             $app['layout']->emit('before_layout_render');
             $app['layout']->render();
             $app['layout']->emit('after_layout_render');
             $body = $app['layout']->getRoot()->body;
             $response->setContent( $body );
+
+            if ($etag) {
+                file_put_contents("$build_dir/etag-$etag.php",
+                    "<?php return ".var_export(serialize($TaggedResource), true).";");
+                file_put_contents("$build_dir/body-$etag.php",
+                    "<?php return ".var_export($body, true).";");
+            }
+
             return $response;
+        });
+        $app->before(function (Request $request, Application $app) use($build_dir) {
+            if ($request->isMethodSafe()) {
+                $conn = $app['capsule']->getConnection();
+                $sqlRun = function ($sql) use($conn) {
+                    return $conn->select($sql);
+                };
+                $fsSign = function ($file) {
+                    return file_exists($file)?file_get_contents($file):'';
+                };
+                $etags = $request->getETags();
+                foreach($etags as $etag){
+                    $f = "$build_dir/etag-$etag.php";
+                    if (file_exists($f)) {
+                        $TaggedResource = unserialize(include($f));
+                        if ($TaggedResource->isFresh($sqlRun, $fsSign)) {
+                            $response = new Response();
+                            $response->setProtocolVersion('1.1');
+                            $response->mustRevalidate(true);
+                            $response->setPrivate(true);
+                            $response->setETag($etag);
+                            if ($response->isNotModified($request)) {
+                                $response->setContent( "CACHED".unserialize(include($f)) );
+                                return $response;
+                            }
+                        }
+                    }
+                }
+            }
         });
 
         $that = $this;
