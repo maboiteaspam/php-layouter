@@ -35,11 +35,7 @@ class AppController{
      */
     public $app;
 
-    /**
-     * @param array $values
-     * @return Application
-     */
-    public function getApp (array $values = array()) {
+    public function __construct(array $values = array()){
 
         $env = getenv('APP_ENV') ? getenv('APP_ENV') : 'dev';
         $projectPath = $values['projectPath'];
@@ -57,6 +53,16 @@ class AppController{
         foreach( $values as $key=>$value ){
             $app[$key] = $value;
         }
+
+    }
+
+    /**
+     * @param $loadModules
+     * @return Application
+     */
+    public function setupApplication ($loadModules) {
+        $app =  $this->app;
+        $projectPath = $app['projectPath'];
         //$app->register(new MonologServiceProvider([
         //]));
         //$app->register(new SessionServiceProvider( ));
@@ -207,7 +213,7 @@ class AppController{
                 $app['assetsFS']->registry->saveToFile();
             });
             $app->after(function () use(&$app, &$that, $build_dir, $serverType) {
-                $that->bridgeAssetsPath("$build_dir/assets_path_{$serverType}_bridge.php",
+                $that->bridgeAssetsPath("$build_dir/assets_path_builtin_bridge.php",
                     $serverType, $app['assetsFS']);
 
 //    $that->bridgeAssetsPath("$build_dir/assets_path_apache_bridge.conf", 'apache',
@@ -221,9 +227,15 @@ class AppController{
             });
         }
 
+        $loadModules($this);
+        $app['dispatcher']->dispatch('c_modules_loaded');
+
         return $app;
     }
 
+    public function register($module) {
+        return $module->register($this->app);
+    }
 
     public function isEnv($some) {
         return $some==$this->app['env'];
@@ -274,5 +286,13 @@ class AppController{
                 return $query ? '?'.$query : '';
             }
         ];
+    }
+
+
+
+    // support for build in php web server
+    public function builtinServer ($wwwPath) {
+        if (php_sapi_name() === 'cli-server')
+            return include(__DIR__."/builtin.php");
     }
 }

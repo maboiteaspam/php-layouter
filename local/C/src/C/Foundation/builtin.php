@@ -3,7 +3,7 @@
 // php built-in web server responder for a C app.
 
 
-function respondAsset ($f, $extension) {
+function sendAsset ($f, $extension) {
     $content = file_get_contents($f);
 
     if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
@@ -40,7 +40,7 @@ if (in_array($extension, ['jpeg','jpg','png','gif','css','js'])) {
     $found = false;
     if (file_exists("$wwwPath/$reqUrl")) {
         $found = true;
-        respondAsset("$wwwPath/$reqUrl", $extension);
+        sendAsset("$wwwPath/$reqUrl", $extension);
     } else if(file_exists('run/assets_path_builtin_bridge.php')) {
         $paths = include 'run/assets_path_builtin_bridge.php';
         $reqUrl = $_SERVER['PHP_SELF'];
@@ -51,7 +51,7 @@ if (in_array($extension, ['jpeg','jpg','png','gif','css','js'])) {
                 $f = str_replace($alias, $path, $reqUrl);
                 if (file_exists($f)) {
                     $found = true;
-                    respondAsset($f, $extension);
+                    sendAsset($f, $extension);
                 }
             }
         }
@@ -62,4 +62,5 @@ if (in_array($extension, ['jpeg','jpg','png','gif','css','js'])) {
     }
     return true;
 }
+
 return false;
