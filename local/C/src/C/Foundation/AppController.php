@@ -233,6 +233,27 @@ class AppController{
         return $app;
     }
 
+    /**
+     * @return mixed
+     */
+    public function runWebApplication ($fn) {
+        if (php_sapi_name()!=='cli') {
+            $fn($this->app);
+            $this->app->run();
+        }
+        return $this->app;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function runCliApplication ($fn) {
+        if (php_sapi_name()==='cli') {
+            $fn($this->app);
+        }
+        return $this->app;
+    }
+
     public function register($module) {
         return $module->register($this->app);
     }

@@ -40,6 +40,8 @@ $AppController->runWebApplication(function($app){
     $app->get( '/blog/{id}/add_comment',
         $blog->postComment()
     )->bind ('blog_entry_add_comment');
+});
 
-    $app->run();
+$AppController->runCliApplication(function($app){
+
 });
