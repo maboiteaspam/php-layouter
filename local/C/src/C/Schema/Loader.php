@@ -21,29 +21,32 @@ class Loader implements ISchema{
         $this->schemas[] = $schema;
     }
 
-    public function bootDb($settings, $env){
-        if ($env==='dev') {
-            if ($settings["driver"]==='sqlite') {
-                if ($settings["database"]!==':memory:') {
-                    $exists = LocalFs::file_exists($settings['database']);
-                    if (!$exists) {
-                        LocalFs::touch($settings["database"]);
-                    }
+    public function bootDb($settings){
+        if ($settings["driver"]==='sqlite') {
+            if ($settings["database"]!==':memory:') {
+                $exists = LocalFs::file_exists($settings['database']);
+                if (!$exists) {
+                    LocalFs::touch($settings["database"]);
                 }
             }
-
-            foreach( $this->schemas as $schema) {
-                $this->registry->addClassFile($schema);
-            }
-
-            if ($settings["driver"]==='sqlite'
-                && $settings["database"]===':memory:') {
-                $this->createTables();
-                $this->populateTables();
-            } else {
-                $this->refreshDb();
-            }
         }
+
+        $this->registry->loadFromFile();
+        foreach( $this->schemas as $schema) {
+            $this->registry->addClassFile($schema);
+        }
+
+        if ($settings["driver"]==='sqlite'
+            && $settings["database"]===':memory:') {
+            $this->initDb();
+        } else {
+            $this->refreshDb();
+        }
+    }
+
+    public function initDb(){
+        $this->createTables();
+        $this->populateTables();
     }
 
     public function refreshDb(){

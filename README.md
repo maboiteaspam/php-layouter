@@ -1,1 +1,1 @@
-php -S localhost:8000 -t www/ bootstrap.php
+php -S localhost:8000 -t www index.php

@@ -14,6 +14,9 @@ use Silex\Provider\SessionServiceProvider;
 use Silex\Provider\RememberMeServiceProvider;
 use Silex\Provider\MonologServiceProvider;
 use Silex\Provider\SecurityServiceProvider;
+use C\Provider\CapsuleServiceProvider;
+use C\Provider\LayoutServiceProvider;
+use C\Provider\CExtraServiceProvider;
 
 use C\Misc\Utils;
 use C\LayoutBuilder\Layout\Layout;
@@ -76,6 +79,9 @@ class AppController{
         //));
         $app->register(new UrlGeneratorServiceProvider());
         $app->register(new FormServiceProvider());
+        $app->register(new CapsuleServiceProvider());
+        $app->register(new LayoutServiceProvider());
+        $app->register(new CExtraServiceProvider());
 
 
         LocalFs::$record = $app['debug'];
@@ -83,37 +89,38 @@ class AppController{
         $build_dir = $app['private_build_dir'];
         if ($this->isEnv('dev') && !LocalFs::is_dir($build_dir)) LocalFs::mkdir($build_dir);
 
-        $app['dispatcher']->addListener('c_modules_loaded', function () use(&$app) {
-            $env = $app['env'];
+//        $app['dispatcher']->addListener('c_modules_loaded', function () use(&$app) {
+//            $env = $app['env'];
+//
+//            $settings = $app["capsule.settings.$env"];
+//
+//            $capsule = new Capsule;
+//            $capsule->setEventDispatcher(new Dispatcher(new Container));
+//            $capsule->addConnection($settings);
+//            $capsule->bootEloquent();
+//            $capsule->setAsGlobal();
+//
+//            $app['capsule'] = $capsule;
+//            $app['schema_loader']->bootDb($settings, $env);
+//        });
 
-            $settings = $app["capsule.settings.$env"];
 
-            $capsule = new Capsule;
-            $capsule->setEventDispatcher(new Dispatcher(new Container));
-            $capsule->addConnection($settings);
-            $capsule->bootEloquent();
-            $capsule->setAsGlobal();
+//        $app['assetsFS'] = new KnownFs(new Registry($app['private_build_dir']."/assets.php"));
+//        $app['assetsFS']->setBasePath($projectPath);
+//        $app['templatesFS'] = new KnownFs(new Registry($app['private_build_dir']."/templates.php"));
+//        $app['templatesFS']->setBasePath($projectPath);
 
-            $app['capsule'] = $capsule;
-            $app['schema_loader']->bootDb($settings, $env);
-        });
-
-
-        $app['assetsFS'] = new KnownFs(new Registry($app['private_build_dir']."/assets.php"));
-        $app['assetsFS']->setBasePath($projectPath);
-        $app['templatesFS'] = new KnownFs(new Registry($app['private_build_dir']."/templates.php"));
-        $app['templatesFS']->setBasePath($projectPath);
-        $app['schemasFS'] = new Registry($app['private_build_dir']."/schemas.php");
-        $app['schemasFS']->setBasePath($projectPath);
-
-        $app['schema_loader'] = new SchemaLoader($app['schemasFS']);
-
-        $app['layout'] = new Layout([
-            'debug'         => $app['debug'],
-            'dispatcher'    => $app['dispatcher'],
-            'helpers'       => $this->getHelpers(),
-            'imgUrls'       => [],
-        ]);
+//        $app['schemasFS'] = new Registry($app['private_build_dir']."/schemas.php");
+//        $app['schemasFS']->setBasePath($projectPath);
+//
+//        $app['schema_loader'] = new SchemaLoader($app['schemasFS']);
+//
+//        $app['layout'] = new Layout([
+//            'debug'         => $app['debug'],
+//            'dispatcher'    => $app['dispatcher'],
+//            'helpers'       => $this->getHelpers(),
+//            'imgUrls'       => [],
+//        ]);
 
         $app['layout_responder'] = $app->protect(function () use (&$app, $build_dir) {
             $request = $app['request'];
@@ -167,6 +174,8 @@ class AppController{
 
             return $response;
         });
+
+        // special.
         $app->before(function (Request $request, Application $app) use($build_dir) {
             if ($request->isMethodSafe()) {
                 $conn = $app['capsule']->getConnection();
@@ -200,18 +209,20 @@ class AppController{
         $that = $this;
 
         $serverType = $app['server_type'];
-        if ($that->isEnv('dev')) {
-            $app['schemasFS']->loadFromFile();
-        }
+//        if ($that->isEnv('dev')) {
+//            $app['schemasFS']->loadFromFile();
+//        }
         $app['templatesFS']->registry->loadFromFile();
         $app['assetsFS']->registry->loadFromFile();
 
         if ($that->isEnv('dev')) {
+            // move to cli
             $app['dispatcher']->addListener('c_modules_loaded', function () use(&$app) {
                 $app['schemasFS']->saveToFile();
                 $app['templatesFS']->registry->saveToFile();
                 $app['assetsFS']->registry->saveToFile();
             });
+            // move to cli
             $app->after(function () use(&$app, &$that, $build_dir, $serverType) {
                 $that->bridgeAssetsPath("$build_dir/assets_path_builtin_bridge.php",
                     $serverType, $app['assetsFS']);
