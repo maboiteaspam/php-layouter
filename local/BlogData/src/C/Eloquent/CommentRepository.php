@@ -45,8 +45,8 @@ class CommentRepository extends TagableEloquentRepository implements CommentRepo
         return $this->capsule->getConnection()
             ->table('blog_comment')
             ->where('blog_entry_id', '=', $id)
-            ->take($length)
             ->offset($from)
+            ->take($length)
             ->orderBy('updated_at','DESC')
             ->get();
     }
@@ -61,8 +61,8 @@ class CommentRepository extends TagableEloquentRepository implements CommentRepo
         return $this->capsule->getConnection()
             ->table('blog_comment')
             ->whereNotIn('blog_entry_id', $excludesEntries)
-            ->take($length)
             ->offset($from)
+            ->take($length)
             ->orderBy('updated_at', 'DESC')
             ->get();
     }

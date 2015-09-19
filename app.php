@@ -3,7 +3,7 @@ error_reporting(E_ALL ^ E_STRICT); // it is really undesired to respect strict s
 
 
 $runTimeOverride = [
-    'debug'=>!true,
+    'debug'=> true,
 //    'env'=>'prod',
     'monolog.logfile' => __DIR__.'/run/development.log',
     'security.firewalls' => [],

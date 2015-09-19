@@ -1,6 +1,6 @@
 <?php
 return [
-    'debug' => !true,
+    'debug' => true,
 
     'server_type' => 'builtin',
     'projectPath' => "%projectPath%",
@@ -12,7 +12,7 @@ return [
     'blogdata.provider' => "Eloquent",
 //    'blogdata.provider' => "PO",
 
-    'httpcache.check_taged_resource_freshness' => false,
+    'httpcache.check_taged_resource_freshness' => !false,
 
     'assets.concat' => false,
     'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
