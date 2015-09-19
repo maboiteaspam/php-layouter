@@ -1,1 +1,8 @@
-php -S localhost:8000 -t www index.php
+
+whatever install node
+npm i grunt-cli -g
+npm i grunt
+grunt init
+grunt
+
+node + php = :fun:
