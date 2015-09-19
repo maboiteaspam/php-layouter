@@ -6,6 +6,10 @@ use C\FS\LocalFs;
 
 class Utils{
 
+    public static function stderr ($message) {
+        fwrite(fopen('php://stderr', 'w+'), "$message\n");
+    }
+
     public static function fileToEtag ($file) {
         if (is_string($file)) $file = [$file];
         $h = '-';

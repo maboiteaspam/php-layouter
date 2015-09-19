@@ -18,7 +18,7 @@ class Transforms extends HTMLTransforms{
         $this->setTemplate('body_content', __DIR__.'/templates/entry-list.php');
         $this->updateData('body_content', [
             'entries'=>[
-                [
+                (object) [
                     'id'=>0,
                     'date'=> date('Y-m-d H:i:s'),
                     'author'=>'some',
@@ -27,7 +27,7 @@ class Transforms extends HTMLTransforms{
                     'content'=>'blog entry',
                     'comments'=>[],
                 ],
-                [
+                (object) [
                     'id'=>0,
                     'date'=> date('Y-m-d H:i:s'),
                     'author'=>'some',
@@ -47,7 +47,18 @@ class Transforms extends HTMLTransforms{
     function detail () {
         $this->setTemplate('body_content', __DIR__.'/templates/entry-detail.php');
         $this->updateData('body_content', [
-            'entry'=>[
+            'entry'=> (object) [
+                'id'=>0,
+                'date'=> date('Y-m-d H:i:s'),
+                'author'=>'some',
+                'img_alt'=>'some',
+                'title'=>'some',
+                'content'=>'blog entry',
+                'comments'=>[],
+            ],
+        ]);
+        $this->updateData('body_content', [
+            'entry'=> (object) [
                 'id'=>0,
                 'date'=> date('Y-m-d H:i:s'),
                 'author'=>'some',

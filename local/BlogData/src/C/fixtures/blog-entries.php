@@ -1,16 +1,16 @@
 <?php
 return [
-    [
+    (object) [
         'id'        =>0,
-        'created_at'=> date('Y-m-d H:i'),
-        'updated_at'=> date('Y-m-d H:i'),
+        'created_at'=> date('Y-m-d H:i:s'),
+        'updated_at'=> date('Y-m-d H:i:s'),
         'title'     =>'some',
         'author'    =>'maboiteaspam',
         'img_alt'   =>'some',
         'content'   =>'blog entry',
         'status'    =>'VISIBLE',
         'comments'=>[
-            [
+            (object) [
                 "id"            =>0,
                 "blog_entry_id" =>0,
                 "author"        => "John Doe",
@@ -19,7 +19,7 @@ return [
                 "content"       => "Agreed !",
                 'status'        =>'VISIBLE',
             ],
-            [
+            (object) [
                 "id"            =>1,
                 "blog_entry_id" =>0,
                 "author"        => "John Connor",
@@ -30,7 +30,7 @@ return [
             ],
         ],
     ],
-    [
+    (object) [
         'id'        =>1,
         'created_at'=> date('Y-m-d H:i'),
         'updated_at'=> date('Y-m-d H:i'),
@@ -40,7 +40,7 @@ return [
         'content'   =>'blog entry',
         'status'    =>'VISIBLE',
         'comments'=>[
-            [
+            (object) [
                 "id"            =>2,
                 "blog_entry_id" =>1,
                 "author"        => "Stanley Kubrick",
@@ -49,7 +49,7 @@ return [
                 "content"       => "Where are we going Exactly ?",
                 'status'        =>'VISIBLE',
             ],
-            [
+            (object) [
                 "id"            =>3,
                 "blog_entry_id" =>1,
                 "author"        => "Stanley Marsh",
@@ -60,7 +60,7 @@ return [
             ],
         ],
     ],
-    [
+    (object) [
         'id'        =>2,
         'created_at'=> date('Y-m-d H:i'),
         'updated_at'=> date('Y-m-d H:i'),
@@ -70,7 +70,7 @@ return [
         'content'   =>'blog entry',
         'status'    =>'VISIBLE',
         'comments'  =>[
-            [
+            (object) [
                 "id"            =>4,
                 "blog_entry_id" =>2,
                 "author"        => "Kenny McCormick",
@@ -79,7 +79,7 @@ return [
                 "content"       => "MHMhhmhMHMhhmMH  !!?",
                 'status'        =>'VISIBLE',
             ],
-            [
+            (object) [
                 "id"            =>5,
                 "blog_entry_id" =>2,
                 "author"        => "Eric Cartman",
@@ -90,7 +90,7 @@ return [
             ],
         ],
     ],
-    [
+    (object) [
         'id'        =>3,
         'created_at'=> date('Y-m-d H:i'),
         'updated_at'=> date('Y-m-d H:i'),
@@ -100,7 +100,7 @@ return [
         'content'   =>'blog entry',
         'status'    =>'VISIBLE',
         'comments'  =>[
-            [
+            (object) [
                 "id"            =>6,
                 "blog_entry_id" =>3,
                 "author"        => "Kenny McCormick",
@@ -109,7 +109,7 @@ return [
                 "content"       => "MHMhhmhMHMhhmMH  !!?",
                 'status'        =>'VISIBLE',
             ],
-            [
+            (object) [
                 "id"            =>7,
                 "blog_entry_id" =>3,
                 "author"        => "Eric Cartman",

@@ -1,30 +1,39 @@
 <?php
-
 namespace MyBlog;
+
+use Silex\Application;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 
 use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
 
 use MyBlog\Transforms as MyBlogLayout;
 use \C\Blog\CommentForm as MyCommentForm;
-use \C\BlogData\Eloquent\Entry as Entry;
-use \C\BlogData\Eloquent\Comment as Comment;
-use \C\Data\Eloquent;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Silex\Application;
+use C\BlogData\CommentRepositoryInterface as CommentRepo;
+use C\BlogData\EntryRepositoryInterface as EntryRepo;
 
 class Controllers{
 
+    public $entryRepo;
+    public $commentRepo;
+
+    public function __construct(EntryRepo $entryRepo, CommentRepo $commentRepo) {
+        $this->entryRepo = $entryRepo;
+        $this->commentRepo = $commentRepo;
+    }
+
     public function home() {
         return function (Application $app) {
-            $entryModel = new Entry();
-            $commentModel = new Comment();
             MyBlogLayout::transform($app)
                 ->baseTemplate(__CLASS__)
                 ->home(
-                    Eloquent::wrap($entryModel->mostRecent())->get(),
-                    Eloquent::wrap($commentModel->mostRecent())->get()
+                    $this->entryRepo->tagable(
+                        $this->entryRepo->tager()->lastUpdateDate()
+                    )->mostRecent(),
+                    $this->commentRepo->tagable(
+                        $this->commentRepo->tager()->lastUpdateDate()
+                    )->mostRecent()
                 )->finalize();
             $response = new Response();
             return $app['layout.responder']($response);
@@ -44,15 +53,18 @@ class Controllers{
 
             $form->handleRequest($request);
 
-            $entryModel = new Entry();
-            $commentModel = new Comment();
-
             MyBlogLayout::transform($app)
                 ->baseTemplate(__CLASS__)
                 ->detail(
-                    Eloquent::wrap($entryModel->byId($id))->first(),
-                    Eloquent::wrap($commentModel->byEntryId($id))->get(),
-                    Eloquent::wrap($commentModel->mostRecent())->where('blog_entry_id', '!=', $id)->get()
+                    $this->entryRepo->tagable(
+                        $this->entryRepo->tager()->byId($id)
+                    )->byId($id),
+                    $this->commentRepo->tagable(
+                        $this->commentRepo->tager()->lastUpdatedByEntryId($id)
+                    )->byEntryId($id),
+                    $this->commentRepo->tagable(
+                        $this->commentRepo->tager()->mostRecent([$id])
+                    )->mostRecent([$id])
                 )->updateData('blog_form_comments', [
                     'form' => $form,
                 ])->then(
@@ -79,8 +91,7 @@ class Controllers{
 
                 $data = $form->getData();
                 $data['blog_entry_id'] = $id;
-                $commentModel = new Comment();
-                $commentModel->insert($data);
+                $this->commentRepo->insert($data);
                 return $app->json($data);
             }
             $form->getErrors();

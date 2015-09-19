@@ -9,7 +9,7 @@ return [
     'private_build_dir' => '%projectPath%/run/',
     'public_build_dir' => '%projectPath%/www/run/',
 
-    'httpcache.storepath' => "%projectPath%/run/http/",
+    'blogdata.provider' => "PO",
 
     'assets.concat' => false,
     'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
@@ -18,15 +18,15 @@ return [
     'capsule.schema_file_cache' => '%projectPath%/run/schemas.php',
     'capsule.connections' => [
         "default"=>[
-            'driver'   => 'sqlite',
-            'database' => '%projectPath%/run/database.sqlite',
+//            'driver'   => 'sqlite',
+//            'database' => '%projectPath%/run/database.sqlite',
 //        'database' => ':memory:',
 
-//        'driver'    => 'mysql',
-//        'host'      => '127.0.0.1',
-//        'database'  => 'blog',
-//        'username'  => 'root',
-//        'password'  => '',
+        'driver'    => 'mysql',
+        'host'      => '127.0.0.1',
+        'database'  => 'blog',
+        'username'  => 'root',
+        'password'  => '',
 
             'prefix'   => '',
             'charset'   => 'utf8',
@@ -34,7 +34,8 @@ return [
         ],
         "prod"=>[
             'driver'   => 'sqlite',
-            'database' => '%projectPath%/run/database.sqlite',
+//            'database' => '%projectPath%/run/database.sqlite',
+            'database' => ':memory:',
             'prefix'   => '',
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',

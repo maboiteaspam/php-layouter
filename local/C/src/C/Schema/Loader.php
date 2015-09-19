@@ -3,7 +3,6 @@
 namespace C\Schema;
 
 use C\FS\Registry;
-use C\FS\LocalFs;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 class Loader implements ISchema{
@@ -44,33 +43,33 @@ class Loader implements ISchema{
 
     public function cleanDb(){
         try{
-            $this->dropTables($this->capsule);
+            $this->dropTables();
         }catch(\Exception $ex){}
     }
 
     public function initDb(){
-        $this->createTables($this->capsule);
-        $this->populateTables($this->capsule);
+        $this->createTables();
+        $this->populateTables();
     }
 
-    public function createTables(Capsule $capsule){
+    public function createTables(){
         foreach( $this->schemas as $schema) {
             /* @var $schema \C\Schema\ISchema */
-            $schema->createTables($capsule);
+            $schema->createTables();
         }
     }
 
-    public function dropTables(Capsule $capsule){
+    public function dropTables(){
         foreach( $this->schemas as $schema) {
             /* @var $schema \C\Schema\ISchema */
-            $schema->dropTables($capsule);
+            $schema->dropTables();
         }
     }
 
-    public function populateTables(Capsule $capsule){
+    public function populateTables(){
         foreach( $this->schemas as $schema) {
             /* @var $schema \C\Schema\ISchema */
-            $schema->populateTables($capsule);
+            $schema->populateTables();
         }
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace MyBlog;
+namespace C\Blog;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
@@ -15,7 +15,7 @@ class ControllersProvider implements
      **/
     public function register(Application $app)
     {
-        $app['myblog.controllers'] = $app->share(function() use ($app) {
+        $app['blog.controllers'] = $app->share(function() use ($app) {
             return new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
         });
     }
@@ -31,11 +31,6 @@ class ControllersProvider implements
             $app['assets.fs']->register(__DIR__.'/assets/');
             $app['assets.fs']->register(__DIR__.'/templates/');
         }
-
-        if (isset($app['layout'])) {
-            $app['layout']->registerImgPattern('blog_detail', '/images/blog/detail/:id.jpg');
-            $app['layout']->registerImgPattern('blog_list', '/images/blog/list/:id.jpg');
-        }
     }
 
     public function connect(Application $app)
@@ -43,19 +38,19 @@ class ControllersProvider implements
         $controllers = $app['controllers_factory'];
 
         $app->get( '/',
-            $app['myblog.controllers']->home()
+            $app['blog.controllers']->home()
         )->bind ('home');
 
         $app->get( '/blog/{id}',
-            $app['myblog.controllers']->detail('blog_entry.add_comment')
+            $app['blog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry');
 
         $app->get( '/blog/{id}/blog_detail_comments',
-            $app['myblog.controllers']->detail('blog_entry.add_comment')
+            $app['blog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry.detail_comments');
 
         $app->get( '/blog/{id}/add_comment',
-            $app['myblog.controllers']->postComment()
+            $app['blog.controllers']->postComment()
         )->bind ('blog_entry.add_comment');
 
         return $controllers;

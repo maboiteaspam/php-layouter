@@ -2,7 +2,7 @@
 namespace C\Dashboard;
 
 use C\LayoutBuilder\Transforms as BaseTransforms;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use C\LayoutBuilder\Layout\Layout;
 use C\Misc\Utils;
 
 class Transforms extends BaseTransforms{
@@ -20,6 +20,7 @@ class Transforms extends BaseTransforms{
         if (!$show) return $this;
 
         $app = $this->app;
+        /* @var $layout \C\LayoutBuilder\Layout\Layout */
         $layout = $app['layout'];
 
         $this->insertBefore('html_end', 'dashboard', [
@@ -105,7 +106,7 @@ class Transforms extends BaseTransforms{
         ])->updateAssets('dashboard-options', [
         ]);
 
-        $this->layout->beforeRenderAnyBlock(function ($ev, $layout, $id) use($fromClass) {
+        $this->layout->beforeRenderAnyBlock(function ($ev, Layout $layout, $id) use($fromClass) {
             $block = $layout->get($id);
             $caller = [];
             if ($block) {
@@ -113,10 +114,10 @@ class Transforms extends BaseTransforms{
             }
             echo "<c_block_node id='$id' caller='".\json_encode($caller)."'>";
         });
-        $this->layout->afterRenderAnyBlock(function ($ev, $layout, $id) use($fromClass) {
+        $this->layout->afterRenderAnyBlock(function () use($fromClass) {
             echo "</c_block_node>";
         });
-        $this->layout->afterRender(function ($ev, $layout) use($fromClass) {
+        $this->layout->afterRender(function ($ev, Layout $layout) use($fromClass) {
             $content = $layout->getRoot()->body;
             $layout->getRoot()->body = str_replace(
                 "<!-- placeholder layout structure -->",

@@ -1,48 +1,37 @@
 <?php
-
 namespace C\Blog;
 
+use C\BlogData\CommentRepositoryInterface as CommentRepo;
+use C\BlogData\EntryRepositoryInterface as EntryRepo;
 use C\Blog\Transforms as BlogLayout;
 
-function getEntries () {
-    $fixtureEntries = include(__DIR__ . '/fixtures/blog-entries.php');
-    foreach ($fixtureEntries as $entry) {
-        foreach ($entry['comments'] as $comment) {
-            $comment['blog_entry_id'] = $entry['id'];
-        }
-    }
-    return $fixtureEntries;
-}
-function getComments () {
-    $comments = [];
-    foreach (getEntries () as $entry) {
-        foreach ($entry['comments'] as $comment) {
-            $comments[] = $comment;
-        }
-    }
-    return $comments;
-}
-
-
 class Controllers {
+
+    public $entryRepo;
+    public $commentRepo;
+
+    public function __construct(EntryRepo $entryRepo, CommentRepo $commentRepo) {
+        $this->entryRepo = $entryRepo;
+        $this->commentRepo = $commentRepo;
+    }
 
     public function entryList($app) {
         return function () use($app) {
             BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
-                    'entries'=>getEntries()
+                    'entries' => $this->entryRepo->mostRecent()
                 ]);
             return $app['layout']->render();
         };
     }
 
     public function entryDetail($app) {
-        return function () use($app) {
+        return function ($id) use($app) {
             BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
-                    'entry'=>getEntries()[0]
+                    'entry' => $this->entryRepo->byId($id)
                 ]);
             return $app['layout']->render();
         };
@@ -53,7 +42,7 @@ class Controllers {
             BlogLayout::transform($app)
                 ->setTemplate('root', __DIR__.'/templates/entry-comments.php')
                 ->setTemplate('root', [
-                    'comments'=>getComments()
+                    'comments' => $this->commentRepo->mostRecent()
                 ]);
             return $app['layout']->render();
         };

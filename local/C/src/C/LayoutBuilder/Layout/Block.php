@@ -2,10 +2,11 @@
 
 namespace C\LayoutBuilder\Layout;
 
-use \C\Data\ViewData;
-use C\HttpCache\TaggedResource;
+use C\Repository\RepositoryProxy;
+use C\TagableResource\TagedResource;
+use C\TagableResource\TagableResourceInterface;
 
-class Block{
+class Block implements TagableResourceInterface{
 
     public $id;
     public $body;
@@ -35,7 +36,7 @@ class Block{
         if ($block && !$block->resolved && isset($block->options['template']) && $block->options['template']) {
             $fn = $block->options['template'];
             if(!is_callable($block->options['template'])) {
-                $fn = function ($helpers, $block) {
+                $fn = function ($helpers, Block $block) {
                     $block->resolved = true; // this will prevent recursive call when set above.
                     ob_start();
                     extract($block->unwrapData(['block']), EXTR_SKIP);
@@ -65,30 +66,30 @@ class Block{
 
 
     public function getTaggedResource (){
-        $res = new TaggedResource();
+        $res = new TagedResource();
 
-        $res->addResource('raw', $this->id);
+        $res->addResource($this->id);
         if (isset($this->options['template'])) {
             $template = $this->options['template'];
             if ($template) {
-                $res->addResource('file', $template);
+                $res->addResource($template, 'file');
             }
         }
         foreach($this->assets as $target=>$assets) {
             foreach($assets as $i=>$asset){
                 if ($asset) {
-                    $res->addResource('raw', $target);
-                    $res->addResource('raw', $i);
-                    $res->addResource('file', $asset);
+                    $res->addResource($target);
+                    $res->addResource($i);
+                    $res->addResource($asset, 'file');
                 }
             }
         }
 
         foreach($this->data as $name => $data){
-            if ($data instanceof ViewData) {
+            if ($data instanceof TagableResourceInterface) {
                 $res->addTaggedResource($data->getTaggedResource());
             } else {
-                $res->addResource('raw', $data);
+                $res->addResource($data);
             }
         }
         return $res;
@@ -98,7 +99,7 @@ class Block{
         $unwrapped = [];
         foreach($this->data as $name => $data){
             if (!in_array($name, $notNames)) {
-                if ($data instanceof ViewData) {
+                if ($data instanceof RepositoryProxy) {
                     $unwrapped[$name] = $data->unwrap();
                 } else {
                     $unwrapped[$name] = $data;

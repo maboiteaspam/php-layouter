@@ -1,13 +1,12 @@
 <?php
 namespace C\Provider;
 
-use C\FS\LocalFs;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use C\HttpCache\ResourceTagger;
-use C\HttpCache\Store;
+use C\TagableResource\ResourceTagger;
+use C\TagableResource\Cache\Store;
 
 class HttpCacheServiceProvider implements ServiceProviderInterface
 {
@@ -23,12 +22,13 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
             return $tagger;
         });
 
-        if (!isset($app['httpcache.store_path']))
-            $app['httpcache.store_path'] = "run/http/";
+        if (!isset($app['httpcache.store_name']))
+            $app['httpcache.store_name'] = "http-store";
 
         $app['httpcache.store'] = $app->share(function() use($app) {
-            $store = new Store();
-            $store->setStorePath($app['httpcache.storepath']);
+            $storeName = $app['httpcache.store_name'];
+            $cache = $app['caches'][$storeName];
+            $store = new Store($cache);
             return $store;
         });
         $app['httpcache.taggedResource'] = null;
@@ -42,14 +42,20 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        $app["dispatcher"]->addListener('init.app', function() use($app) {
-            if (!LocalFs::is_dir($app['httpcache.store_path']))
-                LocalFs::mkdir($app['httpcache.store_path'], 0700, true);
-        });
+        if (isset($app['httpcache.tagger'])) {
+            $tagger = $app['httpcache.tagger'];
+            /* @var $tagger \C\TagableResource\ResourceTagger */
+            $tagger->tagDataWith('repository', function ($data) use($app) {
+                $repositoryName = $data[0];
+                $method = $data[1];
+                $repository = $app[$repositoryName];
+                $v = call_user_func_array([$repository, $method[0]], $method[1]);
+                return $v;
+            });
+        }
 
         $app->before(function (Request $request, Application $app) {
             if ($request->isMethodSafe()) {
-
                 $tagger = $app['httpcache.tagger'];
                 $store = $app['httpcache.store'];
                 $etags = $request->getETags();

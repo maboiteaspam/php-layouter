@@ -1,10 +1,6 @@
 <?php
 namespace C\Provider;
 
-use C\FS\LocalFs;
-use C\Misc\Utils;
-use C\LayoutBuilder\Layout\Layout;
-
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 

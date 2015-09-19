@@ -1,6 +1,8 @@
 <?php
 namespace C\LayoutBuilder;
 
+use \C\LayoutBuilder\Layout\Layout;
+
 class Transforms{
 
     /**
@@ -101,7 +103,7 @@ class Transforms{
 
     public function insertAfter ($target, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->afterBlockRender($target, function ($ev, $layout) use($id) {
+        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($id) {
             $layout->displayBlock($id);
         });
         return $this;
@@ -109,7 +111,7 @@ class Transforms{
 
     public function insertBefore ($target, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->beforeBlockRender($target, function ($ev, $layout) use($id) {
+        $this->layout->beforeBlockRender($target, function ($ev, Layout $layout) use($id) {
             $layout->displayBlock($id);
         });
         return $this;

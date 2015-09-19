@@ -64,7 +64,7 @@ class AssetsServiceProvider implements ServiceProviderInterface
             $fs = $app['assets.fs'];
             $tagger = $app['httpcache.tagger'];
             /* @var $fs \C\FS\KnownFs */
-            /* @var $tagger \C\HttpCache\ResourceTagger */
+            /* @var $tagger \C\TagableResource\ResourceTagger */
             $tagger->tagDataWith('file', function ($file) use($fs) {
                 $template = $fs->get($file);
                 $h = '';
@@ -77,11 +77,13 @@ class AssetsServiceProvider implements ServiceProviderInterface
             });
         }
 
-        $app['dispatcher']->addListener("boot_done", function () use($app) {
-            /* @var $responder \C\Assets\BuiltinResponder */
-            $responder = $app['assets.responder'];
-            $responder->respond();
-        });
+        if (php_sapi_name()==='cli-server') {
+            $app['dispatcher']->addListener("boot_done", function () use($app) {
+                /* @var $responder \C\Assets\BuiltinResponder */
+                $responder = $app['assets.responder'];
+                $responder->respond();
+            });
+        }
         $app["dispatcher"]->addListener('init.app', function() use($app) {
             $app['assets.fs']->registry->saveToFile();
             $app['assets.bridger']->generate(

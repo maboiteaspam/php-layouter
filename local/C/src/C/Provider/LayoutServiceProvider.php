@@ -26,6 +26,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     return $app['url_generator']->generate($name, $options);
                 },
                 'urlArgs'=> function ($data=[], $only=[]) use(&$app) {
+                    /* @var $block \C\LayoutBuilder\Layout\Block */
                     $block = $this;
                     if (isset($block->meta['from'])) {
                         $data = array_merge(Utils::arrayPick($block->meta, ['from']), $data);
@@ -47,6 +48,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
         $app['layout.responder'] = $app->protect(function ($response) use ($app) {
             $request = $app['request'];
             /* @var $request \Symfony\Component\HttpFoundation\Request */
+            /* @var $response \Symfony\Component\HttpFoundation\Response */
 
             if (isset($app['httpcache.tagger'])) {
                 $TaggedResource = $app['layout']->getTaggedResource();

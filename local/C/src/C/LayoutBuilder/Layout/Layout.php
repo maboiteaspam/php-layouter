@@ -2,11 +2,12 @@
 
 namespace C\LayoutBuilder\Layout;
 
-use C\HttpCache\TaggedResource;
+use C\TagableResource\TagedResource;
+use C\TagableResource\TagableResourceInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use C\Misc\Utils;
 
-class Layout{
+class Layout implements TagableResourceInterface{
 
     /**
      * id of the block to start display from
@@ -18,6 +19,10 @@ class Layout{
      * @var RegistryBlock
      */
     public $registry;
+    /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcher
+     */
+    public $dispatcher;
 
     public $defaultOptions = [
         'options'=>[]
@@ -52,6 +57,8 @@ class Layout{
                 return $url;
             },
         ], $this->config['helpers']);
+
+        if (isset($config['dispatcher'])) $this->dispatcher = $config['dispatcher'];
     }
 
     public function resolve ($id){
@@ -166,8 +173,9 @@ class Layout{
 
 
     public function getTaggedResource () {
-        $res = new TaggedResource();
+        $res = new TagedResource();
         foreach($this->registry->blocks as $block) {
+            /* @var $block Block */
             $res->addTaggedResource($block->getTaggedResource());
         }
         return $res;
@@ -179,16 +187,16 @@ class Layout{
         $args = func_get_args();
         $id = array_shift($args);
         $event = new GenericEvent($id, $args);
-        if ($this->config['dispatcher'])
-            $this->config['dispatcher']->dispatch($id, $event);
+        if ($this->dispatcher)
+            $this->dispatcher->dispatch($id, $event);
     }
     public function on ($id, $fn){
-        if ($this->config['dispatcher'])
-            call_user_func_array([$this->config['dispatcher'], 'addListener'], func_get_args());
+        if ($this->dispatcher)
+            call_user_func_array([$this->dispatcher, 'addListener'], func_get_args());
     }
     public function off ($id, $fn){
-        if ($this->config['dispatcher'])
-            call_user_func_array([$this->config['dispatcher'], ' removeListener'], func_get_args());
+        if ($this->dispatcher)
+            call_user_func_array([$this->dispatcher, ' removeListener'], func_get_args());
     }
     public function beforeRender ($fn){
         $layout = $this;
@@ -205,12 +213,14 @@ class Layout{
     public function beforeRenderAnyBlock ($fn){
         $layout = $this;
         $this->on('before_block_render', function($event) use($layout, $fn){
+            /* @var $event \Symfony\Component\EventDispatcher\GenericEvent */
             $fn($event, $layout, $event->getArgument(0));
         });
     }
     public function afterRenderAnyBlock ($fn){
         $layout = $this;
         $this->on('after_block_render', function($event) use($layout, $fn){
+            /* @var $event \Symfony\Component\EventDispatcher\GenericEvent */
             $fn($event, $layout, $event->getArgument(0));
         });
     }

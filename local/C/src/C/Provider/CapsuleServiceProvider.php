@@ -59,7 +59,7 @@ class CapsuleServiceProvider implements ServiceProviderInterface
 //            });
 //        }
 
-        $app['capsule'] = $app->share(function($name) use ($app) {
+        $app['capsule'] = $app->share(function() use ($app) {
 
             $capsule = new Capsule($app['capsule.container']);
             $capsule->setEventDispatcher($app['capsule.dispatcher']);
@@ -122,7 +122,7 @@ class CapsuleServiceProvider implements ServiceProviderInterface
             $capsule = $app['capsule'];
             if (isset($app['httpcache.tagger'])) {
                 $tagger = $app['httpcache.tagger'];
-                /* @var $tagger \C\HttpCache\ResourceTagger */
+                /* @var $tagger \C\TagableResource\ResourceTagger */
                 $tagger->tagDataWith('sql', function ($sql) use($capsule) {
                     return $capsule->getConnection()->select($sql);
                 });
@@ -130,18 +130,20 @@ class CapsuleServiceProvider implements ServiceProviderInterface
 
 
             $app["dispatcher"]->addListener('boot_done', function() use($app) {
-                $app['capsule.schema']->loadSchemas();
             });
             $app["dispatcher"]->addListener('init.app', function() use($app) {
+                $app['capsule.schema']->loadSchemas();
                 $app['capsule.schema']->cleanDb();
                 $app['capsule.schema']->initDb();
                 $app['capsule.schema']->registry->saveToFile();
             });
             $app["dispatcher"]->addListener('init.schema', function() use($app) {
+                $app['capsule.schema']->loadSchemas();
                 $app['capsule.schema']->cleanDb();
                 $app['capsule.schema']->initDb();
             });
             $app["dispatcher"]->addListener('refresh.schema', function() use($app) {
+                $app['capsule.schema']->loadSchemas();
                 $app['capsule.schema']->refreshDb();
             });
             $app["dispatcher"]->addListener('dump.fs_file_path', function() use($app) {
