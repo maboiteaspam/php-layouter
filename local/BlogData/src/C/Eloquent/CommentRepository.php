@@ -1,7 +1,6 @@
 <?php
 namespace C\BlogData\Eloquent;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
 use C\BlogData\CommentRepositoryInterface;
 use C\Repository\TagableEloquentRepository;
 
@@ -23,7 +22,7 @@ class CommentRepository extends TagableEloquentRepository implements CommentRepo
      * @return mixed
      */
     public function lastUpdatedByEntryId($id) {
-        return $this->byEntryId($id)[0]['updated_at'];
+        return $this->byEntryId($id)[0]->updated_at;
     }
 
     /**
