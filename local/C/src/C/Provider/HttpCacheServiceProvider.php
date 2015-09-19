@@ -58,6 +58,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
             if ($request->isMethodSafe()) {
                 $tagger = $app['httpcache.tagger'];
                 $store = $app['httpcache.store'];
+                $checkFreshness = $app['httpcache.check_taged_resource_freshness'];
                 $etags = $request->getETags();
 
                 foreach ($etags as $etag) {
@@ -65,7 +66,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                         $etag = str_replace(['"',"'"], '', $etag);
                         $res = $store->getResource($etag);
                         if ($res) {
-                            if ($tagger->isFresh($res)) {
+                            if (!$checkFreshness || $checkFreshness && $tagger->isFresh($res)) {
                                 $content = $store->getContent($etag);
                                 $body = $content['body'];
                                 $response = new Response();

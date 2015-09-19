@@ -115,13 +115,13 @@ class CapsuleServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['capsule.eloquent']) {
+        if (isset($app['capsule.eloquent'])) {
 
             $this->sqliteSetup($app['capsule.connections']);
 
-            $capsule = $app['capsule'];
             if (isset($app['httpcache.tagger'])) {
                 $tagger = $app['httpcache.tagger'];
+                $capsule = $app['capsule'];
                 /* @var $tagger \C\TagableResource\ResourceTagger */
                 $tagger->tagDataWith('sql', function ($sql) use($capsule) {
                     return $capsule->getConnection()->select($sql);
@@ -129,8 +129,6 @@ class CapsuleServiceProvider implements ServiceProviderInterface
             }
 
 
-            $app["dispatcher"]->addListener('boot_done', function() use($app) {
-            });
             $app["dispatcher"]->addListener('init.app', function() use($app) {
                 $app['capsule.schema']->loadSchemas();
                 $app['capsule.schema']->cleanDb();
