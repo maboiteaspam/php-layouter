@@ -10,10 +10,11 @@ use \C\BlogData\Eloquent\Entry as Entry;
 use \C\BlogData\Eloquent\Comment as Comment;
 use \C\Data\Eloquent;
 
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Silex\Application;
 
-class Controller{
+class Controllers{
 
     public function home() {
         return function (Application $app) {
@@ -25,7 +26,8 @@ class Controller{
                     Eloquent::wrap($entryModel->mostRecent())->get(),
                     Eloquent::wrap($commentModel->mostRecent())->get()
                 )->finalize();
-            return $app['layout_responder']();
+            $response = new Response();
+            return $app['layout.responder']($response);
         };
     }
 
@@ -59,7 +61,9 @@ class Controller{
                         'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
                     ])
                 )->finalize();
-            return $app['layout_responder']();
+
+            $response = new Response();
+            return $app['layout.responder']($response);
         };
     }
 

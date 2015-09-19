@@ -44,12 +44,15 @@ class Registry {
         $this->signature = $dump['signature'];
     }
     public function registerPath($path){
-        $this->config['paths'][] = reliablePath($path);
+        $this->config['paths'][] = realpath($path);
         return $path;
     }
     public function setBasePath($path){
         $this->config['basePath'] = $path;
         return $path;
+    }
+    public function getBasePath(){
+        return $this->config['basePath'];
     }
 
     public function isFresh(){
@@ -72,7 +75,7 @@ class Registry {
 
     public function saveToFile(){
         $dump = $this->build();
-        $this->createSignature();
+        if (!LocalFs::is_dir(dirname($this->file))) LocalFs::mkdir(dirname($this->file), 0700, true);
         LocalFs::file_put_contents($this->file, "<?php return ".var_export($dump, true).";\n");
         return $dump;
     }
@@ -94,9 +97,10 @@ class Registry {
     }
 
     public function build(){
-        $this->recursiveReadPath();
+        $this->recursiveReadPath()->createSignature();
         return [
             'items'=>$this->items,
+            'originalPaths'=>$this->config['paths'],
             'signature'=>$this->signature,
         ];
     }
@@ -130,11 +134,14 @@ class Registry {
                 $this->addItem($Iterated);
             }
         }
+        return $this;
     }
 
-    public function addClassFile ($className) {
+    public function addClassFile ($className, $onlyIfNew=true) {
         $reflector = new \ReflectionClass($className);
-        $this->addItem($reflector->getFileName());
+        $path = $reflector->getFileName();
+        if ($onlyIfNew && !$this->get($path) || !$onlyIfNew)
+            $this->addItem($path);
     }
     public function addItem ($path) {
         $basePath = $this->config['basePath'];
@@ -184,6 +191,19 @@ class Registry {
             $item = $this->items["$itemPath".DIRECTORY_SEPARATOR];
             $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
             return $item;
+        }
+        if (substr($itemPath,0,strlen($basePath))===$basePath) {
+            $p = substr($itemPath,strlen($basePath)+1);
+            if (isset($this->items[$p])) {
+                $item = $this->items[$p];
+                $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
+                return $item;
+            }
+            if (isset($this->items["$p".DIRECTORY_SEPARATOR])) {
+                $item = $this->items["$p".DIRECTORY_SEPARATOR];
+                $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
+                return $item;
+            }
         }
         foreach( $this->config['paths'] as $i=>$path) {
             $p = substr($itemPath, 0, strlen($path));

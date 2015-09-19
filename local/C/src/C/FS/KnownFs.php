@@ -20,6 +20,10 @@ class KnownFs {
         $this->registry->setBasePath($bp);
     }
 
+    public function getBasePath () {
+        return $this->registry->getBasePath();
+    }
+
     public function setFS ($fs) {
         $this->fs = $fs;
     }

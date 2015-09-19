@@ -3,7 +3,7 @@
 namespace C\Data;
 
 use C\Misc\Utils;
-use \C\LayoutBuilder\Layout\TaggedResource;
+use C\HttpCache\TaggedResource;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class Eloquent extends ViewData{

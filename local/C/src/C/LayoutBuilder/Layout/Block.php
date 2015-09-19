@@ -3,6 +3,7 @@
 namespace C\LayoutBuilder\Layout;
 
 use \C\Data\ViewData;
+use C\HttpCache\TaggedResource;
 
 class Block{
 

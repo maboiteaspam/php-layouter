@@ -1,11 +1,11 @@
 <?php
 
-namespace C\BlogData;
+namespace C\Blog;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
-class BlogDataServiceProvider implements ServiceProviderInterface
+class ServiceProvider implements ServiceProviderInterface
 {
     /**
      *
@@ -23,8 +23,9 @@ class BlogDataServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['capsule.schema']) {
-            $app['capsule.schema']->register(new Schema);
+        if ($app['assets.fs']) {
+            $app['assets.fs']->register(__DIR__.'/assets/');
+            $app['assets.fs']->register(__DIR__.'/templates/');
         }
     }
 }

@@ -4,13 +4,12 @@ namespace C\BlogData;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use \C\Schema\ISchema;
-
 use \C\BlogData\Eloquent\Entry as Entry;
 use \C\BlogData\Eloquent\Comment as Comment;
 
 class Schema implements ISchema{
-    public function createTables() {
-        $builder = Capsule::connection()->getSchemaBuilder();
+    public function createTables(Capsule $capsule) {
+        $builder = $capsule->getConnection()->getSchemaBuilder();
         $builder->create('blog_entry', function($table) {
             $table->increments('id');
             $table->string('title');
@@ -29,13 +28,13 @@ class Schema implements ISchema{
             $table->integer('blog_entry_id');
         });
     }
-    public function dropTables() {
-        $builder = Capsule::connection()->getSchemaBuilder();
+    public function dropTables(Capsule $capsule) {
+        $builder = $capsule->getConnection()->getSchemaBuilder();
         $builder->drop('blog_entry');
         $builder->drop('blog_comment');
     }
-    public function populateTables() {
-        Capsule::connection()->transaction(function(){
+    public function populateTables(Capsule $capsule) {
+        $capsule->getConnection()->transaction(function(){
             $entryModel = new Entry();
             $commentModel = new Comment();
             $fixtureEntries = include(__DIR__ . '/fixtures/blog-entries.php');

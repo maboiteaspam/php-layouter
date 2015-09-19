@@ -1,11 +1,11 @@
 <?php
 
-namespace C\Blog;
+namespace MyBlog;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
-class MyBlogServiceProvider implements ServiceProviderInterface
+class ServiceProvider implements ServiceProviderInterface
 {
     /**
      *
@@ -23,9 +23,9 @@ class MyBlogServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['layout.fs']) {
-            $app['layout.fs']->register(__DIR__.'/assets/');
-            $app['layout.fs']->register(__DIR__.'/templates/');
+        if ($app['assets.fs']) {
+            $app['assets.fs']->register(__DIR__.'/assets/');
+            $app['assets.fs']->register(__DIR__.'/templates/');
         }
 
         if (isset($app['layout'])) {

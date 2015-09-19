@@ -1,14 +1,23 @@
 <?php
 return [
     'debug' => !true,
+
     'server_type' => 'builtin',
     'projectPath' => "%projectPath%",
     'documentRoot' => '%projectPath%/www/',
+
     'private_build_dir' => '%projectPath%/run/',
     'public_build_dir' => '%projectPath%/www/run/',
+
+    'httpcache.storepath' => "%projectPath%/run/http/",
+
     'assets.concat' => false,
+    'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
+    'assets.bridge_file_path' => '%projectPath%/run/bridge.php',
+
+    'capsule.schema_file_cache' => '%projectPath%/run/schemas.php',
     'capsule.connections' => [
-        "dev"=>[
+        "default"=>[
             'driver'   => 'sqlite',
             'database' => '%projectPath%/run/database.sqlite',
 //        'database' => ':memory:',

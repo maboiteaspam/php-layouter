@@ -3,9 +3,8 @@ namespace C\Provider;
 
 use C\FS\LocalFs;
 use C\Misc\Utils;
-use C\FS\KnownFs;
-use C\FS\Registry;
 use C\LayoutBuilder\Layout\Layout;
+
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
@@ -18,9 +17,8 @@ class LayoutServiceProvider implements ServiceProviderInterface
      **/
     public function register(Application $app)
     {
-        $app['layout.fs'] = $app->share(function() use($app) {
-            return new KnownFs(new Registry($app['layout.cache_path']."/layout_fs.php"));
-        });
+        LocalFs::$record = $app['debug'];
+
         $app['layout'] = $app->share(function() use($app) {
             $helpers = [
                 'urlFor'=> function ($name, $options=[], $only=[]) use(&$app) {
@@ -46,8 +44,31 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
 
 
-        LocalFs::$record = $app['debug'];
+        $app['layout.responder'] = $app->protect(function ($response) use ($app) {
+            $request = $app['request'];
+            /* @var $request \Symfony\Component\HttpFoundation\Request */
 
+            if (isset($app['httpcache.tagger'])) {
+                $TaggedResource = $app['layout']->getTaggedResource();
+                $etag = $app['httpcache.tagger']->sign($TaggedResource);
+                $app['httpcache.taggedResource'] = $TaggedResource;
+                $response->setETag($etag);
+
+                // this is super important to get etag working properly.
+                $response->setProtocolVersion('1.1');
+//            $response->mustRevalidate(true);
+//            $response->setPrivate(true);
+
+                if ($response->isNotModified($request)) {
+                    return $response;
+                }
+            }
+
+
+            $response->setContent($app['layout']->render());
+
+            return $response;
+        });
     }
     /**
      * Boot the Capsule service.
@@ -58,12 +79,12 @@ class LayoutServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        $app['layout.fs']->registry->loadFromFile();
-        if ($app["env"]==="dev") {
-            $app->before(function() use($app) {
-                $app['layout.fs']->registry->saveToFile();
-            }, Application::LATE_EVENT);
+        if ($app['assets.fs']) {
+            $app['assets.fs']->register(__DIR__.'/../jQueryLayoutBuilder/templates/');
+            $app['assets.fs']->register(__DIR__.'/../HTMLLayoutBuilder/templates/');
+            $app['assets.fs']->register(__DIR__.'/../Dashboard/templates/');
+            $app['assets.fs']->register(__DIR__.'/../jQueryLayoutBuilder/assets/');
+            $app['assets.fs']->register(__DIR__.'/../Dashboard/assets/');
         }
-
     }
 }

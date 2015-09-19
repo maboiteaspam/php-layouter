@@ -42,8 +42,8 @@ class Transforms extends BaseTransforms{
         $app['dispatcher']->addListener('before_layout_render', function () use(&$app) {
 
             $documentRoot = $app['documentRoot'];
-            $basePath = $app['public_build_dir'];
-            $assetsFS = $app['assetsFS'];
+            $assetsFS = $app['assets.fs'];
+            $basePath = $assetsFS->getBasePath();
             $env = $app['env'];
             $concat = $app['assets.concat'];
 
@@ -59,8 +59,6 @@ class Transforms extends BaseTransforms{
             }
 
             if (count($blockAssets)) {
-
-                if ($concat && $env==='dev' && !LocalFs::is_dir($basePath)) LocalFs::mkdir($basePath, 0700, true);
 
                 foreach ($blockAssets as $target => $assets) {
                     $targetBlock = $this->layout->getOrCreate($target);
@@ -88,26 +86,34 @@ class Transforms extends BaseTransforms{
 
                             if ($ext==="js")
                                 $targetBlock->body .= sprintf(
-                                    '<script src="/%s" type="text/javascript"></script>', str_replace("\\", "/", $concatAssetUrl));
+                                    '<script src="/%s" type="text/javascript"></script>',
+                                    str_replace("\\", "/", $concatAssetUrl));
                             else
                                 $targetBlock->body .= sprintf(
-                                    '<link href="/%s" rel="stylesheet" />', str_replace("\\", "/", $concatAssetUrl));
+                                    '<link href="/%s" rel="stylesheet" />',
+                                    str_replace("\\", "/", $concatAssetUrl));
 
                         } else {
                             foreach ($assets as $asset) {
                                 if ($assetsFS->file_exists($asset)) {
                                     $a = $assetsFS->get($asset);
-                                    $assetName = $a['dir'].$a['name'];
-                                    $assetUrl = "$assetName?t=".$a['sha1'];
+                                    if ($a) {
+                                        $assetName = $a['dir'].$a['name'];
+                                        $assetUrl = "$assetName?t=".$a['sha1'];
 
-                                    if ($ext==="js")
-                                        $targetBlock->body .= sprintf(
-                                            '<script src="/%s" type="text/javascript"></script>', str_replace("\\", "/", $assetUrl));
-                                    else
-                                        $targetBlock->body .= sprintf(
-                                            '<link href="/%s" rel="stylesheet" />', str_replace("\\", "/", $assetUrl));
+                                        if ($ext==="js")
+                                            $targetBlock->body .= sprintf(
+                                                '<script src="/%s" type="text/javascript"></script>',
+                                                str_replace("\\", "/", $assetUrl));
+                                        else
+                                            $targetBlock->body .= sprintf(
+                                                '<link href="/%s" rel="stylesheet" />',
+                                                str_replace("\\", "/", $assetUrl));
 
-                                    $targetBlock->body .= "\n";
+                                        $targetBlock->body .= "\n";
+                                    } else {
+                                        var_dump($assetsFS);
+                                    }
                                 }
                             }
                         }

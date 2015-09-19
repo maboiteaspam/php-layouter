@@ -1,4 +1,5 @@
 run/
+node_modules/
 vendor/
 www/run/
 composer.phar

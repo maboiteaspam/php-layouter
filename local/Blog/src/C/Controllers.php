@@ -24,7 +24,7 @@ function getComments () {
 }
 
 
-class Controller{
+class Controllers {
 
     public function entryList($app) {
         return function () use($app) {

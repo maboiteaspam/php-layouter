@@ -2,6 +2,7 @@
 
 namespace C\LayoutBuilder\Layout;
 
+use C\HttpCache\TaggedResource;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use C\Misc\Utils;
 
@@ -76,7 +77,10 @@ class Layout{
         return '';
     }
     public function render (){
-        return $this->getContent($this->block);
+        $this->emit('before_layout_render');
+        $this->getContent($this->block);
+        $this->emit('after_layout_render');
+        return $this->getRoot()->body;
     }
     public function getRoot (){
         return $this->get($this->block);

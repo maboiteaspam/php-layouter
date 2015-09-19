@@ -1,21 +1,25 @@
 <?php
+namespace C\Provider;
 
-namespace C\Blog;
+use C\FS\LocalFs;
+use C\Misc\Utils;
+use C\LayoutBuilder\Layout\Layout;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
-class BlogServiceProvider implements ServiceProviderInterface
+class CServiceProvider implements ServiceProviderInterface
 {
     /**
+     * Register the Capsule service.
      *
      * @param Application $app
      **/
     public function register(Application $app)
     {
-
     }
     /**
+     * Boot the Capsule service.
      *
      * @param Application $app Silex application instance.
      *
@@ -23,9 +27,7 @@ class BlogServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['layout.fs']) {
-            $app['layout.fs']->register(__DIR__.'/assets/');
-            $app['layout.fs']->register(__DIR__.'/templates/');
-        }
+        $app['dispatcher']->dispatch("boot_done");
+        $app['dispatcher']->dispatch("before_app_start");
     }
 }

@@ -1,6 +1,5 @@
 <?php
-
-namespace C\LayoutBuilder\Layout;
+namespace C\HttpCache;
 
 class TaggedResource implements \Serializable{
 
