@@ -36,12 +36,13 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     return $query ? '?'.$query : '';
                 }
             ];
-            return new Layout([
+            $layout = new Layout([
                 'debug'         => $app['debug'],
-                'dispatcher'    => $app['dispatcher'],
                 'helpers'       => $helpers,
                 'imgUrls'       => [],
             ]);
+            if (isset($app['dispatcher'])) $layout->setDispatcher($app['dispatcher']);
+            return $layout;
         });
 
 

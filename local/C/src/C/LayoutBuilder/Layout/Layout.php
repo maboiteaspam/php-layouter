@@ -4,6 +4,7 @@ namespace C\LayoutBuilder\Layout;
 
 use C\TagableResource\TagedResource;
 use C\TagableResource\TagableResourceInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use C\Misc\Utils;
 
@@ -57,8 +58,10 @@ class Layout implements TagableResourceInterface{
                 return $url;
             },
         ], $this->config['helpers']);
+    }
 
-        if (isset($config['dispatcher'])) $this->dispatcher = $config['dispatcher'];
+    public function setDispatcher (EventDispatcher $dispatcher) {
+        $this->dispatcher = $dispatcher;
     }
 
     public function resolve ($id){
