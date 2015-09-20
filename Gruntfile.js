@@ -9,26 +9,6 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
     dumps_file_path: [],
 
-    shell: {
-      init: {
-        command: 'php bootstrap.php --event init.app'
-      },
-      dump: {
-        command: 'php bootstrap.php --event dump.fs'
-      },
-      initDb: {
-        command: 'php bootstrap.php --event init.schema'
-      },
-      checkDb: {
-        command: 'php bootstrap.php --event check.schema'
-      },
-      options: {
-        stdout: true,
-        stderr: true,
-        failOnError: true
-      }
-    },
-
     open : {
       browser : {
         path: 'http://127.0.0.1:8000/',
@@ -42,7 +22,6 @@ module.exports = function (grunt) {
 
   // Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-open');
-  grunt.loadNpmTasks('grunt-shell-spawn');
 
   var spawnPhp = function(cmd, done, voidStdout){
     var killed = false;
@@ -197,7 +176,7 @@ module.exports = function (grunt) {
   grunt.registerTask('default', [
     'dump-fs',
     //'init-schema',
-    'shell:checkDb',
+    'check-schema',
     'read-fs-dumps',
     //'open:browser',
     'spawn-builtin'
