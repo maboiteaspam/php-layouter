@@ -88,13 +88,26 @@ module.exports = function (grunt) {
   grunt.registerTask('spawn-builtin', function() {
     var done = this.async();
     var killed = false;
-    var child = exec('php -S localhost:8000 -t www bootstrap.php', { stdio: 'inherit' },
-      function (error, stdout, stderr) {
+    var child = exec('php -S localhost:8000 -t www bootstrap.php', { stdio: 'pipe' },
+      function (error) {
         if (!killed && error !== null) {
           console.log('exec error: ' + error);
         }
         done();
       });
+    child.stdout.on('data', function (d){
+      grunt.log.warn(d)
+    });
+    child.stderr.on('data', function (d){
+      grunt.log.error(d)
+    });
+    process.on('SIGINT', function() {
+      killed = true;
+      child.kill();
+    });
+    process.on('exit', function() {
+      child.kill();
+    });
 
     var watchPaths = grunt.config.get('path_to_watch');
     grunt.log.ok('Watching paths');
@@ -134,10 +147,6 @@ module.exports = function (grunt) {
           grunt.verbose.ok('watching everything completed', watchers);
         }
       }
-    });
-    process.on('SIGINT', function() {
-      killed = true;
-      child.kill();
     });
   });
 
