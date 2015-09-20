@@ -2,6 +2,7 @@
 namespace C\BlogData\Eloquent;
 
 use C\BlogData\CommentRepositoryInterface;
+use C\Misc\Utils;
 use C\Repository\TagableEloquentRepository;
 
 class CommentRepository extends TagableEloquentRepository implements CommentRepositoryInterface {
@@ -32,7 +33,7 @@ class CommentRepository extends TagableEloquentRepository implements CommentRepo
     public function insert($data) {
         return $this->capsule->getConnection()
             ->table('blog_comment')
-            ->insertGetId($data);
+            ->insertGetId(Utils::objectToArray($data));
     }
 
     /**

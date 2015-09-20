@@ -37,6 +37,7 @@ use Igorw\Silex\ConfigServiceProvider;
 
 $app = new Application();
 
+// sometimes it s useful to register it to get a stack trace
 function exception_error_handler($severity, $message, $file, $line) {
     if (!(error_reporting() & $severity)) {
         // Ce code d'erreur n'est pas inclu dans error_reporting
@@ -94,7 +95,9 @@ $app->register(new FormServiceProvider());
 $app->register(new AssetsServiceProvider());
 $app->register(new HttpCacheServiceProvider());
 $app->register(new CapsuleServiceProvider());
+$app->register(new \C\Provider\RepositoryServiceProvider());
 $app->register(new LayoutServiceProvider());
+$app->register(new \C\Provider\ModernAppServiceProvider());
 
 $app->register(new \C\BlogData\ServiceProvider());
 

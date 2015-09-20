@@ -2,6 +2,7 @@
 namespace C\BlogData\Eloquent;
 
 use C\BlogData\EntryRepositoryInterface;
+use C\Misc\Utils;
 use C\Repository\TagableEloquentRepository;
 
 class EntryRepository extends TagableEloquentRepository implements EntryRepositoryInterface {
@@ -24,7 +25,7 @@ class EntryRepository extends TagableEloquentRepository implements EntryReposito
     public function insert($data) {
         return $this->capsule->getConnection()
             ->table('blog_entry')
-            ->insertGetId($data);
+            ->insertGetId(Utils::objectToArray($data));
     }
 
     /**

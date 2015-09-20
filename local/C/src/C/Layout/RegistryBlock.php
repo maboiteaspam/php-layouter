@@ -1,6 +1,6 @@
 <?php
 
-namespace C\LayoutBuilder\Layout;
+namespace C\Layout;
 
 class RegistryBlock{
 

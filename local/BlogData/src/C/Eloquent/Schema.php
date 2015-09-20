@@ -34,18 +34,21 @@ class Schema extends  EloquentSchema{
         $builder->drop('blog_comment');
     }
     public function populateTables() {
-        $this->capsule->getConnection()->transaction(function(){
+        $capsule = $this->capsule;
+        $this->capsule->getConnection()->transaction(function() use($capsule) {
             $entryModel = new Entry();
             $commentModel = new Comment();
+            $entryModel->setCapsule($capsule);
+            $commentModel->setCapsule($capsule);
             $fixtureEntries = include(__DIR__ . '/../fixtures/blog-entries.php');
             foreach ($fixtureEntries as $entry) {
-                $comments = $entry['comments'];
-                unset($entry['comments']);
-                unset($entry['id']);
+                $comments = $entry->comments;
+                unset($entry->comments);
+                unset($entry->id);
                 $id = $entryModel->insert($entry);
                 foreach ($comments as $comment) {
-                    unset($comment['id']);
-                    $comment['blog_entry_id'] = $id;
+                    unset($comment->id);
+                    $comment->blog_entry_id = $id;
                     $commentModel->insert($comment);
                 }
             }

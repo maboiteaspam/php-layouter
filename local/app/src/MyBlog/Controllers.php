@@ -5,7 +5,7 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
-use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
+use C\ModernApp\jQuery\Transforms as jQueryTransforms;
 
 use MyBlog\Transforms as MyBlogLayout;
 use \C\Blog\CommentForm as MyCommentForm;

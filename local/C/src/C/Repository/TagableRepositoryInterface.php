@@ -6,7 +6,7 @@ interface TagableRepositoryInterface {
 
     /**
      * @param $tager
-     * @return mixed
+     * @return RepositoryProxy
      */
     public function tagable($tager);
 

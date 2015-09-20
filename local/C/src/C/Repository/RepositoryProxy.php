@@ -41,22 +41,6 @@ class RepositoryProxy implements TagableResourceInterface {
     }
 
     /**
-     * @param $tager
-     * @return mixed
-     */
-    public function tagable($tager){
-        $this->setTager($tager);
-        return $this;
-    }
-
-    /**
-     * @return RepositoryProxy
-     */
-    public function tager(){
-        return $this->tager;
-    }
-
-    /**
      * @return TagedResource
      */
     public function getTaggedResource() {

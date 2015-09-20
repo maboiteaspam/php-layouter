@@ -3,7 +3,7 @@ namespace C\Provider;
 
 use C\FS\LocalFs;
 use C\Misc\Utils;
-use C\LayoutBuilder\Layout\Layout;
+use C\Layout\Layout;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
@@ -82,12 +82,5 @@ class LayoutServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['assets.fs']) {
-            $app['assets.fs']->register(__DIR__.'/../jQueryLayoutBuilder/templates/');
-            $app['assets.fs']->register(__DIR__.'/../HTMLLayoutBuilder/templates/');
-            $app['assets.fs']->register(__DIR__.'/../Dashboard/templates/');
-            $app['assets.fs']->register(__DIR__.'/../jQueryLayoutBuilder/assets/');
-            $app['assets.fs']->register(__DIR__.'/../Dashboard/assets/');
-        }
     }
 }

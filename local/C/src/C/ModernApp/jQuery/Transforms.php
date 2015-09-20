@@ -1,10 +1,10 @@
 <?php
-namespace C\jQueryLayoutBuilder;
+namespace C\ModernApp\jQuery;
 
-use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
-use \C\LayoutBuilder\Layout\Layout;
+use C\ModernApp\HTML\Transforms as HTML;
+use \C\Layout\Layout;
 
-class Transforms extends HTMLTransforms{
+class Transforms extends HTML{
 
     /**
      * @param mixed $app

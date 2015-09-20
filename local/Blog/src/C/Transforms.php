@@ -2,7 +2,7 @@
 
 namespace C\Blog;
 
-use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
+use C\ModernApp\HTML\Transforms as HTMLTransforms;
 
 class Transforms extends HTMLTransforms{
 

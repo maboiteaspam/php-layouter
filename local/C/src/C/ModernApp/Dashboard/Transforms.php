@@ -1,11 +1,11 @@
 <?php
-namespace C\Dashboard;
+namespace C\ModernApp\Dashboard;
 
-use C\LayoutBuilder\Transforms as BaseTransforms;
-use C\LayoutBuilder\Layout\Layout;
+use C\Layout\Transforms as Base;
+use C\Layout\Layout;
 use C\Misc\Utils;
 
-class Transforms extends BaseTransforms{
+class Transforms extends Base{
 
     /**
      * @param mixed $app
@@ -20,7 +20,7 @@ class Transforms extends BaseTransforms{
         if (!$show) return $this;
 
         $app = $this->app;
-        /* @var $layout \C\LayoutBuilder\Layout\Layout */
+        /* @var $layout \C\Layout\Layout */
         $layout = $app['layout'];
 
         $this->insertBefore('html_end', 'dashboard', [

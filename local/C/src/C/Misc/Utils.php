@@ -7,11 +7,15 @@ use C\FS\LocalFs;
 class Utils{
 
     public static function stderr ($message) {
-        fwrite(fopen('php://stderr', 'w+'), "$message\n");
+        $handle = fopen('php://stderr', 'w+');
+        fwrite($handle, "$message\n");
+        fclose($handle);
     }
 
     public static function stdout ($message) {
-        fwrite(fopen('php://stdout', 'w+'), "$message\n");
+        $handle = fopen('php://stdout', 'w+');
+        fwrite($handle, "$message\n");
+        fclose($handle);
     }
 
     public static function fileToEtag ($file) {

@@ -1,12 +1,10 @@
 <?php
-namespace C\LayoutBuilder;
-
-use \C\LayoutBuilder\Layout\Layout;
+namespace C\Layout;
 
 class Transforms{
 
     /**
-     * @var \C\LayoutBuilder\Layout\Layout
+     * @var \C\Layout\Layout
      */
     public $layout;
 

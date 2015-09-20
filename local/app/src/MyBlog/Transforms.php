@@ -5,8 +5,8 @@ namespace MyBlog;
 
 use C\Blog\Transforms as BlogLayout;
 
-use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
-use C\Dashboard\Transforms as Dashboard;
+use C\ModernApp\jQuery\Transforms as jQueryTransforms;
+use C\ModernApp\Dashboard\Transforms as Dashboard;
 
 class Transforms extends BlogLayout{
 

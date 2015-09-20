@@ -42,17 +42,6 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if (isset($app['httpcache.tagger'])) {
-            $tagger = $app['httpcache.tagger'];
-            /* @var $tagger \C\TagableResource\ResourceTagger */
-            $tagger->tagDataWith('repository', function ($data) use($app) {
-                $repositoryName = $data[0];
-                $method = $data[1];
-                $repository = $app[$repositoryName];
-                $v = call_user_func_array([$repository, $method[0]], $method[1]);
-                return $v;
-            });
-        }
 
         $app->before(function (Request $request, Application $app) {
             if ($request->isMethodSafe()) {

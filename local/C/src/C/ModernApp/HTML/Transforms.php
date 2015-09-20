@@ -1,11 +1,12 @@
 <?php
-namespace C\HTMLLayoutBuilder;
+namespace C\ModernApp\HTML;
 
-use C\LayoutBuilder\Transforms as BaseTransforms;
+use C\FS\KnownFs;
+use C\Layout\Transforms as Base;
 use C\Misc\Utils;
 use C\FS\LocalFs;
 
-class Transforms extends BaseTransforms{
+class Transforms extends Base{
 
     /**
      * @param mixed $app
@@ -38,13 +39,15 @@ class Transforms extends BaseTransforms{
 
     public function applyAssets(){
         $app = $this->app;
+        $dispatcher = $app['dispatcher'];
+        /* @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcher */
 
-        $app['dispatcher']->addListener('before_layout_render', function () use(&$app) {
+        $dispatcher->addListener('before_layout_render', function () use(&$app) {
 
             $documentRoot = $app['documentRoot'];
             $assetsFS = $app['assets.fs'];
+            /* @var $assetsFS \C\FS\KnownFs */
             $basePath = $assetsFS->getBasePath();
-            $env = $app['env'];
             $concat = $app['assets.concat'];
 
             $blockAssets = [];
@@ -141,7 +144,7 @@ class Transforms extends BaseTransforms{
         return $this;
     }
 
-    public function readAndMakeAsset ($assetsFS, $assetFile){
+    public function readAndMakeAsset (KnownFs $assetsFS, $assetFile){
         if ($assetsFS->file_exists($assetFile)) {
             $content    = LocalFs::file_get_contents($assetFile);
             $assetFile  = $assetsFS->realpath($assetFile);

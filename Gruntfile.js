@@ -44,62 +44,27 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-open');
   grunt.loadNpmTasks('grunt-shell-spawn');
 
-  grunt.registerTask('get-fs-dumps', function() {
-    var done = this.async();
-
-    var dumps_file_path = [];
-    var path_to_watch = [];
-
-    async.series([
-      function(next){
-        exec('php bootstrap.php --event dump.fs_file_path',
-          function (error, stdout, stderr) {
-            dumps_file_path = stdout.replace(/\s*$/, '').split('\n');
-            next(error);
-          });
-      },
-      function(next){
-        var p = []
-        dumps_file_path.forEach(function(k) {
-          p.push(function(next_){
-            exec('php -r "echo json_encode(include(\\"' + k + '\\"));"',
-              function (error, stdout, stderr) {
-                var data = JSON.parse(stdout);
-                if (data.originalPaths.length) {
-                  path_to_watch = path_to_watch.concat(data.originalPaths)
-                } else {
-                  Object.keys(data.items).forEach(function(p){
-                    path_to_watch.push(p)
-                  })
-                }
-                next_(error);
-              });
-          })
-        });
-        async.parallelLimit(p, 2, next);
-      }
-    ], function (error) {
-      grunt.config.set('path_to_watch', path_to_watch);
-      done(error);
-    });
-
-  });
-
-  grunt.registerTask('spawn-builtin', function() {
-    var done = this.async();
+  var spawnPhp = function(cmd, done, voidStdout){
     var killed = false;
-    var child = exec('php -S localhost:8000 -t www bootstrap.php', { stdio: 'pipe' },
+    var stdout = '';
+    var stderr = '';
+    grunt.log.subhead(cmd)
+    var child = exec(cmd, { stdio: 'pipe' },
       function (error) {
         if (!killed && error !== null) {
-          console.log('exec error: ' + error);
+          grunt.log.error('php server exec error: ' + error);
         }
-        done();
+        done(error, stdout, stderr);
       });
     child.stdout.on('data', function (d){
-      grunt.log.warn(d)
+      if (!voidStdout) {
+        grunt.log.success(d)
+      }
+      stdout += d;
     });
     child.stderr.on('data', function (d){
       grunt.log.error(d)
+      stderr += d;
     });
     process.on('SIGINT', function() {
       killed = true;
@@ -108,8 +73,9 @@ module.exports = function (grunt) {
     process.on('exit', function() {
       child.kill();
     });
-
-    var watchPaths = grunt.config.get('path_to_watch');
+    return child;
+  };
+  var spawnWatchr = function (watchPaths) {
     grunt.log.ok('Watching paths');
     grunt.log.writeflags(watchPaths)
     watchr.watch({
@@ -148,17 +114,91 @@ module.exports = function (grunt) {
         }
       }
     });
+  };
+
+  grunt.registerTask('init-app', function() {
+    var done = this.async();
+    spawnPhp('php bootstrap.php --event init.app', function (error) {
+      done(error);
+    });
+  });
+  grunt.registerTask('init-schema', function() {
+    var done = this.async();
+    spawnPhp('php bootstrap.php --event init.schema', function (error) {
+      done(error);
+    });
+  });
+  grunt.registerTask('check-schema', function() {
+    var done = this.async();
+    spawnPhp('php bootstrap.php --event check.schema', function (error) {
+      done(error);
+    });
+  });
+  grunt.registerTask('dump-fs', function() {
+    var done = this.async();
+    spawnPhp('php bootstrap.php --event dump.fs', function (error) {
+      done(error);
+    });
+  });
+  grunt.registerTask('read-fs-dumps', function() {
+    var done = this.async();
+
+    var dumps_file_path = [];
+    var path_to_watch = [];
+
+    async.series([
+      function(next){
+        spawnPhp('php bootstrap.php --event dump.fs_file_path', function (error, stdout, stderr) {
+          dumps_file_path = stdout.replace(/\s*$/, '').split('\n');
+          next(error);
+        });
+      },
+      function(next){
+        var p = []
+        dumps_file_path.forEach(function(k) {
+          p.push(function(next_){
+            spawnPhp('php -r "echo json_encode(include(\\"' + k + '\\"));"', function (error, stdout, stderr) {
+              var data = JSON.parse(stdout);
+              if (data.originalPaths.length) {
+                path_to_watch = path_to_watch.concat(data.originalPaths)
+              } else {
+                Object.keys(data.items).forEach(function(p){
+                  path_to_watch.push(p)
+                })
+              }
+              next_(error);
+            }, true);
+          })
+        });
+        async.parallelLimit(p, 2, next);
+      }
+    ], function (error) {
+      grunt.config.set('path_to_watch', path_to_watch);
+      done(error);
+    });
+
+  });
+
+  grunt.registerTask('spawn-builtin', function() {
+    var done = this.async();
+    spawnPhp('php -S localhost:8000 -t www bootstrap.php', function () {
+      done();
+    });
+    var watchPaths = grunt.config.get('path_to_watch');
+    if (watchPaths) {
+      spawnWatchr( watchPaths )
+    }
   });
 
   // Default task(s).
   grunt.registerTask('init', [
-    'shell:init'
+    'init-app'
   ]);
   grunt.registerTask('default', [
-    'shell:dump',
-    //'shell:initDb',
+    'dump-fs',
+    //'init-schema',
     'shell:checkDb',
-    'get-fs-dumps',
+    'read-fs-dumps',
     //'open:browser',
     'spawn-builtin'
   ]);

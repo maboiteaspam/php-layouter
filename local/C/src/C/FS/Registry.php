@@ -2,6 +2,8 @@
 
 namespace C\FS;
 
+use C\Misc\Utils;
+
 class Registry {
 
     public $file;
@@ -44,8 +46,10 @@ class Registry {
         $this->signature = $dump['signature'];
     }
     public function registerPath($path){
-        $this->config['paths'][] = realpath($path);
-        return $path;
+        $p = realpath($path);
+        if ($p===false) Utils::stderr("This path does not exists $path");
+        else $this->config['paths'][] = $p;
+        return $p;
     }
     public function setBasePath($path){
         $this->config['basePath'] = $path;
@@ -119,6 +123,7 @@ class Registry {
             }
         }
         $paths = array_unique($paths);
+        $this->items = [];
         foreach( $paths as $path) {
             $Directory = new \RecursiveDirectoryIterator($path);
             $filter = new \RecursiveCallbackFilterIterator($Directory, function ($current, $key, $iterator) {
