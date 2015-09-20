@@ -10,6 +10,10 @@ class Utils{
         fwrite(fopen('php://stderr', 'w+'), "$message\n");
     }
 
+    public static function stdout ($message) {
+        fwrite(fopen('php://stdout', 'w+'), "$message\n");
+    }
+
     public static function fileToEtag ($file) {
         if (is_string($file)) $file = [$file];
         $h = '-';
