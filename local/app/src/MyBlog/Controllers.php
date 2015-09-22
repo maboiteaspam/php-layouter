@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 use C\jQueryLayoutBuilder\Transforms as jQueryTransforms;
+use C\StaticLayoutBuilder\Transforms as staticTransforms;
 
 use MyBlog\Transforms as MyBlogLayout;
 use \C\Blog\CommentForm as MyCommentForm;
@@ -34,6 +35,9 @@ class Controllers{
                     $this->commentRepo->tagable(
                         $this->commentRepo->tager()->lastUpdateDate()
                     )->mostRecent()
+                )->then(
+                    staticTransforms::transform($app)
+                        ->loadFile( "test_layout.yml" )
                 )->finalize();
             $response = new Response();
             return $app['layout.responder']($response);
