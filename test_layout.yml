@@ -14,3 +14,7 @@ structure:
   new_block:
     set_template: MyBlog:whatever/path/file.php
     insert_before: footer
+    description: |
+      You should delete this block defintioion of this layout. It s here for a matter of demonstration of file referencing via module name.
+      This feature being to be implemented, until today, it generates a fatal error.
+
