@@ -64,12 +64,12 @@ class Transforms{
 
     public function updateAssets($id, $assets=[], $first=false){
         $block = $this->layout->getOrCreate($id);
-        foreach($assets as $name => $files) {
-            if(!isset($block->assets[$name]))
-                $block->assets[$name] = [];
-            $block->assets[$name] = $first
-                ? array_merge($files, $block->assets[$name])
-                : array_merge($block->assets[$name], $files);
+        foreach($assets as $targetAssetGroupName => $files) {
+            if(!isset($block->assets[$targetAssetGroupName]))
+                $block->assets[$targetAssetGroupName] = [];
+            $block->assets[$targetAssetGroupName] = $first
+                ? array_merge($files, $block->assets[$targetAssetGroupName])
+                : array_merge($block->assets[$targetAssetGroupName], $files);
         }
         return $this;
     }
