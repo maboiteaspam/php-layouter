@@ -70,9 +70,9 @@ class LocalFs {
      * @param null $maxlen
      * @return string
      */
-    public static function file_get_contents($file_path, $flags = null, $context = null, $offset = null, $maxlen = null){
+    public static function file_get_contents($file_path){
         self::recordAllCalls(__FUNCTION__, func_get_args());
-        return file_get_contents($file_path, $flags, $context, $offset, $maxlen);
+        return call_user_func_array(__FUNCTION__, func_get_args());
     }
 
     /**
@@ -82,9 +82,9 @@ class LocalFs {
      * @param null $context
      * @return int
      */
-    public static function file_put_contents($file_path, $data, $flags = null, $context = null){
+    public static function file_put_contents($file_path){
         self::recordAllCalls(__FUNCTION__, func_get_args());
-        return file_put_contents($file_path, $data, $flags, $context);
+        return call_user_func_array(__FUNCTION__, func_get_args());
     }
 
     /**
