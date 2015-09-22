@@ -93,7 +93,7 @@ class LocalFs {
      */
     public static function is_dir($file_path){
         self::recordAllCalls(__FUNCTION__, func_get_args());
-        return is_dir($file_path);
+        return call_user_func_array(__FUNCTION__, func_get_args());
     }
 
     /**
@@ -104,7 +104,7 @@ class LocalFs {
      */
     public static function touch($file_path, $time=null, $atime=null){
         self::recordAllCalls(__FUNCTION__, func_get_args());
-        return touch($file_path, $time, $atime);
+        return call_user_func_array(__FUNCTION__, func_get_args());
     }
 
     /**
@@ -116,6 +116,6 @@ class LocalFs {
      */
     public static function mkdir($file_path, $mode=07777, $recursive=false, $content=null){
         self::recordAllCalls(__FUNCTION__, func_get_args());
-        return mkdir($file_path, $mode, $recursive, $content);
+        return call_user_func_array(__FUNCTION__, func_get_args());
     }
 }

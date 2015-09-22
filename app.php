@@ -76,7 +76,7 @@ $app->register(new CacheServiceProvider(), array(
         'http-store'=>[]], $app['caches.options']
     ),
     'caches.config' => array_merge([
-        'http-store'=>['driver' => 'redis']], $app['caches.config']
+        'http-store'=>['driver' => 'array']], $app['caches.config']
     ),
 ));
 
