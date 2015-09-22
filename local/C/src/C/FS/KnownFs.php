@@ -2,6 +2,25 @@
 
 namespace C\FS;
 
+/**
+ * Class KnownFs
+ *
+ * A cache-try-passtrough FS.
+ * Give it a base path,
+ * Register absolute Paths,
+ * Use it to execute the File System actions.
+ *
+ * If the cache is generated and exists,
+ * It will use it as much as possible,
+ * If the cache is missing, or the file is unreferenced,
+ * it passes-trough,
+ *
+ * Using the public property $fs,
+ * review and analyze all non cached file systems calls
+ * and get rid of them.
+ *
+ * @package C\FS
+ */
 class KnownFs {
 
     public $registry;
