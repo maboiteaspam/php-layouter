@@ -107,6 +107,7 @@ class Transforms{
 //            $layout->displayBlock($id);
             $block = $layout->registry->get($target);
             $block->body = $block->body.$layout->getContent($id);
+            $block->displayed_block[] = ["id"=>$id, "shown"=>true];
         });
         return $this;
     }
@@ -117,6 +118,7 @@ class Transforms{
 //            $layout->displayBlock($id);
             $block = $layout->registry->get($target);
             $block->body = $layout->getContent($id).$block->body;
+            $block->displayed_block[] = ["id"=>$id, "shown"=>true];
         });
         return $this;
     }
