@@ -26,6 +26,12 @@ class Transforms extends BaseTransforms{
             $fileToResolve = "$baseDir/$fileToResolve";
         }
         return $fileToResolve;
+        // see also
+        // http://stackoverflow.com/questions/9990961/how-do-i-get-a-list-of-bundles-in-symfony2
+        // http://stackoverflow.com/questions/7585474/accessing-files-relative-to-bundle-in-symfony2
+        // https://github.com/symfony/symfony/tree/master/src/Symfony/Component/HttpKernel
+        // https://github.com/symfony/symfony/blob/master/src/Symfony/Component/HttpKernel/Kernel.php
+        // http://symfony.com/doc/current/components/finder.html
     }
 
     public function loadFile ($filePath) {

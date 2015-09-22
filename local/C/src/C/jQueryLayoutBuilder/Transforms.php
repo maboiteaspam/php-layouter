@@ -2,7 +2,6 @@
 namespace C\jQueryLayoutBuilder;
 
 use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
-use \C\LayoutBuilder\Layout\Layout;
 
 class Transforms extends HTMLTransforms{
 
@@ -58,10 +57,7 @@ class Transforms extends HTMLTransforms{
                     'target'=> $target,
                 ]);
 
-                $layout = $this->layout;
-                $layout->afterBlockRender('page_footer_js', function ($ev, Layout $layout) use($target) {
-                    $layout->displayBlock($target.'_ajax');
-                });
+                $this->insertAfter('page_footer_js', $target.'_ajax', []);
             } else {
                 $this->layout->block = $target;
             }

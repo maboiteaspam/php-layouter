@@ -37,7 +37,7 @@ class Transforms extends BaseTransforms{
         ]);
 
         $this->set('dashboard-layout', [
-            'body' => "<!-- placeholder layout structure -->",
+            'body' => "<!-- layout_structure_placeholder -->",
         ])->updateAssets('dashboard-layout', [
             'template_head_css'=>[
                 __DIR__ . '/assets/layout-structure.css'
@@ -45,45 +45,6 @@ class Transforms extends BaseTransforms{
             'page_footer_js'=>[
                 __DIR__ . '/assets/layout-structure.js'
             ],
-        ]);
-
-        $this->insertAfter('root', 'dashboard-layout-structure', [
-            'options' => [
-                'template'=>__DIR__.'/templates/layout-structure.php'
-            ],
-            'data' => [
-                'struct'=> function () use($layout) {
-                    $struct = [];
-                    $root = $layout->get($layout->block);
-                    $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use(&$struct) {
-                        $block = $options['block'];
-                        $template = 'inlined body';
-                        $assets = [];
-
-                        if ($block) {
-                            if (isset($block->options['template']) && $block->options['template'])
-                                $template = Utils::shorten($block->options['template']);
-                            foreach ($block->assets as $assetGroup=>$assetsGroup) {
-                                if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
-                                foreach ($assetsGroup as $asset) {
-                                    $assets[$assetGroup][] = Utils::shorten($asset);
-                                }
-                            }
-                        }
-
-                        $struct[$path] = [
-                            'template'=>$template,
-                            'assets'=>$assets,
-                            'id'=>$blockId,
-                            'exists'=>$options['exists'],
-                            'shown'=>$options['shown'],
-                            'parentId'=>$parentId,
-                        ];
-
-                    });
-                    return $struct;
-                }
-            ]
         ]);
 
         $this->set('dashboard-options', [
@@ -108,19 +69,64 @@ class Transforms extends BaseTransforms{
 
         $this->layout->beforeRenderAnyBlock(function ($ev, Layout $layout, $id) use($fromClass) {
             $block = $layout->get($id);
-            $caller = [];
             if ($block) {
                 $caller = Utils::findCaller($block->stack, $fromClass);
+                $block->body = "<c_block_node id='$id' caller='".\json_encode($caller)."'>".$block->body;
             }
-            echo "<c_block_node id='$id' caller='".\json_encode($caller)."'>";
         });
-        $this->layout->afterRenderAnyBlock(function () use($fromClass) {
-            echo "</c_block_node>";
+        $this->layout->afterRenderAnyBlock(function ($ev, Layout $layout, $id) {
+            $block = $layout->get($id);
+            if ($block) {
+                $block->body = $block->body."</c_block_node>";
+            }
         });
-        $this->layout->afterRender(function ($ev, Layout $layout) use($fromClass) {
+
+
+        $structGen = function () use($layout) {
+            $struct = [];
+            $root = $layout->get($layout->block);
+            $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use(&$struct) {
+                $block = $options['block'];
+                $template = 'inlined body';
+                $assets = [];
+
+                if ($block) {
+                    if (isset($block->options['template']) && $block->options['template'])
+                        $template = Utils::shorten($block->options['template']);
+                    foreach ($block->assets as $assetGroup=>$assetsGroup) {
+                        if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
+                        foreach ($assetsGroup as $asset) {
+                            $assets[$assetGroup][] = Utils::shorten($asset);
+                        }
+                    }
+                }
+
+                $struct[$path] = [
+                    'template'=>$template,
+                    'assets'=>$assets,
+                    'id'=>$blockId,
+                    'exists'=>$options['exists'],
+                    'shown'=>$options['shown'],
+                    'parentId'=>$parentId,
+                ];
+
+            });
+            return $struct;
+        };
+        $this->layout->afterRender(function ($ev, Layout $layout) use(&$structGen) {
             $content = $layout->getRoot()->body;
+
+            $this->set('dashboard-layout-structure', [
+                'options' => [
+                    'template'=>__DIR__.'/templates/layout-structure.php'
+                ],
+                'data' => [
+                    'struct'=> $structGen
+                ]
+            ]);
+
             $layout->getRoot()->body = str_replace(
-                "<!-- placeholder layout structure -->",
+                "<!-- layout_structure_placeholder -->",
                 $layout->resolve('dashboard-layout-structure')->body,
                 $content);
         });

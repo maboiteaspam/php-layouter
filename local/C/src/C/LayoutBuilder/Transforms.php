@@ -103,16 +103,20 @@ class Transforms{
 
     public function insertAfter ($target, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($id) {
-            $layout->displayBlock($id);
+        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
+//            $layout->displayBlock($id);
+            $block = $layout->registry->get($target);
+            $block->body = $block->body.$layout->getContent($id);
         });
         return $this;
     }
 
     public function insertBefore ($target, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->beforeBlockRender($target, function ($ev, Layout $layout) use($id) {
-            $layout->displayBlock($id);
+        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
+//            $layout->displayBlock($id);
+            $block = $layout->registry->get($target);
+            $block->body = $layout->getContent($id).$block->body;
         });
         return $this;
     }
