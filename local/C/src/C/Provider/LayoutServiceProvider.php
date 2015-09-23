@@ -6,6 +6,11 @@ use C\Layout\Transforms;
 use C\Misc\Utils;
 use C\Layout\Layout;
 
+use C\View\AssetsViewHelper;
+use C\View\CommonViewHelper;
+use C\View\LayoutViewHelper;
+use C\View\RoutingViewHelper;
+use C\View\Context;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +52,23 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $layout;
         });
 
+        $app['layout.view_helpers'] = $app->share(function () {
+            return [
+                new CommonViewHelper(),
+                new RoutingViewHelper(),
+                new AssetsViewHelper(),
+                new LayoutViewHelper(),
+//                new FormViewHelper(),
+            ];
+        });
+
+        $app['layout.view'] = $app->share(function() use($app) {
+            $view = new Context();
+            foreach($app['layout.view_helpers'] as $helper) {
+                $view->addHelper($helper);
+            }
+            return $view;
+        });
 
         $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {
             $request = $app['request'];

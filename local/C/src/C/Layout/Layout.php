@@ -32,7 +32,7 @@ class Layout implements TagableResourceInterface{
     /**
      * @var string
      */
-    private $currentBlockInRender;
+    public $currentBlockInRender;
 
     public function __construct ($config=[]) {
         $this->registry = new RegistryBlock();
