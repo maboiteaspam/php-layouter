@@ -1,5 +1,4 @@
 <?php
-
 namespace C\Layout;
 
 use C\Repository\RepositoryProxy;
