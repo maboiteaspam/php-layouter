@@ -16,18 +16,41 @@ class Block implements TagableResourceInterface{
     public $data = [];
     public $assets = [
     ];
-    public $displayed_block = [
-        /* [array,of,block,id,displayed]*/
-    ];
     public $meta = [
         'from' => false,
         'etag' => '',
     ];
+
+    // this are runtime data to help debug and so on.
     public $stack = [];
+    public $displayed_block = [
+        /* [array,of,block,id,displayed]*/
+    ];
 
 
     public function __construct($id) {
         $this->id = $id;
+    }
+
+    public function clear ($what='all') {
+        if ($what==='all') {
+            $this->body = "";
+            $this->data = [];
+            $this->assets = [];
+            $this->options = [
+                'template'=>''
+            ];
+        } else {
+            if (strpos($what, "data")) {
+                $this->data = [];
+            }
+            if (strpos($what, "options")) {
+                $this->options = ["template"=>""];
+            }
+            if (strpos($what, "assets")) {
+                $this->assets = [];
+            }
+        }
     }
 
     public function resolve ($helpers){

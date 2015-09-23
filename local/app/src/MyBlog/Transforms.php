@@ -7,20 +7,38 @@ use C\Blog\Transforms as BlogLayout;
 
 use C\ModernApp\jQuery\Transforms as jQueryTransforms;
 use C\ModernApp\Dashboard\Transforms as Dashboard;
+use C\ModernApp\HTML\Transforms as HTML;
 
 class Transforms extends BlogLayout{
 
     /**
-     * @param mixed $app
-     * @return Transforms
+     * @var jQueryTransforms
      */
-    public static function transform ($app) {
-        return new Transforms($app);
+    public $jquery;
+    /**
+     * @var Dashboard
+     */
+    public $dashboard;
+    /**
+     * @var HTML
+     */
+    public $html;
+
+    public function setjQuery ( jQueryTransforms $jQuery) {
+        $this->jquery = $jQuery;
+    }
+    public function setDashboard ( Dashboard $dashboard) {
+        $this->dashboard = $dashboard;
+    }
+    public function setHTML ( HTML $T) {
+        $this->html = $T;
     }
 
     public function baseTemplate ($fromClass=__CLASS__) {
-        parent::baseTemplate();
-        $this->setTemplate('body_top',
+
+        $this->then(
+            $this->html->baseTemplate()
+        )->setTemplate('body_top',
             __DIR__.'/templates/top.php'
         )->updateData('body_top', [
             'logo'=> '',
@@ -32,19 +50,23 @@ class Transforms extends BlogLayout{
             'page_footer_js'=>[
                 __DIR__ . '/assets/index.js'
             ],
-        ])->insertAfter('body_footer', 'extra_footer', [
+        ])->insertAfterBlock('body_footer', 'extra_footer', [
             'body'=>'some'
         ])->then(
-            Dashboard::transform($this->app)->show($this->app['debug'], $fromClass)
+            $this->dashboard
+            ? $this->dashboard->show($fromClass)
+            : null
         )->then(
-            jQueryTransforms::transform($this->app)->inject()
+            $this->jquery->inject()
         );
         return $this;
     }
 
     public function home ($entries, $latestComments) {
-        parent::home();
-        $this->updateBlock('body_content',
+
+        $this->then(
+            parent::home()
+        )->updateBlock('body_content',
             ['from'      => 'home'],
             ['entries'   => $entries]
         )->updateBlock('body_content_right',
@@ -56,8 +78,10 @@ class Transforms extends BlogLayout{
     }
 
     public function detail ($entry, $comments, $latestComments) {
-        parent::detail();
-        $this->updateData('body_content', [
+
+        $this->then(
+            parent::detail()
+        )->updateData('body_content', [
             'entry'  => $entry,
         ])->updateMeta('body_content', [
             'from'      => 'blog_detail',

@@ -6,14 +6,6 @@ use \C\Layout\Layout;
 
 class Transforms extends HTML{
 
-    /**
-     * @param mixed $app
-     * @return Transforms
-     */
-    public static function transform($app) {
-        return new Transforms($app);
-    }
-
     public function inject($options=[]){
         $options = array_merge([
             'jquery'=>__DIR__ . '/assets/jquery-2.1.3.min.js',
@@ -58,13 +50,21 @@ class Transforms extends HTML{
                     'target'=> $target,
                 ]);
 
-                $layout = $this->layout;
-                $layout->afterBlockRender('page_footer_js', function ($ev, Layout $layout) use($target) {
-                    $layout->displayBlock($target.'_ajax');
-                });
+                $this->insertAfterBlock('page_footer_js', $target.'_ajax', []);
             } else {
                 $this->layout->block = $target;
             }
         return $this;
     }
+
+    // jQuery like methods
+    public function prependTo ($selector) {}
+    public function appendTo ($selector) {}
+    public function insertAfter ($selector) {}
+    public function insertBefore ($selector) {}
+    public function remove ($selector) {}
+    public function addAttr ($selector) {}
+    public function removeAttr ($selector) {}
+    public function addClass ($selector) {}
+    public function removeClass ($selector) {}
 }

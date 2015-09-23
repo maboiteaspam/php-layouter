@@ -4,7 +4,7 @@ error_reporting(E_ALL ^ E_STRICT); // it is really undesired to respect strict s
 
 $runTimeOverride = [
     'debug'=> true,
-//    'env'=>'prod',
+    'env'=>'prod',
     'monolog.logfile' => __DIR__.'/run/development.log',
     'security.firewalls' => [],
 ];
@@ -77,7 +77,7 @@ $app->register(new CacheServiceProvider(), array(
         'http-store'=>[]], $app['caches.options']
     ),
     'caches.config' => array_merge([
-        'http-store'=>['driver' => 'redis']], $app['caches.config']
+        'http-store'=>['driver' => 'array']], $app['caches.config']
     ),
 ));
 

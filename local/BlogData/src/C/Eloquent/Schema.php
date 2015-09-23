@@ -43,6 +43,7 @@ class Schema extends  EloquentSchema{
             $fixtureEntries = include(__DIR__ . '/../fixtures/blog-entries.php');
             foreach ($fixtureEntries as $entry) {
                 $comments = $entry->comments;
+                unset($entry->blog_entry_id);
                 unset($entry->comments);
                 unset($entry->id);
                 $id = $entryModel->insert($entry);

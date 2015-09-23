@@ -2,18 +2,44 @@
 namespace C\ModernApp\HTML;
 
 use C\FS\KnownFs;
-use C\Layout\Transforms as Base;
+use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
 use C\FS\LocalFs;
+use Silex\Application;
 
-class Transforms extends Base{
+class Transforms extends BaseTransforms{
 
     /**
-     * @param mixed $app
-     * @return Transforms
+     * @var bool
      */
-    public static function transform ($app) {
-        return new Transforms($app);
+    public $concatAssets;
+    /**
+     * @var string
+     */
+    public $documentRoot;
+    /**
+     * @var KnownFs
+     */
+    public $assetsFS;
+    /**
+     * @var Application
+     */
+    public $app;
+
+    public function setApp ($app){
+        $this->app = $app;
+    }
+
+    public function concatenateAssets ($concatAssets){
+        $this->concatAssets = $concatAssets;
+    }
+
+    public function setAssetsFS (KnownFs $assetsFS){
+        $this->assetsFS = $assetsFS;
+    }
+
+    public function setDocumentRoot ($documentRoot){
+        $this->documentRoot = $documentRoot;
     }
 
     public function baseTemplate () {
@@ -38,17 +64,15 @@ class Transforms extends Base{
     }
 
     public function applyAssets(){
+
         $app = $this->app;
-        $dispatcher = $app['dispatcher'];
-        /* @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcher */
+        $documentRoot = $this->documentRoot;
+        $assetsFS = $this->assetsFS;
+        $basePath = $assetsFS->getBasePath();
+        $concat = $this->concatAssets;
+        $layout = $this->layout;
 
-        $dispatcher->addListener('before_layout_render', function () use(&$app) {
-
-            $documentRoot = $app['documentRoot'];
-            $assetsFS = $app['assets.fs'];
-            /* @var $assetsFS \C\FS\KnownFs */
-            $basePath = $assetsFS->getBasePath();
-            $concat = $app['assets.concat'];
+        $this->layout->beforeRender(function () use(&$app, &$assetsFS, &$layout, $basePath, $concat, $documentRoot) {
 
             $blockAssets = [];
             $blockToFile = [];
@@ -136,7 +160,7 @@ class Transforms extends Base{
                                 LocalFs::file_put_contents($blockToFile[$target], $c);
                             }
                         }
-                    });
+                    }, Application::LATE_EVENT);
                 }
             }
         });

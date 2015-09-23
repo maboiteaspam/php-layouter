@@ -1,6 +1,6 @@
 <?php
 return [
-    'debug' => true,
+//    'debug' => true,
 
     'server_type' => 'builtin',
     'projectPath' => "%projectPath%",
@@ -14,6 +14,9 @@ return [
 
     'httpcache.check_taged_resource_freshness' => !false,
 
+    'caches.config' => [
+        'http-store'=>['driver' => 'file']
+    ],
     'assets.concat' => false,
     'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
     'assets.bridge_file_path' => '%projectPath%/run/bridge.php',
@@ -21,15 +24,15 @@ return [
     'capsule.schema_file_cache' => '%projectPath%/run/schemas.php',
     'capsule.connections' => [
         "default"=>[
-//            'driver'   => 'sqlite',
-//            'database' => '%projectPath%/run/database.sqlite',
+            'driver'   => 'sqlite',
+            'database' => '%projectPath%/run/database.sqlite',
 //        'database' => ':memory:',
 
-        'driver'    => 'mysql',
-        'host'      => '127.0.0.1',
-        'database'  => 'blog',
-        'username'  => 'root',
-        'password'  => '',
+//        'driver'    => 'mysql',
+//        'host'      => '127.0.0.1',
+//        'database'  => 'blog',
+//        'username'  => 'root',
+//        'password'  => '',
 
             'prefix'   => '',
             'charset'   => 'utf8',

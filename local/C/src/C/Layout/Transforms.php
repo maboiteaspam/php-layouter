@@ -8,22 +8,11 @@ class Transforms{
      */
     public $layout;
 
-    public $app;
-
     /**
-     * @param mixed $app
+     * @param Layout $layout
      */
-    public function __construct($app) {
-        $this->layout = $app['layout'];
-        $this->app = $app;
-    }
-
-    /**
-     * @param mixed $app
-     * @return Transforms
-     */
-    public static function transform($app) {
-        return new Transforms($app);
+    public function __construct(Layout $layout) {
+        $this->layout = $layout;
     }
 
     /**
@@ -32,7 +21,8 @@ class Transforms{
      * @param Transforms $t
      * @return $this
      */
-    public function then(Transforms $t) {
+    public function then(Transforms $t=null) {
+        // totally wanted this parameter is ignored.
         return $this;
     }
 
@@ -44,6 +34,13 @@ class Transforms{
         $block = $this->layout->getOrCreate($id);
         if ($block) {
             $block->options['template'] = $template;
+        }
+        return $this;
+    }
+    public function clearBlock($id, $what='all'){
+        $block = $this->layout->getOrCreate($id);
+        if ($block) {
+            $block->clear($what);
         }
         return $this;
     }
@@ -62,12 +59,12 @@ class Transforms{
 
     public function updateAssets($id, $assets=[], $first=false){
         $block = $this->layout->getOrCreate($id);
-        foreach($assets as $name => $files) {
-            if(!isset($block->assets[$name]))
-                $block->assets[$name] = [];
-            $block->assets[$name] = $first
-                ? array_merge($files, $block->assets[$name])
-                : array_merge($block->assets[$name], $files);
+        foreach($assets as $targetAssetGroupName => $files) {
+            if(!isset($block->assets[$targetAssetGroupName]))
+                $block->assets[$targetAssetGroupName] = [];
+            $block->assets[$targetAssetGroupName] = $first
+                ? array_merge($files, $block->assets[$targetAssetGroupName])
+                : array_merge($block->assets[$targetAssetGroupName], $files);
         }
         return $this;
     }
@@ -99,18 +96,24 @@ class Transforms{
 
 
 
-    public function insertAfter ($target, $id, $options){
+    public function insertAfterBlock ($target, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($id) {
-            $layout->displayBlock($id);
+        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
+//            $layout->displayBlock($id);
+            $block = $layout->registry->get($target);
+            $block->body = $block->body.$layout->getContent($id);
+            $block->displayed_block[] = ["id"=>$id, "shown"=>true];
         });
         return $this;
     }
 
-    public function insertBefore ($target, $id, $options){
+    public function insertBeforeBlock ($target, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->beforeBlockRender($target, function ($ev, Layout $layout) use($id) {
-            $layout->displayBlock($id);
+        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
+//            $layout->displayBlock($id);
+            $block = $layout->registry->get($target);
+            $block->body = $layout->getContent($id).$block->body;
+            $block->displayed_block[] = ["id"=>$id, "shown"=>true];
         });
         return $this;
     }

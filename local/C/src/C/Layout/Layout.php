@@ -43,7 +43,9 @@ class Layout implements TagableResourceInterface{
         $layout = $this;
         $this->config['helpers'] = array_merge([
             'display'=> function ($id) use($layout) {
-                $layout->displayBlock($id);
+                $layout->registry->get($layout->currentBlockInRender)
+                    ->displayed_block[] = ['id'=>$id, 'shown'=>$layout->registry->has($id)];
+                echo "<!-- placeholder for block $id -->";
             },
             'urlAsset'=> function ($name, $options=[], $only=[]) use($layout) {
                 $url = '';
@@ -66,29 +68,48 @@ class Layout implements TagableResourceInterface{
 
     public function resolve ($id){
         $parentBlock = null;
-        $currentBlock = $this->currentBlockInRender;
+        $this->emit('before_block_resolve', $id);
         $block = $this->registry->get($id);
-        if ($currentBlock) {
-            $parentBlock = $this->registry->get($currentBlock);
-            if ($parentBlock) $parentBlock->displayed_block[] = ['id'=>$id, 'shown'=>!!$block];
-        }
+        $currentBlockInRender = $this->currentBlockInRender;
+        $this->currentBlockInRender = $id;
         if ($block) {
-            $this->currentBlockInRender = $id;
             $block->resolve($this->config['helpers']);
         }
-        $this->currentBlockInRender = $currentBlock;
+        $this->currentBlockInRender = $currentBlockInRender;
+        $this->emit('after_block_resolve', $id);
         return $block;
     }
     public function getContent ($id){
-        $block = $this->resolve($id);
+        $body = "";
+        $this->emit('before_block_render', $id);
+        $this->emit('before_render_' . $id);
+        $block = $this->registry->get($id);
         if ($block) {
-            return $block->body;
+            $body = $block->body;
+            foreach($block->displayed_block as $displayedBlock) {
+                $body = str_replace("<!-- placeholder for block ".$displayedBlock['id']." -->",
+                    $this->getContent($displayedBlock['id']),
+                    $body);
+            }
+            $block->body = $body;
         }
-        return '';
+        $this->emit('after_render_' . $id);
+        $this->emit('after_block_render', $id);
+        if ($block) {
+            $body = $block->body;
+        }
+        return $body;
+    }
+    public function resolveAllBlocks (){
+        $layout = $this;
+        $this->registry->each(function ($block) use($layout) {
+            $layout->resolve($block->id);
+        });
     }
     public function render (){
         $this->emit('before_layout_render');
-        $this->getContent($this->block);
+        $this->resolveAllBlocks ();
+        $this->getContent ($this->block);
         $this->emit('after_layout_render');
         return $this->getRoot()->body;
     }
@@ -97,11 +118,7 @@ class Layout implements TagableResourceInterface{
     }
 
     public function displayBlock ($id){
-        $this->emit('before_block_render', $id);
-        $this->emit('before_render_' . $id);
         echo $this->getContent($id);
-        $this->emit('after_render_' . $id);
-        $this->emit('after_block_render', $id);
     }
 
     /**

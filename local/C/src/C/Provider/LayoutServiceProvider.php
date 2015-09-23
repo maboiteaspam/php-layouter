@@ -2,11 +2,13 @@
 namespace C\Provider;
 
 use C\FS\LocalFs;
+use C\LayoutBuilder\Transforms;
 use C\Misc\Utils;
 use C\Layout\Layout;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class LayoutServiceProvider implements ServiceProviderInterface
 {
@@ -46,10 +48,9 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
 
 
-        $app['layout.responder'] = $app->protect(function ($response) use ($app) {
+        $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {
             $request = $app['request'];
             /* @var $request \Symfony\Component\HttpFoundation\Request */
-            /* @var $response \Symfony\Component\HttpFoundation\Response */
 
             if (isset($app['httpcache.tagger'])) {
                 $TaggedResource = $app['layout']->getTaggedResource();
@@ -67,10 +68,38 @@ class LayoutServiceProvider implements ServiceProviderInterface
                 }
             }
 
-
             $response->setContent($app['layout']->render());
 
             return $response;
+        });
+
+        $app['layout.transforms'] = $app->share(function () use ($app) {
+            $transforms = new Transforms($app['layout']);
+            return $transforms;
+        });
+
+        $app['layout.html.transforms'] = $app->share(function () use ($app) {
+            $transforms = new \C\HTMLLayoutBuilder\Transforms($app['layout']);
+            $transforms->setApp($app);
+            $transforms->concatenateAssets($app['assets.concat']);
+            $transforms->setAssetsFS($app['assets.fs']);
+            $transforms->setDocumentRoot($app['documentRoot']);
+            return $transforms;
+        });
+
+        $app['layout.jquery.transforms'] = $app->share(function () use ($app) {
+            $transforms = new \C\jQueryLayoutBuilder\Transforms($app['layout']);
+            return $transforms;
+        });
+
+        $app['layout.dashboard.transforms'] = $app->share(function () use ($app) {
+            $transforms = new \C\Dashboard\Transforms($app['layout']);
+            return $transforms;
+        });
+
+        $app['layout.static.transforms'] = $app->share(function () use ($app) {
+            $transforms = new \C\StaticLayoutBuilder\Transforms($app['layout']);
+            return $transforms;
         });
     }
     /**

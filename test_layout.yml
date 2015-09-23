@@ -1,0 +1,14 @@
+---
+layout: id_of_the_layout
+description: |
+  Static layout update encapsuled into a file.
+structure:
+  body_top:
+    set_template: local/app/src/MyBlog/templates/top.php
+    add_assets:
+      template_head_js:
+        - local/app/src/MyBlog/assets/index.js
+      template_footer_css:
+        - local/app/src/MyBlog/assets/template.css
+        - local/app/src/MyBlog/assets/blog.css
+        
