@@ -19,14 +19,41 @@ class Controllers{
     public $entryRepo;
     public $commentRepo;
 
+    /**
+     * @var MyBlogLayout
+     */
+    public $blog;
+
+    /**
+     * @var staticTransforms
+     */
+    public $static;
+
+    /**
+     * @var jQueryTransforms
+     */
+    public $jquery;
+
     public function __construct(EntryRepo $entryRepo, CommentRepo $commentRepo) {
         $this->entryRepo = $entryRepo;
         $this->commentRepo = $commentRepo;
     }
 
+    public function setBlogTransforms ( MyBlogLayout $T) {
+        $this->blog = $T;
+    }
+
+    public function setStaticTransforms ( staticTransforms $T) {
+        $this->static = $T;
+    }
+
+    public function setjQueryTransforms ( jQueryTransforms $T) {
+        $this->jquery = $T;
+    }
+
     public function home() {
         return function (Application $app) {
-            MyBlogLayout::transform($app)
+            $this->blog
                 ->baseTemplate(__CLASS__)
                 ->home(
                     $this->entryRepo->tagable(
@@ -36,9 +63,10 @@ class Controllers{
                         $this->commentRepo->tager()->lastUpdateDate()
                     )->mostRecent()
                 )->then(
-                    staticTransforms::transform($app)
-                        ->loadFile( "test_layout.yml" )
-                )->finalize();
+                    $this->static->loadFile( "test_layout.yml" )
+                )->then(
+                    $this->blog->html->finalize()
+                );
             $response = new Response();
             return $app['layout.responder']($response);
         };
@@ -57,7 +85,7 @@ class Controllers{
 
             $form->handleRequest($request);
 
-            MyBlogLayout::transform($app)
+            $this->blog
                 ->baseTemplate(__CLASS__)
                 ->detail(
                     $this->entryRepo->tagable(
@@ -72,11 +100,13 @@ class Controllers{
                 )->updateData('blog_form_comments', [
                     'form' => $form,
                 ])->then(
-                    jQueryTransforms::transform($app)->ajaxify('blog_detail_comments', [
+                    $this->jquery->ajaxify('blog_detail_comments', [
                         'isAjax'=> $request->isXmlHttpRequest(),
                         'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
                     ])
-                )->finalize();
+                )->then(
+                    $this->blog->html->finalize()
+                );
 
             $response = new Response();
             return $app['layout.responder']($response);
@@ -92,12 +122,12 @@ class Controllers{
             $form->handleRequest($request);
 
             if ($form->isValid()) {
-
                 $data = $form->getData();
                 $data['blog_entry_id'] = $id;
                 $this->commentRepo->insert($data);
                 return $app->json($data);
             }
+
             $form->getErrors();
             return $app->json($form->getErrors(), 500);
         };

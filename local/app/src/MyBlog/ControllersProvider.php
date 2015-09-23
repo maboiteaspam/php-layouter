@@ -16,7 +16,18 @@ class ControllersProvider implements
     public function register(Application $app)
     {
         $app['myblog.controllers'] = $app->share(function() use ($app) {
-            return new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
+            $controllers = new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
+            $controllers->setBlogTransforms($app['myblog.transforms']);
+            $controllers->setjQueryTransforms($app['layout.jquery.transforms']);
+            $controllers->setStaticTransforms($app['layout.static.transforms']);
+            return $controllers;
+        });
+        $app['myblog.transforms'] = $app->share(function() use ($app) {
+            $T = new Transforms($app['layout']);
+            $T->setHTML($app['layout.html.transforms']);
+            $T->setDashboard($app['layout.dashboard.transforms']);
+            $T->setjQuery($app['layout.jquery.transforms']);
+            return $T;
         });
     }
     /**

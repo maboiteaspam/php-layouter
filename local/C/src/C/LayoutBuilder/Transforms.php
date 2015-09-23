@@ -10,22 +10,11 @@ class Transforms{
      */
     public $layout;
 
-    public $app;
-
     /**
-     * @param mixed $app
+     * @param Layout $layout
      */
-    public function __construct($app) {
-        $this->layout = $app['layout'];
-        $this->app = $app;
-    }
-
-    /**
-     * @param mixed $app
-     * @return Transforms
-     */
-    public static function transform($app) {
-        return new Transforms($app);
+    public function __construct(Layout $layout) {
+        $this->layout = $layout;
     }
 
     /**
@@ -34,7 +23,8 @@ class Transforms{
      * @param Transforms $t
      * @return $this
      */
-    public function then(Transforms $t) {
+    public function then(Transforms $t=null) {
+        // totally wanted this parameter is ignored.
         return $this;
     }
 

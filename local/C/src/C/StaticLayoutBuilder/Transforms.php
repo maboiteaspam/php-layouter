@@ -7,14 +7,6 @@ use Symfony\Component\Yaml\Yaml;
 
 class Transforms extends BaseTransforms{
 
-    /**
-     * @param mixed $app
-     * @return Transforms
-     */
-    public static function transform($app) {
-        return new Transforms($app);
-    }
-
     public function resolveFilePath ($baseDir, $fileToResolve) {
         if (strpos($fileToResolve, ":")!==false) { // it s using some sort of module path : MyBlog:path/to/some/file.ext
             // to be resolved later.

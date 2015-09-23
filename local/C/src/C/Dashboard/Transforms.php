@@ -8,20 +8,13 @@ use C\Misc\Utils;
 class Transforms extends BaseTransforms{
 
     /**
-     * @param mixed $app
-     * @return Transforms
+     * @param string $fromClass
+     * @return \C\LayoutBuilder\Transforms
      */
-    public static function transform ($app) {
-        return new Transforms($app);
-    }
+    public function show ($fromClass=''){
 
-    public function show ($show=true, $fromClass=''){
-
-        if (!$show) return $this;
-
-        $app = $this->app;
         /* @var $layout \C\LayoutBuilder\Layout\Layout */
-        $layout = $app['layout'];
+        $layout = $this->layout;
 
         $this->insertBefore('html_end', 'dashboard', [
             'options' => [

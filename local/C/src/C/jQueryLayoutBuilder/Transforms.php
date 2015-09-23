@@ -1,17 +1,9 @@
 <?php
 namespace C\jQueryLayoutBuilder;
 
-use C\HTMLLayoutBuilder\Transforms as HTMLTransforms;
+use C\LayoutBuilder\Transforms as BaseTransforms;
 
-class Transforms extends HTMLTransforms{
-
-    /**
-     * @param mixed $app
-     * @return Transforms
-     */
-    public static function transform($app) {
-        return new Transforms($app);
-    }
+class Transforms extends BaseTransforms{
 
     public function inject($options=[]){
         $options = array_merge([

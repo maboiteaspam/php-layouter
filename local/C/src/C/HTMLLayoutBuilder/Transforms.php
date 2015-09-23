@@ -1,18 +1,45 @@
 <?php
 namespace C\HTMLLayoutBuilder;
 
+use C\FS\KnownFs;
 use C\LayoutBuilder\Transforms as BaseTransforms;
 use C\Misc\Utils;
 use C\FS\LocalFs;
+use Silex\Application;
 
 class Transforms extends BaseTransforms{
 
     /**
-     * @param mixed $app
-     * @return Transforms
+     * @var bool
      */
-    public static function transform ($app) {
-        return new Transforms($app);
+    public $concatAssets;
+    /**
+     * @var string
+     */
+    public $documentRoot;
+    /**
+     * @var KnownFs
+     */
+    public $assetsFS;
+    /**
+     * @var Application
+     */
+    public $app;
+
+    public function setApp ($app){
+        $this->app = $app;
+    }
+
+    public function concatenateAssets ($concatAssets){
+        $this->concatAssets = $concatAssets;
+    }
+
+    public function setAssetsFS (KnownFs $assetsFS){
+        $this->assetsFS = $assetsFS;
+    }
+
+    public function setDocumentRoot ($documentRoot){
+        $this->documentRoot = $documentRoot;
     }
 
     public function baseTemplate () {
@@ -37,15 +64,16 @@ class Transforms extends BaseTransforms{
     }
 
     public function applyAssets(){
+
         $app = $this->app;
+        $documentRoot = $this->documentRoot;
+        $assetsFS = $this->assetsFS;
+        $basePath = $assetsFS->getBasePath();
+        $concat = $this->concatAssets;
+        $layout = $this->layout;
 
-        $app['dispatcher']->addListener('before_layout_render', function () use(&$app) {
+        $this->layout->beforeRender(function () use(&$app, &$assetsFS, &$layout, $basePath, $concat, $documentRoot) {
 
-            $documentRoot = $app['documentRoot'];
-            $assetsFS = $app['assets.fs'];
-            $basePath = $assetsFS->getBasePath();
-            $env = $app['env'];
-            $concat = $app['assets.concat'];
 
             $blockAssets = [];
             $blockToFile = [];
@@ -133,7 +161,7 @@ class Transforms extends BaseTransforms{
                                 LocalFs::file_put_contents($blockToFile[$target], $c);
                             }
                         }
-                    });
+                    }, Application::LATE_EVENT);
                 }
             }
         });
@@ -141,7 +169,7 @@ class Transforms extends BaseTransforms{
         return $this;
     }
 
-    public function readAndMakeAsset ($assetsFS, $assetFile){
+    public function readAndMakeAsset (KnownFs $assetsFS, $assetFile){
         if ($assetsFS->file_exists($assetFile)) {
             $content    = LocalFs::file_get_contents($assetFile);
             $assetFile  = $assetsFS->realpath($assetFile);

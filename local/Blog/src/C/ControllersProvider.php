@@ -16,9 +16,15 @@ class ControllersProvider implements
     public function register(Application $app)
     {
         $app['blog.controllers'] = $app->share(function() use ($app) {
-            return new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
+            $controllers = new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
+            $controllers->setBlogTransforms($app['blog.transforms']);
+            return $controllers;
+        });
+        $app['blog.transforms'] = $app->share(function() use ($app) {
+            return new Transforms($app['layout']);
         });
     }
+
     /**
      *
      * @param Application $app Silex application instance.
