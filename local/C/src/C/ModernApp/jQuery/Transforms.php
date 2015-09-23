@@ -2,7 +2,6 @@
 namespace C\ModernApp\jQuery;
 
 use C\ModernApp\HTML\Transforms as HTML;
-use \C\Layout\Layout;
 
 class Transforms extends HTML{
 

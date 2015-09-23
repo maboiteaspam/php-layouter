@@ -2,7 +2,7 @@
 namespace C\Provider;
 
 use C\FS\LocalFs;
-use C\LayoutBuilder\Transforms;
+use C\Layout\Transforms;
 use C\Misc\Utils;
 use C\Layout\Layout;
 
@@ -28,7 +28,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     return $app['url_generator']->generate($name, $options);
                 },
                 'urlArgs'=> function ($data=[], $only=[]) use(&$app) {
-                    /* @var $block \C\LayoutBuilder\Layout\Block */
+                    /* @var $block \C\Layout\Block */
                     $block = $this;
                     if (isset($block->meta['from'])) {
                         $data = array_merge(Utils::arrayPick($block->meta, ['from']), $data);
@@ -79,7 +79,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
 
         $app['layout.html.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\HTMLLayoutBuilder\Transforms($app['layout']);
+            $transforms = new \C\ModernApp\HTML\Transforms($app['layout']);
             $transforms->setApp($app);
             $transforms->concatenateAssets($app['assets.concat']);
             $transforms->setAssetsFS($app['assets.fs']);
@@ -88,12 +88,12 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
 
         $app['layout.jquery.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\jQueryLayoutBuilder\Transforms($app['layout']);
+            $transforms = new \C\ModernApp\jQuery\Transforms($app['layout']);
             return $transforms;
         });
 
         $app['layout.dashboard.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\Dashboard\Transforms($app['layout']);
+            $transforms = new \C\ModernApp\Dashboard\Transforms($app['layout']);
             return $transforms;
         });
 

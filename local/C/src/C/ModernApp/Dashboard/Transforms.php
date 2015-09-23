@@ -9,11 +9,11 @@ class Transforms extends Base{
 
     /**
      * @param string $fromClass
-     * @return \C\LayoutBuilder\Transforms
+     * @return \C\Layout\Transforms
      */
     public function show ($fromClass=''){
 
-        /* @var $layout \C\LayoutBuilder\Layout\Layout */
+        /* @var $layout \C\Layout\Layout */
         $layout = $this->layout;
 
         $this->insertBeforeBlock('html_end', 'dashboard', [

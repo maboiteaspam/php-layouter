@@ -1,7 +1,7 @@
 <?php
 namespace C\StaticLayoutBuilder;
 
-use C\LayoutBuilder\Transforms as BaseTransforms;
+use C\Layout\Transforms as BaseTransforms;
 use C\FS\LocalFs;
 use Symfony\Component\Yaml\Yaml;
 

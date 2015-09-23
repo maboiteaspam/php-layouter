@@ -2,7 +2,7 @@
 namespace C\ModernApp\HTML;
 
 use C\FS\KnownFs;
-use C\LayoutBuilder\Transforms as BaseTransforms;
+use C\Layout\Transforms as BaseTransforms;
 use C\Misc\Utils;
 use C\FS\LocalFs;
 use Silex\Application;

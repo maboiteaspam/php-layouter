@@ -2,7 +2,7 @@
 
 namespace C\Blog;
 
-use C\LayoutBuilder\Transforms as BaseTransforms;
+use C\Layout\Transforms as BaseTransforms;
 
 class Transforms extends BaseTransforms{
 
