@@ -16,7 +16,7 @@ class Transforms extends BaseTransforms{
         /* @var $layout \C\LayoutBuilder\Layout\Layout */
         $layout = $this->layout;
 
-        $this->insertBefore('html_end', 'dashboard', [
+        $this->insertBeforeBlock('html_end', 'dashboard', [
             'options' => [
                 'template'=>__DIR__.'/templates/dashboard.php'
             ]

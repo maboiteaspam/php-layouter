@@ -15,7 +15,8 @@
     "symfony/security": "^2.7",
     "monolog/monolog": "^1.17",
     "moust/silex-cache": "1.0.*@dev",
-    "symfony/yaml": "^2.7"
+    "symfony/yaml": "^2.7",
+    "wa72/htmlpagedom": "~1.1"
   },
   "autoload": {
     "psr-4": {

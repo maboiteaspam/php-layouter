@@ -50,7 +50,7 @@ class Transforms extends BlogLayout{
             'page_footer_js'=>[
                 __DIR__ . '/assets/index.js'
             ],
-        ])->insertAfter('body_footer', 'extra_footer', [
+        ])->insertAfterBlock('body_footer', 'extra_footer', [
             'body'=>'some'
         ])->then(
             $this->dashboard

@@ -53,8 +53,8 @@ class Transforms extends BaseTransforms{
             if (isset($block["add_assets"])) {
                 $this->updateAssets($blockId, $block["add_assets"] );
             }
-            if (isset($block["insert_before"])) {
-                $this->insertBefore($block["insert_before"], $blockId, []);
+            if (isset($block["insert_before_block"])) {
+                $this->insertBeforeBlock($block["insert_before"], $blockId, []);
             }
         }
         return $this;

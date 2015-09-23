@@ -39,6 +39,13 @@ class Transforms{
         }
         return $this;
     }
+    public function clearBlock($id, $what='all'){
+        $block = $this->layout->getOrCreate($id);
+        if ($block) {
+            $block->clear($what);
+        }
+        return $this;
+    }
     public function setBody($id, $body){
         $block = $this->layout->getOrCreate($id);
         if ($block) {
@@ -91,7 +98,7 @@ class Transforms{
 
 
 
-    public function insertAfter ($target, $id, $options){
+    public function insertAfterBlock ($target, $id, $options){
         $this->layout->set($id, $options);
         $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
 //            $layout->displayBlock($id);
@@ -102,7 +109,7 @@ class Transforms{
         return $this;
     }
 
-    public function insertBefore ($target, $id, $options){
+    public function insertBeforeBlock ($target, $id, $options){
         $this->layout->set($id, $options);
         $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
 //            $layout->displayBlock($id);

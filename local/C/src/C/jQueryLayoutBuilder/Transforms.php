@@ -49,10 +49,21 @@ class Transforms extends BaseTransforms{
                     'target'=> $target,
                 ]);
 
-                $this->insertAfter('page_footer_js', $target.'_ajax', []);
+                $this->insertAfterBlock('page_footer_js', $target.'_ajax', []);
             } else {
                 $this->layout->block = $target;
             }
         return $this;
     }
+
+    // jQuery like methods
+    public function prependTo ($selector) {}
+    public function appendTo ($selector) {}
+    public function insertAfter ($selector) {}
+    public function insertBefore ($selector) {}
+    public function remove ($selector) {}
+    public function addAttr ($selector) {}
+    public function removeAttr ($selector) {}
+    public function addClass ($selector) {}
+    public function removeClass ($selector) {}
 }
