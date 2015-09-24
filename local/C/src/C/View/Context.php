@@ -1,21 +1,30 @@
 <?php
 namespace C\View;
 
+use C\Layout\Block;
+
 class Context {
 
-    public $helpers;
-    public $knownData;
+    public $helpers = [];
+
+    /**
+     * @var Block
+     */
+    public $block;
 
     public function __construct () {
-        $this->helpers = [];
     }
 
-    public function addHelper ($helper) {
+    public function addHelper (ViewHelperInterface $helper) {
         $this->helpers[] = $helper;
     }
 
-    public function setKnownData ($knownData) {
-        $this->knownData = $knownData;
+    public function setBlockToRender (Block $block) {
+        $this->block = $block;
+        foreach($this->helpers as $helper) {
+            /* @var ViewHelperInterface $helper */
+            $helper->setBlockToRender($block);
+        }
     }
 
     public function __call($method, $args){
