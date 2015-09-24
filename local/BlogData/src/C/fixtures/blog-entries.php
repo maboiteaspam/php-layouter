@@ -2,8 +2,8 @@
 return [
     (object) [
         'id'        =>0,
-        'created_at'=> date('Y-m-d H:i:s'),
-        'updated_at'=> date('Y-m-d H:i:s'),
+        'created_at'=> date('Y-m-d H:i'),
+        'updated_at'=> date('Y-m-d H:i'),
         'title'     =>'some',
         'author'    =>'maboiteaspam',
         'img_alt'   =>'some',

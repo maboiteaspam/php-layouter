@@ -1,6 +1,7 @@
 <?php
 namespace MyBlog;
 
+use C\Layout\Layout;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -74,12 +75,15 @@ class Controllers{
 
     public function detail($postCommentUrl) {
         return function (Application $app, Request $request, $id) use($postCommentUrl) {
-            $urlFor = $app['layout']->config['helpers']['urlFor'];
+            /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
+            $generator = $app["url_generator"];
 
-            $comment = new MyCommentForm();
+            $commentForm = new MyCommentForm();
+
             /* @var $form \Symfony\Component\Form\Form*/
-            $form = $app['form.factory']->createBuilder('form', $comment)
-                ->setAction($urlFor($postCommentUrl, ['id'=>$id]))
+            $form = $app['form.factory']
+                ->createBuilder($commentForm, ["email"=>"some"])
+                ->setAction($generator->generate($postCommentUrl, ['id'=>$id]))
                 ->setMethod('POST')
                 ->getForm();
 
@@ -98,11 +102,11 @@ class Controllers{
                         $this->commentRepo->tager()->mostRecent([$id])
                     )->mostRecent([$id])
                 )->updateData('blog_form_comments', [
-                    'form' => $form,
+                    'form' => $form->createView(),
                 ])->then(
                     $this->jquery->ajaxify('blog_detail_comments', [
                         'isAjax'=> $request->isXmlHttpRequest(),
-                        'url'   => $urlFor($request->get('_route'), $request->get('_route_params'))
+                        'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
                     ])
                 )->then(
                     $this->blog->html->finalize()
@@ -116,7 +120,9 @@ class Controllers{
     public function postComment() {
         return function (Application $app, Request $request, $id) {
             $comment = new MyCommentForm();
-            $form = $app['form.factory']->createBuilder('form', $comment)->getForm();
+            $form = $app['form.factory']
+                ->createBuilder('form', $comment)
+                ->getForm();
 
             /* @var $form \Symfony\Component\Form\Form*/
             $form->handleRequest($request);
