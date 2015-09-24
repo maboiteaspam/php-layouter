@@ -25,7 +25,7 @@ class ControllersProvider implements
         $app['myblog.transforms'] = $app->share(function() use ($app) {
             $T = new Transforms($app['layout']);
             $T->setHTML($app['layout.html.transforms']);
-            $T->setDashboard($app['layout.dashboard.transforms']);
+            if($app["debug"]) $T->setDashboard($app['layout.dashboard.transforms']);
             $T->setjQuery($app['layout.jquery.transforms']);
             return $T;
         });
