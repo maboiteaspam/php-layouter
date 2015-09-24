@@ -1,10 +1,11 @@
 <?php
-$struct = $struct();
+/* @var $this \C\View\ConcreteContext */
+/* @var $struct \Closure */
+/* @var $comment stdClass */
 ?>
-
 <b class="dashboard-title">Layout structure</b>
 <div class="dashboard-block-content">
-    <?php foreach ($struct as $blockPath=>$blockInfo) { ?>
+    <?php foreach ($struct() as $blockPath=>$blockInfo) { ?>
         <div class="layout-block">
             <div>
                 <span class="layout-block-path"><?php echo $blockPath; ?></span>

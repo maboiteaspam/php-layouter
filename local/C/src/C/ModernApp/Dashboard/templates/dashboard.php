@@ -1,5 +1,8 @@
-<?php ?>
-
+<?php
+/* @var $this \C\View\ConcreteContext */
+/* @var $comments array */
+/* @var $comment stdClass */
+?>
 <div class="dashboard close">
     <div class="dashboard-handle"></div>
     <div class="dashboard-content">
@@ -7,13 +10,13 @@
         <div class="dashboard-body">
             <ul>
                 <li>
-                    <?php $display("dashboard-options"); ?>
+                    <?php $this->display("dashboard-options"); ?>
                 </li>
                 <li>
-                    <?php $display("dashboard-stats"); ?>
+                    <?php $this->display("dashboard-stats"); ?>
                 </li>
                 <li>
-                    <?php $display("dashboard-layout"); ?>
+                    <?php $this->display("dashboard-layout"); ?>
                 </li>
             </ul>
         </div>
