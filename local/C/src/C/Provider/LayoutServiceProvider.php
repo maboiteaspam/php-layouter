@@ -3,10 +3,8 @@ namespace C\Provider;
 
 use C\FS\LocalFs;
 use C\Layout\Transforms;
-use C\Misc\Utils;
 use C\Layout\Layout;
 
-use C\View\AssetsViewHelper;
 use C\View\CommonViewHelper;
 use C\View\LayoutViewHelper;
 use C\View\RoutingViewHelper;
@@ -27,37 +25,23 @@ class LayoutServiceProvider implements ServiceProviderInterface
         LocalFs::$record = $app['debug'];
 
         $app['layout'] = $app->share(function() use($app) {
-            $helpers = [
-                'urlFor'=> function ($name, $options=[], $only=[]) use(&$app) {
-                    $options = Utils::arrayPick($options, $only);
-                    return $app['url_generator']->generate($name, $options);
-                },
-                'urlArgs'=> function ($data=[], $only=[]) use(&$app) {
-                    /* @var $block \C\Layout\Block */
-                    $block = $this;
-                    if (isset($block->meta['from'])) {
-                        $data = array_merge(Utils::arrayPick($block->meta, ['from']), $data);
-                    }
-                    $data = Utils::arrayPick($data, $only);
-                    $query = http_build_query($data);
-                    return $query ? '?'.$query : '';
-                }
-            ];
-            $layout = new Layout([
-                'debug'         => $app['debug'],
-                'helpers'       => $helpers,
-                'imgUrls'       => [],
-            ]);
+            $layout = new Layout();
+            if ($app['debug']) $layout->enableDebug(true);
             if (isset($app['dispatcher'])) $layout->setDispatcher($app['dispatcher']);
+            $context = $app['layout.view'];
+            $layoutViewHelper = new LayoutViewHelper();
+            $layoutViewHelper->setLayout($layout);
+            $context->addHelper($layoutViewHelper);
+            $context->addHelper(new CommonViewHelper());
+            $layout->setContext($context);
             return $layout;
         });
 
-        $app['layout.view_helpers'] = $app->share(function () {
+        $app['layout.view_helpers'] = $app->share(function () use($app) {
+            $routingHelper = new RoutingViewHelper();
+            $routingHelper->setUrlGenerator($app["url_generator"]);
             return [
-                new CommonViewHelper(),
-                new RoutingViewHelper(),
-                new AssetsViewHelper(),
-                new LayoutViewHelper(),
+                $routingHelper,
 //                new FormViewHelper(),
             ];
         });

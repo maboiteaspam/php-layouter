@@ -6,6 +6,7 @@ use C\FS\LocalFs;
 use C\FS\KnownFs;
 use C\Assets\Bridger;
 use C\FS\Registry;
+use C\View\AssetsViewHelper;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
@@ -75,6 +76,11 @@ class AssetsServiceProvider implements ServiceProviderInterface
                 }
                 return $h;
             });
+        }
+        if (isset($app['layout.view'])) {
+            $assetsViewHelper = new AssetsViewHelper();
+            $assetsViewHelper->setPatterns($app["assets.patterns"]);
+            $app['layout.view']->addHelper($assetsViewHelper);
         }
 
         if (php_sapi_name()==='cli-server') {
