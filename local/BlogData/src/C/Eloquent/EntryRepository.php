@@ -4,7 +4,6 @@ namespace C\BlogData\Eloquent;
 use C\BlogData\EntryRepositoryInterface;
 use C\Misc\Utils;
 use C\Repository\TagableEloquentRepository;
-use C\Misc\Utils;
 
 class EntryRepository extends TagableEloquentRepository implements EntryRepositoryInterface {
 
