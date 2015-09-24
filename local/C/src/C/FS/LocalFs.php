@@ -118,4 +118,13 @@ class LocalFs {
         self::recordAllCalls(__FUNCTION__, func_get_args());
         return call_user_func_array(__FUNCTION__, func_get_args());
     }
+
+    /**
+     * @param $file_path
+     * @return mixed
+     */
+    public static function unlink($file_path){
+        self::recordAllCalls(__FUNCTION__, func_get_args());
+        return call_user_func_array(__FUNCTION__, func_get_args());
+    }
 }
