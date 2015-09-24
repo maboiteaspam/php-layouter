@@ -9,8 +9,8 @@ return [
     'private_build_dir' => '%projectPath%/run/',
     'public_build_dir' => '%projectPath%/www/run/',
 
-//    'blogdata.provider' => "Eloquent",
-    'blogdata.provider' => "PO",
+    'blogdata.provider' => "Eloquent",
+//    'blogdata.provider' => "PO",
 
     'httpcache.check_taged_resource_freshness' => !false,
 
@@ -18,6 +18,7 @@ return [
         'http-store'=>['driver' => 'file']
     ],
     'assets.concat' => false,
+    'assets.patterns' => [],
     'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
     'assets.bridge_file_path' => '%projectPath%/run/bridge.php',
 
