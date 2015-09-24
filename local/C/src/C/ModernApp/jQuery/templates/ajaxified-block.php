@@ -1,3 +1,9 @@
+<?php
+/* @var $this \C\View\ConcreteContext */
+/* @var $url string */
+/* @var $target string */
+/* @var $id string */
+?>
 <script type="text/javascript">
     $.get('<?php echo $url; ?>', function(data){
         data = $(data);
