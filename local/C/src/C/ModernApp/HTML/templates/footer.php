@@ -1,4 +1,7 @@
-<?php $display('template_footer_css'); ?>
-<?php $display('page_footer_css'); ?>
-<?php $display('template_footer_js'); ?>
-<?php $display('page_footer_js'); ?>
+<?php
+/* @var $this \C\View\ConcreteContext */
+
+$this->display('template_footer_css');
+$this->display('page_footer_css');
+$this->display('template_footer_js');
+$this->display('page_footer_js');
