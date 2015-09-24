@@ -1,8 +1,21 @@
 <?php
 namespace C\View;
 
+/**
+ * This is a virtual class (interface)
+ * to let user add documentation hint about $this
+ * when he is developing templates.
+ *
+ * That way he can get auto completion
+ * and nice display.
+ *
+ * Interface ConcreteContext
+ * @package C\View
+ */
+
 interface ConcreteContext {
 
+    #region CommonViewHelper
     /**
      * Converts a date to the given format.
      *
@@ -530,10 +543,53 @@ interface ConcreteContext {
      * @return bool true if the value is traversable
      */
     public function isIterable($value);
+    #endregion
 
+    #region RoutingViewHelper
+    /**
+     * Forge url for a given route name and its parameters
+     *
+     * @param $name
+     * @param array|object $options
+     * @param array $only
+     * @return mixed
+     */
+    public function urlFor($name, $options=[], $only=[]);
 
+    /**
+     * Forge URL GET parameters given an array/object of data.
+     * It can exclude some property via $only second arguments
+     *
+     * @param array $data
+     * @param array $only
+     * @return mixed
+     */
+    public function urlArgs($data=[], $only=[]);
+    #endregion
 
-    // form
+    #region AssetsViewHelper
+    /**
+     * Forge url to an assets given the asset type id and it s parameters
+     *
+     * @param $name
+     * @param array|object $options
+     * @param array $only
+     * @return mixed
+     */
+    public function urlAsset($name, $options=[], $only=[]);
+    #endregion
+
+    #region LayoutViewHelper
+    /**
+     * Display a block given it s ID and its configuration.
+     *
+     * @param $blockId
+     * @return mixed
+     */
+    public function display($blockId);
+    #endregion
+
+    #region FormViewHelper
     // vendor/symfony/twig-bridge/Extension/FormExtension.php
     // vendor/symfony/twig-bridge/Resources/views/Form/form_div_layout.html.twig
     public function form_widget();
@@ -545,5 +601,6 @@ interface ConcreteContext {
     public function form_start();
     public function form_end();
     public function csrf_token();
+    #endregion
 
 }
