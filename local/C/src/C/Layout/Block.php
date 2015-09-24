@@ -4,6 +4,7 @@ namespace C\Layout;
 use C\Repository\RepositoryProxy;
 use C\TagableResource\TagedResource;
 use C\TagableResource\TagableResourceInterface;
+use C\View\Context;
 
 class Block implements TagableResourceInterface{
 
@@ -53,32 +54,28 @@ class Block implements TagableResourceInterface{
         }
     }
 
-    public function resolve ($helpers){
+    public function resolve (Context $context){
         $block = $this;
-        if ($block && !$block->resolved && isset($block->options['template']) && $block->options['template']) {
+        if ($block
+            && !$block->resolved
+            && isset($block->options['template'])
+            && $block->options['template']) {
+
             $fn = $block->options['template'];
             if(!is_callable($block->options['template'])) {
-                $fn = function ($helpers, Block $block) {
-                    $block->resolved = true; // this will prevent recursive call when set above.
+                $fn = function (Block $block) {
+                    $block->resolved = true; // this will help to prevent recursive call when set above.
                     ob_start();
                     extract($block->unwrapData(['block']), EXTR_SKIP);
-                    if ($helpers) {
-                        foreach($helpers as $name => $helper){
-                            if ($name!='block') {
-                                $$name = $boundFn = $bcl2 = \Closure::bind($helper, $this);
-                            } else {
-                                throw new \Exception('Forbidden helper name "block" called in block');
-                            }
-                        }
-                    }
                     require($block->options['template']);
                     $block->body = ob_get_clean();
                 };
             }
 
             if ($fn) {
-                $boundFn = $bcl2 = \Closure::bind($fn, $block);
-                $boundFn($helpers, $block);
+                $context->setBlockToRender($this);
+                $boundFn = \Closure::bind($fn, $context);
+                $boundFn($block);
             } else {
                 // weird stuff in template.
             }

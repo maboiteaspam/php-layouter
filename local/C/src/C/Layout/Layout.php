@@ -4,6 +4,7 @@ namespace C\Layout;
 
 use C\TagableResource\TagedResource;
 use C\TagableResource\TagableResourceInterface;
+use C\View\Context;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use C\Misc\Utils;
@@ -11,15 +12,39 @@ use C\Misc\Utils;
 class Layout implements TagableResourceInterface{
 
     /**
+     * Layout's id
+     *
+     * @var string
+     */
+    public $id;
+
+    /**
      * id of the block to start display from
      *
      * @var string
      */
     public $block;
+
+    /**
+     * The context that templates use to execute.
+     * IE: It will bind $this to that object instance.
+     *
+     * @var Context
+     */
+    public $context;
+
     /**
      * @var RegistryBlock
      */
     public $registry;
+
+    /**
+     * enable or disable debug tools.
+     *
+     * @var bool
+     */
+    public $debugEnabled;
+
     /**
      * @var \Symfony\Component\EventDispatcher\EventDispatcher
      */
@@ -36,34 +61,24 @@ class Layout implements TagableResourceInterface{
 
     public function __construct ($config=[]) {
         $this->registry = new RegistryBlock();
-
         $this->block = 'root';
-
         $this->config = array_merge(['helpers'=>[]],$config);
-        $layout = $this;
-        $this->config['helpers'] = array_merge([
-            'display'=> function ($id) use($layout) {
-                $layout->registry->get($layout->currentBlockInRender)
-                    ->displayed_block[] = ['id'=>$id, 'shown'=>$layout->registry->has($id)];
-                echo "<!-- placeholder for block $id -->";
-            },
-            'urlAsset'=> function ($name, $options=[], $only=[]) use($layout) {
-                $url = '';
-                $imgUrls = $layout->config['imgUrls'];
-                if (isset($imgUrls[$name])) {
-                    $options = Utils::arrayPick($options, $only);
-                    $url = $imgUrls[$name];
-                    foreach ($options as $name => $o) {
-                        $url = str_replace(':'.$name, $o, $url);
-                    }
-                }
-                return $url;
-            },
-        ], $this->config['helpers']);
     }
 
     public function setDispatcher (EventDispatcher $dispatcher) {
         $this->dispatcher = $dispatcher;
+    }
+
+    public function enableDebug ($enabled) {
+        $this->debugEnabled = $enabled;
+    }
+
+    public function setId ($layoutId) {
+        $this->id = $layoutId;
+    }
+
+    public function setContext (Context $ctx) {
+        $this->context = $ctx;
     }
 
     public function resolve ($id){
@@ -73,12 +88,13 @@ class Layout implements TagableResourceInterface{
         $currentBlockInRender = $this->currentBlockInRender;
         $this->currentBlockInRender = $id;
         if ($block) {
-            $block->resolve($this->config['helpers']);
+            $block->resolve($this->context);
         }
         $this->currentBlockInRender = $currentBlockInRender;
         $this->emit('after_block_resolve', $id);
         return $block;
     }
+
     public function getContent ($id){
         $body = "";
         $this->emit('before_block_render', $id);
@@ -150,7 +166,7 @@ class Layout implements TagableResourceInterface{
             if (!$block) {
                 $block = new Block($id);
                 $this->registry->set($id, $block);
-                if ($this->config['debug']) {
+                if ($this->debugEnabled) {
                     $block->stack = Utils::getStackTrace();
                 }
             }
