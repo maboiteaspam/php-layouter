@@ -79,7 +79,7 @@ module.exports = function (grunt) {
         },
         change: function(changeType, filePath){
           grunt.log.ok('%s %s', changeType, filePath);
-          exec('grunt shell:dump', function (error, stdout, stderr) {
+          exec('grunt dump-fs', function (error, stdout, stderr) {
             grunt.log.ok('updated dumps');
           });
         }
