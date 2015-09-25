@@ -1,22 +1,53 @@
 <?php
 namespace C\View;
 
-use C\Layout\Block;
+use Silex\Translator;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
-class CommonViewHelper implements ViewHelperInterface {
-
-    /**
-     * @var Block
-     */
-    public $block;
-
-    public function setBlockToRender ( Block $block) {
-        $this->block = $block;
-    }
+class CommonViewHelper extends AbstractViewHelper {
 
     // totally inspired by twig
     // vendor/twig/twig/lib/Twig/Extension/Core.php
+
+
+    public $escapers = [];
+    public function getEscapers () {
+        return $this->escapers;
+    }
+    public function addEscaper ( \Closure $fn ) {
+        $this->escapers[] = $fn;
+    }
+
+    /**
+     * @var Translator
+     */
+    public $translator;
+    public function setTranslator (Translator $helper) {
+        $this->translator = $helper;
+    }
+
+    /**
+     * @param $id
+     * @param array $parameters
+     * @param null $domain
+     * @param null $locale
+     * @return array
+     */
+    public function trans () {
+        return call_user_func_array([$this->translator, 'trans'], func_get_args());
+    }
+
+    /**
+     * @param $id
+     * @param $number
+     * @param array $parameters
+     * @param null $domain
+     * @param null $locale
+     * @return array
+     */
+    public function transChoice () {
+        return call_user_func_array([$this->translator, 'transChoice'], func_get_args());
+    }
 
     // formatting filters
 
@@ -125,33 +156,12 @@ class CommonViewHelper implements ViewHelperInterface {
         return null === $resultDate ? $date : $resultDate;
     }
     /**
-     * (PHP 4, PHP 5)<br/>
-     * Return a formatted string
-     * @link http://php.net/manual/en/function.sprintf.php
-     * @param string $format <p>
-     * The format string is composed of zero or more directives:
-     * ordinary characters (excluding %) that are
-     * copied directly to the result, and conversion
-     * specifications, each of which results in fetching its
-     * own parameter. This applies to both sprintf
-     * and printf.
-     * </p>
-     * <p>
-     * Each conversion specification consists of a percent sign
-     * (%), followed by one or more of these
-     * elements, in order:
-     * An optional sign specifier that forces a sign
-     * (- or +) to be used on a number. By default, only the - sign is used
-     * on a number if it's negative. This specifier forces positive numbers
-     * to have the + sign attached as well, and was added in PHP 4.3.0.
-     * @param mixed $args [optional] <p>
-     * </p>
-     * @param mixed $_ [optional]
-     * @return string a string produced according to the formatting string
-     * format.
+     * @param $format
+     * @param array $args
+     * @return mixed
      */
-    public function format($format, $args = null, $_ = null) {
-        return sprintf($format, $args, $_);
+    public function format($format, $args = []) {
+        return str_replace(array_keys($args), array_values($args), $format);
     }
     /**
      * Replaces strings within a string.
@@ -196,7 +206,7 @@ class CommonViewHelper implements ViewHelperInterface {
      */
     public function number_format($number, $decimal = null, $decimalPoint = null, $thousandSep = null)
     {
-        $defaults = $this->getNumberFormat();
+        $defaults = $this->env->getNumberFormat();
         if (null === $decimal) {
             $decimal = $defaults[0];
         }
@@ -374,8 +384,8 @@ class CommonViewHelper implements ViewHelperInterface {
      * </p>
      * @return string The trimmed string.
      */
-    public function trim($charlist) {
-        return trim($charlist);
+    public function trim($str, $charlist) {
+        return trim($str, $charlist);
     }
     /**
      * (PHP 4, PHP 5)<br/>
@@ -393,13 +403,14 @@ class CommonViewHelper implements ViewHelperInterface {
         return nl2br($string, $is_xhtml);
     }
 
-    /*
-     *
-        if (function_exists('mb_get_info')) {
-            $filters[] = new Twig_SimpleFilter('upper', 'twig_upper_filter', array('needs_environment' => true));
-            $filters[] = new Twig_SimpleFilter('lower', 'twig_lower_filter', array('needs_environment' => true));
-        }
+    /**
+     * @param string $str
+     * @return string
      */
+    public function humanize ($str) {
+        // @todo implement.
+        return $str;
+    }
 
 
     // array helpers
@@ -1027,6 +1038,7 @@ class CommonViewHelper implements ViewHelperInterface {
                 throw $e;
             }
         }
+        return '';
     }
 
     // tests
@@ -1177,6 +1189,9 @@ function escape_css_callback($matches)
 
 /**
  * This function is adapted from code coming from Zend Framework.
+ *
+ * @param $matches
+ * @return string
  *
  * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd New BSD License

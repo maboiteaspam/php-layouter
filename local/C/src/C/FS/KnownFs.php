@@ -31,8 +31,8 @@ class KnownFs {
         $this->fs = new LocalFs();
     }
 
-    public function register ($path) {
-        $this->registry->registerPath($path);
+    public function register ($path, $as=null) {
+        $this->registry->registerPath($path, $as);
     }
 
     public function setBasePath ($bp) {

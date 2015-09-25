@@ -201,10 +201,6 @@ class Layout implements TagableResourceInterface{
         }
     }
 
-    function registerImgPattern($name, $pattern){
-        $this->config['imgUrls'][$name] = $pattern;
-    }
-
 
 
 

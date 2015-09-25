@@ -12,6 +12,7 @@ class Registry {
     public $config = [
         'basePath' => '/', // must always be an absolute path
         'paths' => [],
+        'alias' => [],
     ];
     public $items = [
         'relative/file/path'=>[
@@ -41,14 +42,13 @@ class Registry {
         }
     }
 
-    public function load($dump){
-        $this->items = $dump['items'];
-        $this->signature = $dump['signature'];
-    }
-    public function registerPath($path){
+    public function registerPath($path, $as=null){
         $p = realpath($path);
         if ($p===false) Utils::stderr("This path does not exists $path");
-        else $this->config['paths'][] = $p;
+        else {
+            $this->config['paths'][] = $p;
+            if($as) $this->config['alias']["$as:"] = $p;
+        }
         return $p;
     }
     public function setBasePath($path){
@@ -99,12 +99,16 @@ class Registry {
         }
         return true;
     }
-
+    public function load($dump){
+        $this->config = $dump['config'];
+        $this->items = $dump['items'];
+        $this->signature = $dump['signature'];
+    }
     public function build(){
         $this->recursiveReadPath()->createSignature();
         return [
             'items'=>$this->items,
-            'originalPaths'=>$this->config['paths'],
+            'config'=>$this->config,
             'signature'=>$this->signature,
         ];
     }
@@ -128,7 +132,7 @@ class Registry {
             $Directory = new \RecursiveDirectoryIterator($path);
             $filter = new \RecursiveCallbackFilterIterator($Directory, function ($current, $key, $iterator) {
                 if (in_array($current->getFilename(), ['..'])) {
-                    return FALSE;
+                    return false;
                 }
                 return $current;
             });
@@ -145,8 +149,10 @@ class Registry {
     public function addClassFile ($className, $onlyIfNew=true) {
         $reflector = new \ReflectionClass($className);
         $path = $reflector->getFileName();
-        if ($onlyIfNew && !$this->get($path) || !$onlyIfNew)
+        if ($onlyIfNew && !$this->get($path) || !$onlyIfNew) {
+            $this->registerPath(dirname($path));
             $this->addItem($path);
+        }
     }
     public function addItem ($path) {
         $basePath = $this->config['basePath'];
@@ -187,16 +193,24 @@ class Registry {
     public function get($itemPath){
         $itemPath = reliablePath($itemPath);
         $basePath = $this->config['basePath'];
+
+        $alias = substr($itemPath, 0, strpos(":", $itemPath));
+        if (array_key_exists($alias, $this->config['alias'])) {
+            $itemPath = str_replace($alias, $this->config['alias'][$alias], $itemPath);
+        }
+
         if (isset($this->items[$itemPath])) {
             $item = $this->items[$itemPath];
             $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
             return $item;
         }
+
         if (isset($this->items["$itemPath".DIRECTORY_SEPARATOR])) {
             $item = $this->items["$itemPath".DIRECTORY_SEPARATOR];
             $item['absolute_path'] = "$basePath/".$item['dir'].$item['name'];
             return $item;
         }
+
         if (substr($itemPath,0,strlen($basePath))===$basePath) {
             $p = substr($itemPath,strlen($basePath)+1);
             if (isset($this->items[$p])) {

@@ -59,7 +59,6 @@ class AssetsServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        $app['assets.fs']->registry->loadFromFile();
 
         if (isset($app['httpcache.tagger'])) {
             $fs = $app['assets.fs'];
@@ -77,6 +76,7 @@ class AssetsServiceProvider implements ServiceProviderInterface
                 return $h;
             });
         }
+
         if (isset($app['layout.view'])) {
             $assetsViewHelper = new AssetsViewHelper();
             $assetsViewHelper->setPatterns($app["assets.patterns"]);
@@ -84,28 +84,11 @@ class AssetsServiceProvider implements ServiceProviderInterface
         }
 
         if (php_sapi_name()==='cli-server') {
-            $app['dispatcher']->addListener("boot_done", function () use($app) {
-                /* @var $responder \C\Assets\BuiltinResponder */
-                $responder = $app['assets.responder'];
-                $responder->respond();
-            });
+            $app['assets.fs']->registry->loadFromFile();
+            /* @var $responder \C\Assets\BuiltinResponder */
+            $responder = $app['assets.responder'];
+            $responder->respond();
         }
-        $app["dispatcher"]->addListener('init.app', function() use($app) {
-            $app['assets.fs']->registry->saveToFile();
-            $app['assets.bridger']->generate(
-                $app['assets.bridge_file_path'],
-                $app['assets.bridge_type'],
-                $app['assets.fs']);
-        });
-        $app["dispatcher"]->addListener('dump.fs_file_path', function() use($app) {
-            echo $app['assets.fs']->registry->file."\n";
-        });
-        $app["dispatcher"]->addListener('dump.fs', function() use($app) {
-            $app['assets.fs']->registry->saveToFile();
-            $app['assets.bridger']->generate(
-                $app['assets.bridge_file_path'],
-                $app['assets.bridge_type'],
-                $app['assets.fs']);
-        });
+
     }
 }

@@ -14,8 +14,7 @@ class ServiceProvider implements ServiceProviderInterface
      **/
     public function register(Application $app)
     {
-        if (!isset($app['blogdata.provider']))
-            $app['blogdata.provider'] = 'PO';
+        if (!isset($app['blogdata.provider'])) $app['blogdata.provider'] = 'PO';
 
         $app['blogdata.entry'] = $app->share(function () use($app) {
             $repo = null;

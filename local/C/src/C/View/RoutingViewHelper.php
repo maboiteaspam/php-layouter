@@ -5,27 +5,15 @@ use C\Layout\Block;
 use C\Misc\Utils;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 
-class RoutingViewHelper implements ViewHelperInterface {
+class RoutingViewHelper extends AbstractViewHelper {
 
     /**
      * @var UrlGenerator
      */
     public $generator;
-    /**
-     * @var Block
-     */
-    public $block;
-
-    public function __construct () {
-
-    }
 
     public function setUrlGenerator ( UrlGenerator $generator) {
         $this->generator = $generator;
-    }
-
-    public function setBlockToRender ( Block $block) {
-        $this->block = $block;
     }
 
     public function urlFor ($name, $options=[], $only=[]) {

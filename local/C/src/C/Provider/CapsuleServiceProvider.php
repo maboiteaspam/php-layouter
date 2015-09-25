@@ -80,20 +80,12 @@ class CapsuleServiceProvider implements ServiceProviderInterface
                     'default' => (isset($app['capsule.connection']) ? $app['capsule.connection'] : array()),
                 );
             }
+
             foreach ($app['capsule.connections'] as $connection => $options) {
                 $options = array_replace($app['capsule.connection_defaults'], $options);
-                $logging = $options['logging'];
-                unset($options['logging']);
-
                 $capsule->addConnection($options, $connection);
-
-
-                if ($logging) {
-                    $capsule->connection($connection)->enableQueryLog();
-                } else {
-                    $capsule->connection($connection)->disableQueryLog();
-                }
             }
+
             if (!isset($app['capsule.use_connection'])) {
                 $app['capsule.use_connection'] = $app['env'];
             }
@@ -116,9 +108,6 @@ class CapsuleServiceProvider implements ServiceProviderInterface
     public function boot(Application $app)
     {
         if (isset($app['capsule.eloquent'])) {
-
-            $this->sqliteSetup($app['capsule.connections']);
-
             if (isset($app['httpcache.tagger'])) {
                 $tagger = $app['httpcache.tagger'];
                 $capsule = $app['capsule'];
@@ -127,44 +116,17 @@ class CapsuleServiceProvider implements ServiceProviderInterface
                     return $capsule->getConnection()->select($sql);
                 });
             }
-
-
-            $app["dispatcher"]->addListener('init.app', function() use($app) {
-                $app['capsule.schema']->loadSchemas();
-                $app['capsule.schema']->cleanDb();
-                $app['capsule.schema']->initDb();
-                $app['capsule.schema']->registry->saveToFile();
-            });
-            $app["dispatcher"]->addListener('init.schema', function() use($app) {
-                $app['capsule.schema']->loadSchemas();
-                $app['capsule.schema']->cleanDb();
-                $app['capsule.schema']->initDb();
-            });
-            $app["dispatcher"]->addListener('refresh.schema', function() use($app) {
-                $app['capsule.schema']->loadSchemas();
-                $app['capsule.schema']->refreshDb();
-            });
-            $app["dispatcher"]->addListener('dump.fs_file_path', function() use($app) {
-                echo $app['capsule.schema']->registry->file."\n";
-            });
-            $app["dispatcher"]->addListener('dump.fs', function() use($app) {
-                $app['capsule.schema']->registry->saveToFile();
-            });
         }
-    }
-
-    public function sqliteSetup($connections){
-        foreach ($connections as $connection => $options) {
-            if ($options["driver"]==='sqlite') {
-                if ($options["database"]!==':memory:') {
-                    $exists = LocalFs::file_exists($options['database']);
-                    if (!$exists) {
-                        $dir = dirname($options["database"]);
-                        if (!LocalFs::is_dir($dir)) LocalFs::mkdir($dir, 0700, true);
-                        LocalFs::touch($options["database"]);
-                    }
+        $app->before(function () use($app) {
+            $connections = $app['capsule.connections'];
+            $capsule = $app['capsule'];
+            foreach ($connections as $connection => $options) {
+                $options = array_replace($app['capsule.connection_defaults'], $options);
+                if ($options['logging']) {
+                    $capsule->connection($connection)->enableQueryLog();
                 }
             }
-        }
+        });
     }
+
 }

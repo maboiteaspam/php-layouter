@@ -18,7 +18,10 @@ return [
         'http-store'=>['driver' => 'file']
     ],
     'assets.concat' => false,
-    'assets.patterns' => [],
+    'assets.patterns' => [
+        'blog_detail' => '/images/blog/detail/:id.jpg',
+        'blog_list' => '/images/blog/list/:id.jpg',
+    ],
     'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
     'assets.bridge_file_path' => '%projectPath%/run/bridge.php',
 

@@ -6,11 +6,14 @@ use C\Layout\Transforms;
 use C\Layout\Layout;
 
 use C\View\CommonViewHelper;
+use C\View\Env;
 use C\View\LayoutViewHelper;
 use C\View\RoutingViewHelper;
+use C\View\FormViewHelper;
 use C\View\Context;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class LayoutServiceProvider implements ServiceProviderInterface
@@ -28,30 +31,61 @@ class LayoutServiceProvider implements ServiceProviderInterface
             $layout = new Layout();
             if ($app['debug']) $layout->enableDebug(true);
             if (isset($app['dispatcher'])) $layout->setDispatcher($app['dispatcher']);
-            $context = $app['layout.view'];
-            $layoutViewHelper = new LayoutViewHelper();
-            $layoutViewHelper->setLayout($layout);
-            $context->addHelper($layoutViewHelper);
-            $context->addHelper(new CommonViewHelper());
-            $layout->setContext($context);
+            $layout->setContext($app['layout.view']);
+
+            $app['layout.helper.layout']->setLayout($layout);
+            $app['layout.view']->addHelper($app['layout.helper.layout']);
+            $app['layout.view']->addHelper($app['layout.helper.common']);
+            $app['layout.view']->addHelper($app['layout.helper.routing']);
+            $app['layout.view']->addHelper($app['layout.helper.form']);
+
             return $layout;
         });
 
-        $app['layout.view_helpers'] = $app->share(function () use($app) {
+        $app['layout.helper.layout'] = $app->share(function () use($app) {
+            $layoutViewHelper = new LayoutViewHelper();
+            $layoutViewHelper->setEnv($app['layout.env']);
+            return $layoutViewHelper;
+        });
+
+        $app['layout.helper.common'] = $app->share(function () use($app) {
+            $commonHelper = new CommonViewHelper();
+            $commonHelper->setEnv($app['layout.env']);
+            // see more about translator here http://stackoverflow.com/questions/25482856/basic-use-of-translationserviceprovider-in-silex
+            $commonHelper->setTranslator($app['translator']);
+            return $commonHelper;
+        });
+
+        $app['layout.helper.routing'] = $app->share(function () use($app) {
             $routingHelper = new RoutingViewHelper();
+            $routingHelper->setEnv($app['layout.env']);
             $routingHelper->setUrlGenerator($app["url_generator"]);
-            return [
-                $routingHelper,
-//                new FormViewHelper(),
-            ];
+            return $routingHelper;
+        });
+
+        $app['layout.helper.form'] = $app->share(function () use($app) {
+            $formHelper = new FormViewHelper();
+            $formHelper->setEnv($app['layout.env']);
+            $formHelper->setCommonHelper($app['layout.helper.common']);
+            return $formHelper;
+        });
+
+        $app['layout.translator.available_languages'] = ['en', 'fr'];
+        $app['layout.env.charset'] = 'utf-8';
+        $app['layout.env.date_format'] = '';
+        $app['layout.env.timezone'] = '';
+        $app['layout.env.number_format'] = '';
+        $app['layout.env'] = $app->share(function() use($app) {
+            $env = new Env();
+            $env->setCharset($app['layout.env.charset']);
+            $env->setDateFormat($app['layout.env.date_format']);
+            $env->setTimezone($app['layout.env.timezone']);
+            $env->setNumberFormat($app['layout.env.number_format']);
+            return $env;
         });
 
         $app['layout.view'] = $app->share(function() use($app) {
-            $view = new Context();
-            foreach($app['layout.view_helpers'] as $helper) {
-                $view->addHelper($helper);
-            }
-            return $view;
+            return  new Context();
         });
 
         $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {
@@ -109,7 +143,6 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
     }
     /**
-     * Boot the Capsule service.
      *
      * @param Application $app Silex application instance.
      *
@@ -117,5 +150,10 @@ class LayoutServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
+        $app->before(function (Request $request) use ($app) {
+            $app['translator']->setLocale(
+                $request->getPreferredLanguage($app['layout.translator.available_languages'])
+            );
+        });
     }
 }

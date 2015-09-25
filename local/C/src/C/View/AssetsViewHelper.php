@@ -22,6 +22,10 @@ class AssetsViewHelper implements ViewHelperInterface {
         $this->assetPatterns = $patterns;
     }
 
+    public function addPattern ($pattern) {
+        $this->assetPatterns[] = $pattern;
+    }
+
 
     public function urlAsset ($name, $options=[], $only=[]) {
         $url = '';

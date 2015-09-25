@@ -1,10 +1,9 @@
 <?php
 namespace C\View;
 
-use C\Layout\Block;
 use C\Layout\Layout;
 
-class LayoutViewHelper implements ViewHelperInterface {
+class LayoutViewHelper extends AbstractViewHelper {
 
     /**
      * @var Layout
@@ -13,15 +12,6 @@ class LayoutViewHelper implements ViewHelperInterface {
 
     public function setLayout ( Layout $layout) {
         $this->layout = $layout;
-    }
-
-    /**
-     * @var Block
-     */
-    public $block;
-
-    public function setBlockToRender ( Block $block) {
-        $this->block = $block;
     }
 
     public function display ($blockId) {

@@ -19,6 +19,10 @@ class Context {
         $this->helpers[] = $helper;
     }
 
+    public function prependHelper (ViewHelperInterface $helper) {
+        array_unshift($this->helpers, $helper);
+    }
+
     public function setBlockToRender (Block $block) {
         $this->block = $block;
         foreach($this->helpers as $helper) {

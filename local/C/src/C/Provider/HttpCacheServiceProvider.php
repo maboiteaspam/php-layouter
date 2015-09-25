@@ -18,8 +18,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
     public function register(Application $app)
     {
         $app['httpcache.tagger'] = $app->share(function() use($app) {
-            $tagger = new ResourceTagger();
-            return $tagger;
+            return new ResourceTagger();
         });
 
         if (!isset($app['httpcache.store_name']))
@@ -70,6 +69,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     }
                 }
             }
+            return null;
         });
 
         $app->after(function (Request $request, Response $response, Application $app) {

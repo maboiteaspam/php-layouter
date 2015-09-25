@@ -37,15 +37,9 @@ class ControllersProvider implements
      **/
     public function boot(Application $app)
     {
-        $app['controllers_factory'];
         if ($app['assets.fs']) {
             $app['assets.fs']->register(__DIR__.'/assets/');
             $app['assets.fs']->register(__DIR__.'/templates/');
-        }
-
-        if (isset($app['layout'])) {
-            $app['layout']->registerImgPattern('blog_detail', '/images/blog/detail/:id.jpg');
-            $app['layout']->registerImgPattern('blog_list', '/images/blog/list/:id.jpg');
         }
     }
 

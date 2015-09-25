@@ -1,6 +1,8 @@
 <?php
 namespace C\Assets;
 
+use C\Misc\Utils;
+
 class BuiltinResponder {
     /**
      * @var \C\FS\KnownFs
@@ -25,7 +27,7 @@ class BuiltinResponder {
         $gmdate_mod = gmdate('D, d M Y H:i:s', $mtime) . ' GMT';
         if ($if_modified_since == $gmdate_mod) {
             header("HTTP/1.0 304 Not Modified");
-            exit;
+            return null;
         }
         header("Last-Modified: $gmdate_mod");
 
@@ -51,10 +53,12 @@ class BuiltinResponder {
             $item = $this->fs->get($reqUrl);
             if ($item) {
                 echo $this->sendAsset($item);
+                Utils::stdout("served $reqUrl");
             } else {
                 header("HTTP/1.0 404 Not Found");
+                Utils::stdout("missed $reqUrl");
             }
-            die();// so dirty.
+            exit;
         }
     }
 }

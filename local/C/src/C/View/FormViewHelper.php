@@ -1,34 +1,34 @@
 <?php
 namespace C\View;
 
-use C\Layout\Block;
-use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormView;
 
 // @todo import from SF/Silex.
-abstract class FormViewHelper implements ViewHelperInterface {
+class FormViewHelper extends AbstractViewHelper {
 
     /**
-     * @var Block
+     * @var CommonViewHelper
      */
-    public $block;
-
-    public function setBlockToRender (Block $block) {
-        $this->block = $block;
+    public $commons;
+    public function setCommonHelper (CommonViewHelper $helper) {
+        $this->commons = $helper;
     }
+
 
     // form
     // vendor/symfony/twig-bridge/Extension/FormExtension.php
     // vendor/symfony/twig-bridge/Resources/views/Form/form_div_layout.html.twig
     public function form(FormView $form) {
-        $this->form_start($form);
-            $this->form_widget($form);
-        $this->form_end($form);
+        $str = "";
+        $str .= $this->form_start($form);
+        $str .= $this->form_widget($form);
+        $str .= $this->form_end($form);
+        return $str;
     }
-    public function form_start (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function form_start (FormView $form, $variables=[]) {
+        $vars = array_merge_recursive($form->vars, $variables);
 
-        $method = strtoupper($vars['method']);
+        $method = $this->commons->upper($vars['method']);
         $name = ($vars['name']);
         $action = ($vars['action']);
         $attr = ($vars['attr']);
@@ -40,123 +40,142 @@ abstract class FormViewHelper implements ViewHelperInterface {
             $form_method = 'POST';
         }
 
-        echo "<form name='$name' method='".strtolower($form_method)."' action='$action' ";
+        $str = "";
+        $str .= "<form name='$name' method='".$this->commons->lower($form_method)."' action='$action' ";
         foreach ($attr as $name=>$val) {
-            echo " $attr='$val' ";
+            $str .= " $attr='$val' ";
         }
-        $this->form_enctype($form, $options);
-        echo " >";
+        $str .= $this->form_enctype($form, $variables);
+        $str .= " >";
         if ($form_method!==$method) {
-            echo "<input type='hidden' name='_method' value='$method' />";
+            $str .= "<input type='hidden' name='_method' value='$method' />";
         }
+        return $str;
     }
-    public function form_widget (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function form_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         $compound = ($vars['compound']);
 
         if ($compound) {
-            $this->form_widget_compound($form, $options);
+            $str .= $this->form_widget_compound($form, $variables);
         } else {
-            $this->form_widget_simple($form, $options);
+            $str .= $this->form_widget_simple($form, $variables);
         }
+        return $str;
     }
-    public function form_widget_compound (FormView $form, $options=[]) {
-        echo "<div";
-        $this->widget_container_attributes($form, $options);
+    public function form_widget_compound (FormView $form, $variables=[]) {
+        $str = "";
+        $str .= "<div";
+        $str .= $this->widget_container_attributes($form, $variables);
         if (!$form->parent) {
-            $this->form_errors($form);
+            $str .= $this->form_errors($form);
         }
-        echo ">";
-        $this->form_rows($form, $options);
-        echo "</div>";
+        $str .= ">";
+        $str .= $this->form_rows($form, $variables);
+        $str .= "</div>";
+        return $str;
     }
-    public function form_widget_simple (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function form_widget_simple (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         $type = $vars['type'] ? $vars['type'] : 'text';
         $val = $vars['value'];
-        echo "<input ";
-        echo "type='$type' ";
-        $this->widget_attributes($form, $options);
+        $str .= "<input ";
+        $str .= "type='$type' ";
+        $str .= $this->widget_attributes($form, $variables);
         if ($val) {
-            echo "value='$val' ";
+            $str .= "value='$val' ";
         }
-        echo "/>";
+        $str .= "/>";
+        return $str;
     }
-    public function widget_attributes (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function widget_attributes (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         $id = ($vars['id']);
         $full_name = ($vars['full_name']);
         $readonly = ($vars['read_only']);
         $disabled = ($vars['disabled']);
         $required = ($vars['required']);
         $attr = ($vars['attr']);
-        echo "id='$id' ";
-        echo "name='$full_name' ";
-        if ($readonly && !array_key_exists('readonly', $attr)) echo "readonly='readonly'";
-        if ($disabled) echo "disabled='disabled'";
-        if ($required) echo "required='required'";
+        $str .= "id='$id' ";
+        $str .= "name='$full_name' ";
+        if ($readonly && !array_key_exists('readonly', $attr)) $str .= "readonly='readonly'";
+        if ($disabled) $str .= "disabled='disabled'";
+        if ($required) $str .= "required='required'";
         foreach ($attr as $name=>$val) {
             if (in_array($name, ['placeholder', 'title',])) {
-                echo " $attr='$val' "; // here should do translation.
+                $str .= " $attr='$val' "; // here should do translation.
             } else if ($val==true) { // triple eq ? or double eq ?
-                echo " $attr='$attr' ";
+                $str .= " $attr='$attr' ";
             } else if ($val!=false) { // triple eq ? or double eq ?
-                echo " $attr='$val' ";
+                $str .= " $attr='$val' ";
             }
         }
+        return $str;
     }
-    public function widget_container_attributes (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function widget_container_attributes (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         $id = ($vars['id']);
         $attr = ($vars['attr']);
 
         if ($id) {
-            echo "id='$id'";
+            $str .= "id='$id'";
         }
         foreach ($attr as $name=>$val) {
             if (in_array($name, ['placeholder', 'title',])) {
-                echo " $attr='$val' "; // here should do translation.
+                $str .= " $attr='$val' "; // here should do translation.
             } else if ($val==true) { // triple eq ? or double eq ?
-                echo " $attr='$attr' ";
+                $str .= " $attr='$attr' ";
             } else if ($val!=false) { // triple eq ? or double eq ?
-                echo " $attr='$val' ";
+                $str .= " $attr='$val' ";
             }
         }
+        return $str;
     }
 
-    public function form_end (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function form_end (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         if (!array_key_exists('render_rest', $vars) || $vars['render_rest']) {
-            $this->form_rest($form);
+            $str .= $this->form_rest($form);
         }
-        echo "</form>";
+        $str .= "</form>";
+        return $str;
     }
 
-    public function form_enctype (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function form_enctype (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         $multipart = ($vars['multipart']);
         if ($multipart) {
-            echo " enctype='multipart/form-data' ";
+            $str .= " enctype='multipart/form-data' ";
         }
+        return $str;
     }
 
-    public function form_errors (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
+    public function form_errors (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
         $errors = $vars['errors'];
         if (count($errors)) {
-            echo "<ul>";
+            $str .= "<ul>";
             foreach ($errors as $error) {
-                echo "<li>";
-                echo $error->message;
-                echo "</ul>";
+                $str .= "<li>";
+                $str .= $error->message;
+                $str .= "</ul>";
             }
-            echo "</ul>";
+            $str .= "</ul>";
         }
+        return $str;
     }
 
-    public function form_label (FormView $form, $options=[]) {
-        $vars = array_merge_recursive($form->vars, $options);
-        $label = $vars['label'];
+    public function form_label (FormView $form, $label=null, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $label = $label?$label:$vars['label'];
         $id = $vars['id'];
         $compound = $vars['compound'];
         $label_attr = $vars['label_attr'];
@@ -176,226 +195,397 @@ abstract class FormViewHelper implements ViewHelperInterface {
 
             if (!$label) {
                 if ($label_format) {
-                    $label = str_replace(['%name%', '%id%',], [$name, $id,], $label_format);
+                    $label = $this->commons->format($label_format, [
+                        '%name%'=>$name,
+                        '%id%'  =>$id,
+                    ]);
                 } else {
-                    // needs CommonViewHelper
-                    /*
-                     *
-                {% set label = name|humanize %}
-                     */
+                    // @todo check with twig original
+                    $str .= $this->commons->humanize($name);
                 }
-
             }
 
-            echo "<label ";
+            $str .= "<label ";
             foreach ($label_attr as $name=>$val) {
-                echo "$name='$val' ";
+                $str .= "$name='$val' ";
             }
-            echo ">";
-            echo $translation_domain ? "translate($label)" : "$label" ;
-            echo "</label>";
+            $str .= ">";
+            $str .= $translation_domain
+                ? $this->commons->trans($label)  // @todo check with original twig.
+                : $label ;
+            $str .= "</label>";
         }
+        return $str;
     }
-    public function form_row (FormView $form, $options=[]) {
-        echo "<div>";
-        $this->form_label($form, $options);
-        $this->form_errors($form, $options);
-        $this->form_widget($form, $options);
-        echo "</div>";
+    public function form_row (FormView $form, $variables=[]) {
+        $str = "";
+        $str .= "<div>";
+        $str .= $this->form_label($form, null, $variables);
+        $str .= $this->form_errors($form, $variables);
+        $str .= $this->form_widget($form, $variables);
+        $str .= "</div>";
+        return $str;
     }
-    public function form_rows (FormView $form, $options=[]) {
+    public function form_rows (FormView $form, $variables=[]) {
+        $str = "";
         foreach ($form->children as $child) {
-            $this->form_row($child, $options);
+            $str .= $this->form_row($child, $variables);
         }
+        return $str;
     }
-    public function form_rest (FormView $form, $options=[]) {
+    public function form_rest (FormView $form, $variables=[]) {
+        $str = "";
         foreach ($form->children as $child) {
             if (!$child->isRendered()) {
-                $this->form_row($child, $options);
+                $str .= $this->form_row($child, $variables);
             }
         }
+        return $str;
     }
-    /*
-     *
+    public function collection_widget (FormView $form, $variables=[]) {
+        /*
+         * @todo see what to do with it and original implementation.
 {%- block collection_widget -%}
     {% if prototype is defined %}
         {%- set attr = attr|merge({'data-prototype': form_row(prototype) }) -%}
     {% endif %}
     {{- block('form_widget') -}}
 {%- endblock collection_widget -%}
+         */
+        $str = "";
+        $str .= $this->form_widget ($form, $variables);
+        return $str;
+    }
+    public function textarea_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $val = $vars['value'];
+        $str .= "<textarea ";
+        $str .= $this->widget_attributes($form, $variables);
+        $str .= ">";
+        $str .= "$val";
+        $str .= "</textarea>";
+        return $str;
+    }
+    public function choice_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $expanded = isset($vars['expanded'])?$vars['expanded']:false;
+        if ($expanded) {
+            $str .= $this->choice_widget_expanded ($form, $variables);
+        } else {
+            $str .= $this->choice_widget_collapsed ($form, $variables);
+        }
+        return $str;
+    }
+    public function choice_widget_expanded (FormView $form, $variables=[]) {
+        $str = "";
+        $str .= "<div ".$this->widget_container_attributes($form, $variables).">";
+        $str .= $this->form_widget($form, $variables);
+        $str .= $this->form_label($form, null, $variables);
+        $str .= "</div>";
+        return $str;
+    }
+    public function choice_widget_collapsed (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $value = isset($vars['value'])?$vars['value']:false;
+        $required = isset($vars['required'])?$vars['required']:null;
+        $placeholder = isset($vars['placeholder'])?$vars['placeholder']:false;
+        $placeholder_in_choices = isset($vars['placeholder_in_choices'])?$vars['placeholder_in_choices']:false;
+        $preferred_choices = isset($vars['preferred_choices'])?$vars['preferred_choices']:[];
+        $choices = isset($vars['choices'])?$vars['choices']:[];
+        $separator = isset($vars['separator'])?$vars['separator']:"";
+        $multiple = isset($vars['multiple'])?$vars['multiple']:false;
 
-{%- block textarea_widget -%}
-    <textarea {{ block('widget_attributes') }}>{{ value }}</textarea>
-{%- endblock textarea_widget -%}
-
-{%- block choice_widget -%}
-    {% if expanded %}
-        {{- block('choice_widget_expanded') -}}
-    {% else %}
-        {{- block('choice_widget_collapsed') -}}
-    {% endif %}
-{%- endblock choice_widget -%}
-
-{%- block choice_widget_expanded -%}
-    <div {{ block('widget_container_attributes') }}>
-    {%- for child in form %}
-        {{- form_widget(child) -}}
-        {{- form_label(child, null, {translation_domain: choice_translation_domain}) -}}
-    {% endfor -%}
-    </div>
-{%- endblock choice_widget_expanded -%}
-
-{%- block choice_widget_collapsed -%}
+        /*
+         * @todo check behavior with original.
     {%- if required and placeholder is none and not placeholder_in_choices and not multiple -%}
         {% set required = false %}
     {%- endif -%}
-    <select {{ block('widget_attributes') }}{% if multiple %} multiple="multiple"{% endif %}>
-        {%- if placeholder is not none -%}
-            <option value=""{% if required and value is empty %} selected="selected"{% endif %}>{{ placeholder != '' ? placeholder|trans({}, translation_domain) }}</option>
-        {%- endif -%}
-        {%- if preferred_choices|length > 0 -%}
-            {% set options = preferred_choices %}
-            {{- block('choice_widget_options') -}}
-            {%- if choices|length > 0 and separator is not none -%}
-                <option disabled="disabled">{{ separator }}</option>
-            {%- endif -%}
-        {%- endif -%}
-        {%- set options = choices -%}
-        {{- block('choice_widget_options') -}}
-    </select>
-{%- endblock choice_widget_collapsed -%}
+         */
+        if ($required===null && !$placeholder_in_choices && !$required) {
+            $required = false;
+        }
 
-{%- block choice_widget_options -%}
-    {% for group_label, choice in options %}
-        {%- if choice is iterable -%}
-            <optgroup label="{{ choice_translation_domain is same as(false) ? group_label : group_label|trans({}, choice_translation_domain) }}">
-                {% set options = choice %}
-                {{- block('choice_widget_options') -}}
-            </optgroup>
-        {%- else -%}
-            {% set attr = choice.attr %}
-            <option value="{{ choice.value }}" {{ block('attributes') }}{% if choice is selectedchoice(value) %} selected="selected"{% endif %}>{{ choice_translation_domain is same as(false) ? choice.label : choice.label|trans({}, choice_translation_domain) }}</option>
-        {%- endif -%}
-    {% endfor %}
-{%- endblock choice_widget_options -%}
+        $str .= "<select ".$this->widget_attributes($form, $vars)." ";
+        $str .= $multiple?"multiple='multiple'":"";
+        $str .= ">";
+        if ($placeholder) {
+            $str .= "<option ";
+            if ($required && !$value) {
+                $str .= "selected='selected' ";
+            }
+            $str .= ">";
+            $str .= "$placeholder"; // @todo translation
 
-{%- block checkbox_widget -%}
-    <input type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
-{%- endblock checkbox_widget -%}
+        }
 
-{%- block radio_widget -%}
-    <input type="radio" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
-{%- endblock radio_widget -%}
+        if (count($preferred_choices)) {
+            $variables['options'] = $preferred_choices;
+            $this->choice_widget_options($form, $variables);
+            if (count($choices) && $separator) {
+                $str .= "<option disabled='disabled'>$separator</option>";
 
-{%- block datetime_widget -%}
-    {% if widget == 'single_text' %}
-        {{- block('form_widget_simple') -}}
-    {%- else -%}
-        <div {{ block('widget_container_attributes') }}>
-            {{- form_errors(form.date) -}}
-            {{- form_errors(form.time) -}}
-            {{- form_widget(form.date) -}}
-            {{- form_widget(form.time) -}}
-        </div>
-    {%- endif -%}
-{%- endblock datetime_widget -%}
+            }
+        }
+        $variables['options'] = $choices;
+        $str .= $this->choice_widget_options ($form,$variables);
+        $str .= "</select>";
 
-{%- block date_widget -%}
-    {%- if widget == 'single_text' -%}
-        {{ block('form_widget_simple') }}
-    {%- else -%}
-        <div {{ block('widget_container_attributes') }}>
-            {{- date_pattern|replace({
-                '{{ year }}':  form_widget(form.year),
-                '{{ month }}': form_widget(form.month),
-                '{{ day }}':   form_widget(form.day),
-            })|raw -}}
-        </div>
-    {%- endif -%}
-{%- endblock date_widget -%}
+        return $str;
+    }
+    public function choice_widget_options (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $options = isset($vars['options'])?$vars['options']:[];
+        $choice_translation_domain = isset($vars['choice_translation_domain'])?$vars['choice_translation_domain']:[];
 
-{%- block time_widget -%}
-    {%- if widget == 'single_text' -%}
-        {{ block('form_widget_simple') }}
-    {%- else -%}
-        {%- set vars = widget == 'text' ? { 'attr': { 'size': 1 }} : {} -%}
-        <div {{ block('widget_container_attributes') }}>
-            {{ form_widget(form.hour, vars) }}{% if with_minutes %}:{{ form_widget(form.minute, vars) }}{% endif %}{% if with_seconds %}:{{ form_widget(form.second, vars) }}{% endif %}
-        </div>
-    {%- endif -%}
-{%- endblock time_widget -%}
+        foreach ($options as $group_label => $choice) {
+            if ($choice instanceof \Traversable || is_array($choice)) {
+                $str .= "<optgroup label='";
+                $str .= !$choice_translation_domain
+                    ? $this->commons->trans($group_label)
+                    : $this->commons->trans($group_label, $choice_translation_domain);
+                $str .= "' ";
+                $str .= $this->choice_widget_options($form, ['options'=>$choice]);
+                $str .= "</optgroup>";
+            } else {
+                $choiceLabel = $choice['label'];
+                $choiceValue = $choice['value'];
+                $selected_value = isset($choice['selected_value']) ? $choice['selected_value'] : "";
+                $str .= "<option value='$choiceValue' ";
+                $str .= $this->widget_attributes($choice); // @todo check it, coz original code called block('attributes')
+                if ($choiceValue===$selected_value || in_array($choiceValue, $selected_value)) {
+                    $str .= "selected='selected' ";
+                }
+                $str .= ">";
+                $str .= !$choice_translation_domain
+                    ? $this->commons->trans($choiceLabel)
+                    : $this->commons->trans($choiceLabel, $choice_translation_domain);
+                $str .= "</option>";
+            }
+        }
+        return $str;
+    }
+    public function checkbox_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $value = isset($vars['value'])?$vars['value']:null;
+        $checked = isset($vars['checked'])?$vars['checked']:null;
 
-{%- block number_widget -%}
-    {# type="number" doesn't work with floats #}
-    {%- set type = type|default('text') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock number_widget -%}
+        $str .= "<input type='checkbox' ";
+        $str .= $this->widget_attributes ($form, $variables);
+        if ($value) {
+            $str .= "value='$value' ";
+        }
+        if ($checked) {
+            $str .= "checked='checked' ";
+        }
+        $str .= " />";
+        return $str;
+    }
+    public function radio_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $value = isset($vars['value'])?$vars['value']:null;
+        $checked = isset($vars['checked'])?$vars['checked']:null;
 
-{%- block integer_widget -%}
-    {%- set type = type|default('number') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock integer_widget -%}
+        $str .= "<input type='radio' ";
+        $str .= $this->widget_attributes ($form, $variables);
+        if ($value) {
+            $str .= "value='$value' ";
+        }
+        if ($checked) {
+            $str .= "checked='checked' ";
+        }
+        $str .= " />";
+        return $str;
+    }
+    public function datetime_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $widget = isset($vars['widget'])?$vars['widget']:null;
 
-{%- block money_widget -%}
-    {{ money_pattern|replace({ '{{ widget }}': block('form_widget_simple') })|raw }}
-{%- endblock money_widget -%}
+        if ($widget==="single_text") {
+            $str .= $this->form_widget_simple($form, $variables);
+        } else {
+            $str .= "<div";
+            $str .= $this->widget_container_attributes($form, $variables);
+            $str .= ">";
+            $str .= $this->form_errors($form['date']);
+            $str .= $this->form_errors($form['time']);
+            $str .= $this->form_widget($form['date']);
+            $str .= $this->form_widget($form['time']);
+            $str .= "</div>";
+        }
+        return $str;
+    }
+    public function date_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $widget = isset($vars['widget'])?$vars['widget']:null;
+        $date_pattern = isset($vars['date_pattern'])?$vars['date_pattern']:"";
 
-{%- block url_widget -%}
-    {%- set type = type|default('url') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock url_widget -%}
+        if ($widget==="single_text") {
+            $str .= $this->form_widget_simple($form, $variables);
+        } else {
+            $str .= "<div";
+            $str .= $this->widget_container_attributes($form, $variables);
+            $str .= ">";
+            $str .= str_replace([
+                "%year%", "%month%", "%day%",
+            ],[
+                $this->form_widget($form['year'], $variables),
+                $this->form_widget($form['month'], $variables),
+                $this->form_widget($form['day'], $variables)
+            ], $date_pattern);
+            $str .= $this->form_errors($form['date']);
+            $str .= $this->form_errors($form['time']);
+            $str .= $this->form_widget($form['date']);
+            $str .= $this->form_widget($form['time']);
+            $str .= "</div>";
+        }
+        return $str;
+    }
+    public function time_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $widget = isset($vars['widget'])?$vars['widget']:null;
+        $with_minutes = isset($vars['with_minutes'])?$vars['with_minutes']:false;
+        $with_seconds = isset($vars['with_seconds'])?$vars['with_seconds']:false;
 
-{%- block search_widget -%}
-    {%- set type = type|default('search') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock search_widget -%}
+        if ($widget==="single_text") {
+            $str .= $this->form_widget_simple($form, $variables);
+        } else {
+            $str .= "<div";
+            $str .= $this->widget_container_attributes($form, $variables);
+            $str .= ">";
+            $str .= $this->form_widget($form['hour'], $variables);
+            if ($with_minutes) {
+                $str .= $this->form_widget($form['minute'], $variables);
+            }
+            if ($with_seconds) {
+                $str .= $this->form_widget($form['second'], $variables);
+            }
+            $str .= "</div>";
+        }
+        return $str;
+    }
+    public function number_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        // {# type="number" doesn't work with floats #}
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "text";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function integer_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "number";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function money_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $money_pattern = isset($vars['money_pattern']) ? $vars['money_pattern'] : "%widget%";
+        $str .= str_replace(
+            "%widget%", $this->form_widget_simple($form, $variables), $money_pattern
+        );
+        return $str;
+    }
+    public function url_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "url";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function search_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "search";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function percent_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "text";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function password_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "password";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function hidden_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "hidden";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function email_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "email";
+        $str .= $this->form_widget_simple($form, $variables);
+        return $str;
+    }
+    public function button_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $label = $vars['label'];
+        $label_format = $vars['label_format'];
+        $name = $vars['name'];
+        $id = $vars['id'];
+        $translation_domain = $vars['translation_domain'];
 
-{%- block percent_widget -%}
-    {%- set type = type|default('text') -%}
-    {{ block('form_widget_simple') }} %
-{%- endblock percent_widget -%}
+        if (!$label) {
+            if ($label_format) {
+                $label = $this->commons->format($label_format, [
+                    '%name%'=>$name,
+                    '%id%'  =>$id,
+                ]);
+            } else {
+                // @todo check with twig original
+                $str .= $this->commons->humanize($name);
+            }
+        }
 
-{%- block password_widget -%}
-    {%- set type = type|default('password') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock password_widget -%}
+        $str .= "<button type='";
+        $str .= "'";
+        $str .= $this->widget_attributes($form, $variables);
+        $str .= ">";
+        $str .= $this->commons->trans($label, $translation_domain);
+        $str .= $label;
+        $str .= "</button>";
+        return $str;
+    }
+    public function submit_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "submit";
+        $str .= $this->button_widget($form, $variables);
+        return $str;
+    }
+    public function reset_widget (FormView $form, $variables=[]) {
+        $str = "";
+        $vars = array_merge_recursive($form->vars, $variables);
+        $vars['type'] = isset($vars['type']) ? $vars['type'] : "reset";
+        $str .= $this->button_widget($form, $variables);
+        return $str;
+    }
 
-{%- block hidden_widget -%}
-    {%- set type = type|default('hidden') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock hidden_widget -%}
 
-{%- block email_widget -%}
-    {%- set type = type|default('email') -%}
-    {{ block('form_widget_simple') }}
-{%- endblock email_widget -%}
-
-{%- block button_widget -%}
-    {%- if label is empty -%}
-        {%- if label_format is not empty -%}
-            {% set label = label_format|replace({
-                '%name%': name,
-                '%id%': id,
-            }) %}
-        {%- else -%}
-            {% set label = name|humanize %}
-        {%- endif -%}
-    {%- endif -%}
-    <button type="{{ type|default('button') }}" {{ block('button_attributes') }}>{{ label|trans({}, translation_domain) }}</button>
-{%- endblock button_widget -%}
-
-{%- block submit_widget -%}
-    {%- set type = type|default('submit') -%}
-    {{ block('button_widget') }}
-{%- endblock submit_widget -%}
-
-{%- block reset_widget -%}
-    {%- set type = type|default('reset') -%}
-    {{ block('button_widget') }}
-{%- endblock reset_widget -%}
-     */
     public function csrf_token() {
-        // must return the token value.
+        // @todo must return the token value.
     }
 
 }
