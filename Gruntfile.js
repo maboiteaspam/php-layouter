@@ -84,13 +84,18 @@ module.exports = function (grunt) {
           });
         }
       },
-      next: function(err,watchers){
+      next: function(err, watchers){
         if (err) {
           console.log(err.stack)
           return grunt.log.error("watching everything failed with error", err);
         } else {
           grunt.verbose.ok('watching everything completed', watchers);
         }
+        process.on('SIGINT', function () {
+          for ( var i=0;  i<watchers.length; i++ ) {
+            watchers[i].close();
+          }
+        });
       }
     });
   };
@@ -152,15 +157,18 @@ module.exports = function (grunt) {
 
   });
 
+  grunt.registerTask('watch', function() {
+    var watchPaths = grunt.config.get('path_to_watch');
+    if (watchPaths) {
+      spawnWatchr( watchPaths )
+    }
+  });
+
   grunt.registerTask('start', function() {
     var done = this.async();
     spawnPhp('php -S localhost:8000 -t www app.php', function () {
       done();
     });
-    var watchPaths = grunt.config.get('path_to_watch');
-    if (watchPaths) {
-      spawnWatchr( watchPaths )
-    }
   });
 
   // Default task(s).
@@ -171,6 +179,7 @@ module.exports = function (grunt) {
     'init',
     'reveal-fs-dumps',
     //'open:browser',
+    'watch',
     'start'
   ]);
 };
