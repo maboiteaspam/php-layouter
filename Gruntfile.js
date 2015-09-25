@@ -152,7 +152,7 @@ module.exports = function (grunt) {
 
   });
 
-  grunt.registerTask('spawn-builtin', function() {
+  grunt.registerTask('start', function() {
     var done = this.async();
     spawnPhp('php -S localhost:8000 -t www app.php', function () {
       done();
@@ -171,6 +171,6 @@ module.exports = function (grunt) {
     'init',
     'reveal-fs-dumps',
     //'open:browser',
-    'spawn-builtin'
+    'start'
   ]);
 };
