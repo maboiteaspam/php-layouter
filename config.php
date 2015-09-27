@@ -3,33 +3,50 @@ return [
 //    'debug' => true,
 
     'server_type' => 'builtin',
-    'projectPath' => "%projectPath%",
-    'documentRoot' => '%projectPath%/www/',
+    'documentRoot' => '%project.path%/www/',
 
-    'private_build_dir' => '%projectPath%/run/',
-    'public_build_dir' => '%projectPath%/www/run/',
+    'private_build_dir' => '%project.path%/run/',
+    'public_build_dir' => '%project.path%/www/run/',
 
     'blogdata.provider' => "Eloquent",
 //    'blogdata.provider' => "PO",
 
+
+    'monolog.logfile'       => '%run.path%/development.log',
+
     'httpcache.check_taged_resource_freshness' => !false,
 
-    'caches.config' => [
-        'http-store'=>['driver' => 'file']
+    'caches.options' => [
+        'http-store'=>[
+            'driver' => 'redis',
+            'cache_dir' => __DIR__ . '/run/http/',
+        ],
+        'assets-store'=>[
+            'driver' => 'redis',
+            'cache_dir' => __DIR__ . '/run/assets/',
+        ],
+        'capsule-store'=>[
+            'driver' => 'redis',
+            'cache_dir' => __DIR__ . '/run/capsule/',
+        ],
+        'layout-store'=>[
+            'driver' => 'redis',
+            'cache_dir' => __DIR__ . '/run/layout/',
+        ],
     ],
     'assets.concat' => false,
     'assets.patterns' => [
         'blog_detail' => '/images/blog/detail/:id.jpg',
         'blog_list' => '/images/blog/list/:id.jpg',
     ],
-    'assets.fs_file_path' => '%projectPath%/run/assets_fs_cache.php',
-    'assets.bridge_file_path' => '%projectPath%/run/bridge.php',
+    'assets.fs_file_path' => '%project.path%/run/assets_fs_cache.php',
+    'assets.bridge_file_path' => '%project.path%/run/bridge.php',
 
-    'capsule.schema_file_cache' => '%projectPath%/run/schemas.php',
+    'capsule.schema_file_cache' => '%project.path%/run/schemas.php',
     'capsule.connections' => [
         "default"=>[
             'driver'   => 'sqlite',
-            'database' => '%projectPath%/run/database.sqlite',
+            'database' => '%project.path%/run/database.sqlite',
 //        'database' => ':memory:',
 
 //        'driver'    => 'mysql',
@@ -44,7 +61,7 @@ return [
         ],
         "prod"=>[
             'driver'   => 'sqlite',
-//            'database' => '%projectPath%/run/database.sqlite',
+//            'database' => '%project.path%/run/database.sqlite',
             'database' => ':memory:',
             'prefix'   => '',
             'charset'   => 'utf8',

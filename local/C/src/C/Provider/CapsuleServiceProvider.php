@@ -38,12 +38,15 @@ class CapsuleServiceProvider implements ServiceProviderInterface
             return new Container;
         });
 
-        if (!isset($app['capsule.schema_file_cache']))
-            $app['capsule.schema_file_cache'] = '.capsule_schema_cache';
+        if (!isset($app['capsule.cache_store_name']))
+            $app['capsule.cache_store_name'] = "capsule-store";
 
         $app['capsule.schema'] = $app->share(function() use($app) {
-            $loader = new Loader(new Registry($app['capsule.schema_file_cache'], [
-                'basePath' => $app['projectPath']
+            $storeName = $app['capsule.cache_store_name'];
+            if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
+            else $cache = $app['cache'];
+            $loader = new Loader(new Registry('capsule-', $cache, [
+                'basePath' => $app['project.path']
             ]));
             $loader->setCapsule($app['capsule']);
             return $loader;

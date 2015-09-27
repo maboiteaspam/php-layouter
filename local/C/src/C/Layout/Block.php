@@ -1,10 +1,11 @@
 <?php
 namespace C\Layout;
 
-use C\Repository\RepositoryProxy;
 use C\TagableResource\TagedResource;
 use C\TagableResource\TagableResourceInterface;
+use C\TagableResource\UnwrapableResourceInterface;
 use C\View\Context;
+use C\FS\KnownFs;
 
 class Block implements TagableResourceInterface{
 
@@ -54,7 +55,7 @@ class Block implements TagableResourceInterface{
         }
     }
 
-    public function resolve (Context $context){
+    public function resolve (KnownFs $fs, Context $context){
         $block = $this;
         if ($block
             && !$block->resolved
@@ -63,13 +64,17 @@ class Block implements TagableResourceInterface{
 
             $fn = $block->options['template'];
             if(!is_callable($block->options['template'])) {
-                $fn = function (Block $block) {
+                $fn = function (Block $block) use($fs) {
                     $block->resolved = true; // this will help to prevent recursive call when set above.
                     ob_start();
                     extract($block->unwrapData(['block']), EXTR_SKIP);
-                    require($block->options['template']);
+                    $template = $fs->get($block->options['template']);
+                    if ($template!==false) require ($template['absolute_path']);
+                    else require ($block->options['template']);
                     $block->body = ob_get_clean();
                 };
+            } else {
+                $block->resolved = true;
             }
 
             if ($fn) {
@@ -87,30 +92,34 @@ class Block implements TagableResourceInterface{
     public function getTaggedResource (){
         $res = new TagedResource();
 
-        $res->addResource($this->id);
-        if (isset($this->options['template'])) {
-            $template = $this->options['template'];
-            if ($template) {
-                $res->addResource($template, 'file');
+//        var_dump($this->resolved);
+        if ($this->resolved) {
+            $res->addResource($this->id);
+            if (isset($this->options['template'])) {
+                $template = $this->options['template'];
+                if ($template) {
+                    $res->addResource($template, 'template');
+                }
             }
-        }
-        foreach($this->assets as $target=>$assets) {
-            foreach($assets as $i=>$asset){
-                if ($asset) {
-                    $res->addResource($target);
-                    $res->addResource($i);
-                    $res->addResource($asset, 'file');
+            foreach($this->assets as $target=>$assets) {
+                foreach($assets as $i=>$asset){
+                    if ($asset) {
+                        $res->addResource($target);
+                        $res->addResource($i);
+                        $res->addResource($asset, 'asset');
+                    }
+                }
+            }
+
+            foreach($this->data as $name => $data){
+                if ($data instanceof TagableResourceInterface) {
+                    $res->addTaggedResource($data->getTaggedResource());
+                } else {
+                    $res->addResource($data);
                 }
             }
         }
 
-        foreach($this->data as $name => $data){
-            if ($data instanceof TagableResourceInterface) {
-                $res->addTaggedResource($data->getTaggedResource());
-            } else {
-                $res->addResource($data);
-            }
-        }
         return $res;
     }
 
@@ -118,7 +127,7 @@ class Block implements TagableResourceInterface{
         $unwrapped = [];
         foreach($this->data as $name => $data){
             if (!in_array($name, $notNames)) {
-                if ($data instanceof RepositoryProxy) {
+                if ($data instanceof UnwrapableResourceInterface) {
                     $unwrapped[$name] = $data->unwrap();
                 } else {
                     $unwrapped[$name] = $data;

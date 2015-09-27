@@ -8,6 +8,7 @@ use C\View\Context;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use C\Misc\Utils;
+use C\FS\KnownFs;
 
 class Layout implements TagableResourceInterface{
 
@@ -49,6 +50,10 @@ class Layout implements TagableResourceInterface{
      * @var \Symfony\Component\EventDispatcher\EventDispatcher
      */
     public $dispatcher;
+    /**
+     * @var KnownFs
+     */
+    public $fs;
 
     public $defaultOptions = [
         'options'=>[]
@@ -67,6 +72,10 @@ class Layout implements TagableResourceInterface{
 
     public function setDispatcher (EventDispatcher $dispatcher) {
         $this->dispatcher = $dispatcher;
+    }
+
+    public function setFS (KnownFs $fs) {
+        $this->fs = $fs;
     }
 
     public function enableDebug ($enabled) {
@@ -88,14 +97,14 @@ class Layout implements TagableResourceInterface{
         $currentBlockInRender = $this->currentBlockInRender;
         $this->currentBlockInRender = $id;
         if ($block) {
-            $block->resolve($this->context);
+            $block->resolve($this->fs, $this->context);
         }
         $this->currentBlockInRender = $currentBlockInRender;
         $this->emit('after_block_resolve', $id);
         return $block;
     }
 
-    public function getContent ($id){
+    public function getContent ($id) {
         $body = "";
         $this->emit('before_block_render', $id);
         $this->emit('before_render_' . $id);
@@ -122,9 +131,18 @@ class Layout implements TagableResourceInterface{
             $layout->resolve($block->id);
         });
     }
+    public $hasPreRendered = false;
+    public function preRender (){
+        if (!$this->hasPreRendered) {
+            $this->emit('before_layout_render');
+            $this->resolveAllBlocks ();
+            $this->hasPreRendered = true;
+            return true;
+        }
+        return false;
+    }
     public function render (){
-        $this->emit('before_layout_render');
-        $this->resolveAllBlocks ();
+        $this->preRender();
         $this->getContent ($this->block);
         $this->emit('after_layout_render');
         return $this->getRoot()->body;
@@ -206,9 +224,14 @@ class Layout implements TagableResourceInterface{
 
     public function getTaggedResource () {
         $res = new TagedResource();
-        foreach($this->registry->blocks as $block) {
-            /* @var $block Block */
-            $res->addTaggedResource($block->getTaggedResource());
+        try{
+            $res->addResource($this->block);
+            foreach($this->registry->blocks as $block) {
+                /* @var $block Block */
+                $res->addTaggedResource($block->getTaggedResource());
+            }
+        }catch(\Exception $ex) {
+            $res = false;
         }
         return $res;
     }

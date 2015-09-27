@@ -33,7 +33,8 @@ class CommonViewHelper extends AbstractViewHelper {
      * @param null $locale
      * @return array
      */
-    public function trans () {
+    public function trans ($id, $parameters=[], $domain=null, $locale=null) {
+        if (!$this->translator) return $id;
         return call_user_func_array([$this->translator, 'trans'], func_get_args());
     }
 
@@ -45,7 +46,8 @@ class CommonViewHelper extends AbstractViewHelper {
      * @param null $locale
      * @return array
      */
-    public function transChoice () {
+    public function transChoice ($id, $number, $parameters=[], $domain=null, $locale=null) {
+        if (!$this->translator) return $id;
         return call_user_func_array([$this->translator, 'transChoice'], func_get_args());
     }
 
@@ -67,7 +69,7 @@ class CommonViewHelper extends AbstractViewHelper {
     public function date($date, $format = null, $timezone = null)
     {
         if (null === $format) {
-            $formats = $this->getDateFormat();
+            $formats = $this->env->getDateFormat();
             $format = $date instanceof \DateInterval ? $formats[1] : $formats[0];
         }
 
@@ -96,7 +98,7 @@ class CommonViewHelper extends AbstractViewHelper {
         // determine the timezone
         if (false !== $timezone) {
             if (null === $timezone) {
-                $timezone = $this->getTimezone();
+                $timezone = $this->env->getTimezone();
             } elseif (!$timezone instanceof \DateTimeZone) {
                 $timezone = new \DateTimeZone($timezone);
             }
@@ -117,14 +119,14 @@ class CommonViewHelper extends AbstractViewHelper {
         }
 
         if (null === $date || 'now' === $date) {
-            return new \DateTime($date, false !== $timezone ? $timezone : $this->getTimezone());
+            return new \DateTime($date, false !== $timezone ? $timezone : $this->env->getTimezone());
         }
 
         $asString = (string) $date;
         if (ctype_digit($asString) || (!empty($asString) && '-' === $asString[0] && ctype_digit(substr($asString, 1)))) {
             $date = new \DateTime('@'.$date);
         } else {
-            $date = new \DateTime($date, $this->getTimezone());
+            $date = new \DateTime($date, $this->env->getTimezone());
         }
 
         if (false !== $timezone) {
@@ -156,12 +158,26 @@ class CommonViewHelper extends AbstractViewHelper {
         return null === $resultDate ? $date : $resultDate;
     }
     /**
+     * Replace given args name
+     * into string format
+     *
+     * Make format like
+     * 'hello %name%'
+     *
+     * resolve it with an array like
+     * ['name'=>'some']
+     *
      * @param $format
      * @param array $args
      * @return mixed
      */
     public function format($format, $args = []) {
-        return str_replace(array_keys($args), array_values($args), $format);
+        $placeholders = [];
+        foreach ($args as $name=>$arg) {
+            $placeholders[] = "%$name%";
+        }
+
+        return str_replace($placeholders, array_values($args), $format);
     }
     /**
      * Replaces strings within a string.
@@ -315,7 +331,7 @@ class CommonViewHelper extends AbstractViewHelper {
      */
     public function title($string)
     {
-        return patched_titlecased($string, $this->getCharset());
+        return patched_titlecased($string, $this->env->getCharset());
     }
     /**
      * Returns a capitalized string.
@@ -325,7 +341,7 @@ class CommonViewHelper extends AbstractViewHelper {
      * @return string The capitalized string
      */
     public function capitalize($string) {
-        return patched_capitalize($string, $this->getCharset());
+        return patched_capitalize($string, $this->env->getCharset());
     }
     /**
      * Converts a string to uppercase.
@@ -336,7 +352,7 @@ class CommonViewHelper extends AbstractViewHelper {
      */
     public function upper($string)
     {
-        return patched_upper($string, $this->getCharset());
+        return patched_upper($string, $this->env->getCharset());
     }
     /**
      * Converts a string to lowercase.
@@ -347,7 +363,7 @@ class CommonViewHelper extends AbstractViewHelper {
      */
     public function lower($string)
     {
-        return patched_lower($string, $this->getCharset());
+        return patched_lower($string, $this->env->getCharset());
     }
     /**
      * (PHP 4, PHP 5)<br/>
@@ -469,7 +485,7 @@ class CommonViewHelper extends AbstractViewHelper {
             return null === $limit ? explode($delimiter, $value) : explode($delimiter, $value, $limit);
         }
 
-        if (!function_exists('mb_get_info') || null === $charset = $this->getCharset()) {
+        if (!function_exists('mb_get_info') || null === $charset = $this->env->getCharset()) {
             return str_split($value, null === $limit ? 1 : $limit);
         }
 
@@ -599,7 +615,7 @@ class CommonViewHelper extends AbstractViewHelper {
             return array_reverse($item, $preserveKeys);
         }
 
-        if (null !== $charset = $this->getCharset()) {
+        if (null !== $charset = $this->env->getCharset()) {
             $string = (string) $item;
 
             if ('UTF-8' != $charset) {
@@ -627,7 +643,7 @@ class CommonViewHelper extends AbstractViewHelper {
      * @return int The length of the value
      */
     public function length($thing) {
-        return patched_length($thing, $this->getCharset());
+        return patched_length($thing, $this->env->getCharset());
     }
     /**
      * Slices a variable.
@@ -663,7 +679,7 @@ class CommonViewHelper extends AbstractViewHelper {
 
         $item = (string) $item;
 
-        if (function_exists('mb_get_info') && null !== $charset = $this->getCharset()) {
+        if (function_exists('mb_get_info') && null !== $charset = $this->env->getCharset()) {
             return (string) mb_substr($item, $start, null === $length ? mb_strlen($item, $charset) - $start : $length, $charset);
         }
 
@@ -770,7 +786,7 @@ class CommonViewHelper extends AbstractViewHelper {
         }
 
         if (null === $charset) {
-            $charset = $this->getCharset();
+            $charset = $this->env->getCharset();
         }
 
         switch ($strategy) {
@@ -991,7 +1007,7 @@ class CommonViewHelper extends AbstractViewHelper {
             if ('' === $values) {
                 return '';
             }
-            if (null !== $charset = $this->getCharset()) {
+            if (null !== $charset = $this->env->getCharset()) {
                 if ('UTF-8' != $charset) {
                     $values = patched_convert_encoding($values, 'UTF-8', $charset);
                 }

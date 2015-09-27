@@ -3,10 +3,12 @@
 namespace C\FS;
 
 use C\Misc\Utils;
+use Moust\Silex\Cache\CacheInterface;
 
 class Registry {
 
-    public $file;
+    public $storeName;
+    public $cache;
     public $signature;
 
     public $config = [
@@ -33,10 +35,11 @@ class Registry {
         ]
     ];
 
-    public function __construct ($file, $config=[]) {
+    public function __construct ($storeName, CacheInterface $cache, $config=[]) {
         $this->config = array_merge($this->config, $config);
         $this->items = [];
-        $this->file = $file;
+        $this->storeName = $storeName;
+        $this->cache = $cache;
         foreach($this->config['paths'] as $i => $path) {
             $this->config['paths'][$i] = reliablePath($path);
         }
@@ -71,62 +74,69 @@ class Registry {
     public function sign($some=null){
         $signature = '';
         $this->each(function ($item, $localPath) use(&$signature, $some) {
-            if (!$some || in_array($localPath, $some) || in_array($item['absolute_path'], $some) )
-                $signature = sha1($item['sha1']);
+            if (!$some || in_array($localPath, $some) || in_array($item['absolute_path'], $some) ) {
+                $signature = sha1($signature.$item['sha1']);
+            }
         });
         return $signature;
     }
 
-    public function saveToFile(){
-        $dump = $this->build();
-        if (!LocalFs::is_dir(dirname($this->file))) LocalFs::mkdir(dirname($this->file), 0700, true);
-        LocalFs::file_put_contents($this->file, "<?php return ".var_export($dump, true).";\n");
+    public function saveToCache(){
+        $dump = $this->build()->dump();
+        $this->cache->store("{$this->storeName}dump", ($dump));
         return $dump;
     }
-    public function clearFile(){
-        if (LocalFs::file_exists($this->file))
-            LocalFs::unlink($this->file);
+    public function clearCached(){
+        $this->cache->delete('dump');
     }
 
-    public function loadFromFile(){
-        try {
-            @$dump = include($this->file);
-            if ($dump) {
-                $this->load($dump);
-            }
-        } catch(\Exception $ex) {
-            return false;
-        }
-        return true;
+    public function loadFromCache(){
+        $dump = $this->cache->fetch("{$this->storeName}dump");
+        if ($dump) return $this->loadFromDump(($dump));
+        return false;
     }
-    public function load($dump){
+    public function loadFromDump($dump){
         $this->config = $dump['config'];
         $this->items = $dump['items'];
         $this->signature = $dump['signature'];
+        return true;
     }
     public function build(){
-        $this->recursiveReadPath()->createSignature();
+        return $this->recursiveReadPath()->createSignature();
+    }
+    public function dump(){
         return [
             'items'=>$this->items,
-            'config'=>$this->config,
+            'config'=>[
+                'basePath' => $this->config['basePath'],
+                'paths' => $this->getUniversalPath($this->config['paths']),
+                'alias' => $this->getUniversalPath($this->config['alias']),
+            ],
             'signature'=>$this->signature,
         ];
     }
-    protected function recursiveReadPath () {
+    protected function getUniversalPath (array $paths) {
         $basePath = $this->config['basePath'];
-        $paths = [];
-        foreach( $this->config['paths'] as $path) {
+        $ret = [];
+        foreach( $paths as $index=>$path) {
             $rp = LocalFs::realpath($path);
             if ($rp===false) {
                 $rp = LocalFs::realpath("$basePath".DIRECTORY_SEPARATOR."$path");
             }
-            if ($rp===false) {
-                // log that something is wrong in some assets path.
+            if ($rp!==false) {
+                $ret[$index] = substr($rp, strlen($basePath)+1);
             } else {
-                $paths[] = $rp;
+                // log that something is wrong in some assets path.
             }
         }
-        $paths = array_unique($paths);
+        $ret = array_unique($ret);
+        if (count($ret)!==count($paths)) {
+            // mh, something weird like duplicated path.
+        }
+        return $ret;
+    }
+    protected function recursiveReadPath () {
+        $paths = $this->getUniversalPath($this->config['paths']);
         $this->items = [];
         foreach( $paths as $path) {
             $Directory = new \RecursiveDirectoryIterator($path);
@@ -161,7 +171,6 @@ class Registry {
             $path = new \SplFileInfo($path);
         }
         /* @var $path \SplFileInfo */
-
         $fp = substr($path->getRealPath(), strlen($basePath)+1);
         $p = dirname($fp)."".DIRECTORY_SEPARATOR;
         $item = [
@@ -194,8 +203,10 @@ class Registry {
         $itemPath = reliablePath($itemPath);
         $basePath = $this->config['basePath'];
 
-        $alias = substr($itemPath, 0, strpos(":", $itemPath));
-        if (array_key_exists($alias, $this->config['alias'])) {
+        $aliasPos = strpos($itemPath, ":");
+        $alias = substr($itemPath, 0, $aliasPos+1);
+
+        if ($aliasPos>2 && array_key_exists($alias, $this->config['alias'])) {
             $itemPath = str_replace($alias, $this->config['alias'][$alias], $itemPath);
         }
 
@@ -211,8 +222,8 @@ class Registry {
             return $item;
         }
 
-        if (substr($itemPath,0,strlen($basePath))===$basePath) {
-            $p = substr($itemPath,strlen($basePath)+1);
+        if (substr($itemPath, 0, strlen($basePath))===$basePath) {
+            $p = substr($itemPath, strlen($basePath)+1);
             if (isset($this->items[$p])) {
                 $item = $this->items[$p];
                 $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];

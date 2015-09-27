@@ -1,73 +1,63 @@
 <?php
 namespace MyBlog;
 
-use C\Layout\Layout;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
-use C\StaticLayoutBuilder\Transforms as staticTransforms;
-use C\ModernApp\jQuery\Transforms as jQueryTransforms;
+use C\ModernApp\File\Transforms as FileLayout;
+use C\ModernApp\jQuery\Transforms as jQuery;
+use C\ModernApp\HTML\Transforms as HTML;
 
 use MyBlog\Transforms as MyBlogLayout;
 use \C\Blog\CommentForm as MyCommentForm;
-
-use C\BlogData\CommentRepositoryInterface as CommentRepo;
-use C\BlogData\EntryRepositoryInterface as EntryRepo;
+use \C\Form\FormBuilder;
 
 class Controllers{
 
+    /**
+     * name of the repo
+     * @var string
+     */
     public $entryRepo;
+
+    /**
+     * name of the repo
+     * @var string
+     */
     public $commentRepo;
 
-    /**
-     * @var MyBlogLayout
-     */
-    public $blog;
-
-    /**
-     * @var staticTransforms
-     */
-    public $static;
-
-    /**
-     * @var jQueryTransforms
-     */
-    public $jquery;
-
-    public function __construct(EntryRepo $entryRepo, CommentRepo $commentRepo) {
+    public function __construct($entryRepo, $commentRepo) {
         $this->entryRepo = $entryRepo;
         $this->commentRepo = $commentRepo;
     }
 
-    public function setBlogTransforms ( MyBlogLayout $T) {
-        $this->blog = $T;
-    }
-
-    public function setStaticTransforms ( staticTransforms $T) {
-        $this->static = $T;
-    }
-
-    public function setjQueryTransforms ( jQueryTransforms $T) {
-        $this->jquery = $T;
-    }
-
     public function home() {
         return function (Application $app) {
-            $this->blog
+            /* @var $entryRepo \C\BlogData\EntryRepositoryInterface */
+            $entryRepo = $app[$this->entryRepo];
+            /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
+            $commentRepo = $app[$this->entryRepo];
+            /* @var $requestData \C\HTTP\RequestProxy */
+            $requestData = $app['httpcache.request'];
+            $listEntryBy = 5;
+            MyBlogLayout::transform($app['layout'])
                 ->baseTemplate(__CLASS__)
                 ->home(
-                    $this->entryRepo->tagable(
-                        $this->entryRepo->tager()->lastUpdateDate()
-                    )->mostRecent(),
-                    $this->commentRepo->tagable(
-                        $this->commentRepo->tager()->lastUpdateDate()
-                    )->mostRecent()
+                    $entryRepo
+                        ->tagable( $entryRepo->tager()->lastUpdateDate() )
+                        ->mostRecent($requestData->get('page'), $listEntryBy),
+                    $commentRepo
+                        ->tagable( $commentRepo->tager()->lastUpdateDate() )
+                        ->mostRecent(),
+                    $entryRepo->tagable()->countAll(),
+                    $listEntryBy
                 )->then(
-                    $this->static->loadFile( "test_layout.yml" )
+                    FileLayout::transform($app['layout'])->loadFile( "test_layout.yml" )
                 )->then(
-                    $this->blog->html->finalize()
+                    HTML::transform($app['layout'])->finalize($app)
                 );
+
             $response = new Response();
             return $app['layout.responder']($response);
         };
@@ -75,12 +65,16 @@ class Controllers{
 
     public function detail($postCommentUrl) {
         return function (Application $app, Request $request, $id) use($postCommentUrl) {
+            /* @var $entryRepo \C\BlogData\EntryRepositoryInterface */
+            $entryRepo = $app[$this->entryRepo];
+            /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
+            $commentRepo = $app[$this->commentRepo];
             /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
             $generator = $app["url_generator"];
 
             $commentForm = new MyCommentForm();
 
-            /* @var $form \Symfony\Component\Form\Form*/
+            /* @var $form \Symfony\Component\Form\Form */
             $form = $app['form.factory']
                 ->createBuilder($commentForm, ["email"=>"some"])
                 ->setAction($generator->generate($postCommentUrl, ['id'=>$id]))
@@ -89,27 +83,32 @@ class Controllers{
 
             $form->handleRequest($request);
 
-            $this->blog
+            MyBlogLayout::transform($app['layout'])
                 ->baseTemplate(__CLASS__)
                 ->detail(
-                    $this->entryRepo->tagable(
-                        $this->entryRepo->tager()->byId($id)
-                    )->byId($id),
-                    $this->commentRepo->tagable(
-                        $this->commentRepo->tager()->lastUpdatedByEntryId($id)
-                    )->byEntryId($id),
-                    $this->commentRepo->tagable(
-                        $this->commentRepo->tager()->mostRecent([$id])
-                    )->mostRecent([$id])
-                )->updateData('blog_form_comments', [
-                    'form' => $form->createView(),
-                ])->then(
-                    $this->jquery->ajaxify('blog_detail_comments', [
+                    $entryRepo
+                        ->tagable( $entryRepo->tager()->byId($id) )
+                        ->byId($id),
+                    $commentRepo
+                        ->tagable( $commentRepo->tager()->lastUpdatedByEntryId($id) )
+                        ->byEntryId($id),
+                    $commentRepo
+                        ->tagable( $commentRepo->tager()->mostRecent([$id]) )
+                        ->mostRecent([$id])
+                )->then(
+                    jQuery::transform($app['layout'])->ajaxify('blog_detail_comments', [
                         'isAjax'=> $request->isXmlHttpRequest(),
                         'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
                     ])
                 )->then(
-                    $this->blog->html->finalize()
+                    jQuery::transform($app['layout'])->ajaxify('blog_form_comments', [
+                        'isAjax'=> $request->isXmlHttpRequest(),
+                        'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
+                    ])->updateData('blog_form_comments', [
+                        'form' => FormBuilder::createView($form),
+                    ])
+                )->then(
+                    HTML::transform($app['layout'])->finalize($app)
                 );
 
             $response = new Response();
@@ -130,7 +129,9 @@ class Controllers{
             if ($form->isValid()) {
                 $data = $form->getData();
                 $data['blog_entry_id'] = $id;
-                $this->commentRepo->insert($data);
+                /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
+                $commentRepo = $app[$this->commentRepo];
+                $commentRepo->insert($data);
                 return $app->json($data);
             }
 

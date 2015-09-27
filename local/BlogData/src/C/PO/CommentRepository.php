@@ -50,17 +50,17 @@ class CommentRepository extends TagableRepository implements CommentRepositoryIn
 
     /**
      * @param array $excludesEntries
-     * @param int $from
-     * @param int $length
+     * @param int $page
+     * @param int $by
      * @return array
      */
-    public function mostRecent($excludesEntries=[], $from=0, $length=5) {
+    public function mostRecent($excludesEntries=[], $page=0, $by=5) {
         $data = [];
         foreach( $this->data as $comment ) {
             if (!in_array($comment->blog_entry_id, $excludesEntries)) {
                 $data[] = $comment;
             }
         }
-        return array_splice($data, $from, $length);
+        return array_splice(array_merge([], $data), $page*$by, $by);
     }
 }

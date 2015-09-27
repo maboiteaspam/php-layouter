@@ -1,6 +1,8 @@
 <?php
 namespace C\View;
 
+use Symfony\Component\Form\FormView;
+
 /**
  * This is a virtual class (interface)
  * to let user add documentation hint about $this
@@ -59,30 +61,18 @@ interface ConcreteContext {
      */
     public function date_modify($date, $modifier);
     /**
-     * (PHP 4, PHP 5)<br/>
-     * Return a formatted string
-     * @link http://php.net/manual/en/function.sprintf.php
-     * @param string $format <p>
-     * The format string is composed of zero or more directives:
-     * ordinary characters (excluding %) that are
-     * copied directly to the result, and conversion
-     * specifications, each of which results in fetching its
-     * own parameter. This applies to both sprintf
-     * and printf.
-     * </p>
-     * <p>
-     * Each conversion specification consists of a percent sign
-     * (%), followed by one or more of these
-     * elements, in order:
-     * An optional sign specifier that forces a sign
-     * (- or +) to be used on a number. By default, only the - sign is used
-     * on a number if it's negative. This specifier forces positive numbers
-     * to have the + sign attached as well, and was added in PHP 4.3.0.
-     * @param mixed $args [optional] <p>
-     * </p>
-     * @param mixed $_ [optional]
-     * @return string a string produced according to the formatting string
-     * format.
+     * Replace given args name
+     * into string format
+     *
+     * Make format like
+     * 'hello %name%'
+     *
+     * resolve it with an array like
+     * ['name'=>'some']
+     *
+     * @param $format
+     * @param array $args
+     * @return mixed
      */
     public function format($format, $args = null, $_ = null);
     /**
@@ -586,21 +576,48 @@ interface ConcreteContext {
      * @param $blockId
      * @return mixed
      */
-    public function display($blockId);
+    public function display ($blockId);
     #endregion
 
     #region FormViewHelper
     // vendor/symfony/twig-bridge/Extension/FormExtension.php
     // vendor/symfony/twig-bridge/Resources/views/Form/form_div_layout.html.twig
-    public function form_widget();
-    public function form_errors();
-    public function form_label();
-    public function form_row();
-    public function form_rest();
-    public function form();
-    public function form_start();
-    public function form_end();
-    public function csrf_token();
+    public function form_widget (FormView $form, $variables=[]);
+    public function form_errors(FormView $form, $variables=[]);
+    public function form_label (FormView $form, $variables=[]);
+    public function form_row (FormView $form, $variables=[]);
+    public function form_rows (FormView $form, $variables=[]);
+    public function form_rest (FormView $form, $variables=[]);
+    public function form (FormView $form, $variables=[]);
+    public function form_start (FormView $form, $variables=[]);
+    public function form_end (FormView $form, $variables=[]);
+    public function csrf_token ();
+    #endregion
+
+    #region Form widgets
+    public function textarea_widget (FormView $form, $variables=[]);
+    public function choice_widget (FormView $form, $variables=[]);
+    public function choice_widget_expanded (FormView $form, $variables=[]);
+    public function choice_widget_collapsed (FormView $form, $variables=[]);
+    public function choice_widget_options (FormView $form, $variables=[]);
+    public function checkbox_widget (FormView $form, $variables=[]);
+    public function radio_widget (FormView $form, $variables=[]);
+    public function datetime_widget (FormView $form, $variables=[]);
+    public function date_widget (FormView $form, $variables=[]);
+    public function time_widget (FormView $form, $variables=[]);
+    public function number_widget (FormView $form, $variables=[]);
+    public function integer_widget (FormView $form, $variables=[]);
+    public function money_widget (FormView $form, $variables=[]);
+    public function url_widget (FormView $form, $variables=[]);
+    public function search_widget (FormView $form, $variables=[]);
+    public function percent_widget (FormView $form, $variables=[]);
+    public function password_widget (FormView $form, $variables=[]);
+    public function hidden_widget (FormView $form, $variables=[]);
+    public function email_widget (FormView $form, $variables=[]);
+    public function text_widget (FormView $form, $variables=[]);
+    public function button_widget (FormView $form, $variables=[]);
+    public function submit_widget (FormView $form, $variables=[]);
+    public function reset_widget (FormView $form, $variables=[]);
     #endregion
 
 }

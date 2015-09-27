@@ -8,12 +8,12 @@ use C\FS\KnownFs;
 class Bridger {
 
     public function generate ($file, $type, KnownFs $fs) {
-        $projectPath = $fs->registry->config['basePath'];
+        $basePath = $fs->registry->config['basePath'];
         $paths = array_unique($fs->registry->config['paths']);
         $aliases = [];
         if ($type==='builtin') {
             foreach ($paths as $i=>$path) {
-                $urlAlias = substr(realpath($path), strlen(realpath($projectPath)));
+                $urlAlias = substr(realpath($path), strlen(realpath($basePath)));
                 $urlAlias = str_replace(DIRECTORY_SEPARATOR, "/", $urlAlias);
                 $aliases[$urlAlias] = realpath($path);
             }
@@ -21,14 +21,14 @@ class Bridger {
         } else if ($type==='apache') {
             $aliases = "";
             foreach ($paths as $path) {
-                $urlAlias = substr(realpath($path), strlen(realpath($projectPath))+1);
+                $urlAlias = substr(realpath($path), strlen(realpath($basePath))+1);
                 $urlAlias = str_replace(DIRECTORY_SEPARATOR, "/", $urlAlias);
                 $aliases .= "Alias $urlAlias\t$path\n";
             }
         } else if ($type==='nginx') {
             $aliases = "";
             foreach ($paths as $path) {
-                $urlAlias = substr(realpath($path), strlen(realpath($projectPath))+1);
+                $urlAlias = substr(realpath($path), strlen(realpath($basePath))+1);
                 $urlAlias = str_replace(DIRECTORY_SEPARATOR, "/", $urlAlias);
                 $aliases .= "Alias $urlAlias\t$path\n";
             }

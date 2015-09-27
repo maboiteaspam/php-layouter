@@ -3,13 +3,18 @@ error_reporting(E_ALL ^ E_STRICT); // it is really undesired to respect strict s
 
 
 #region runtime configuration update
-$runTimeOverride = [
-    'debug'=> true,
-    'env'=>'prod',
-    'monolog.logfile' => __DIR__.'/run/development.log',
-    'security.firewalls' => [],
+$runtime = [
+    'debug'                 => true,
+    'env'                   => getenv('APP_ENV') ? getenv('APP_ENV') : 'dev',
+    'project.path'          => __DIR__,
+    'run.path'              => __DIR__.'/run/',
+//    'security.firewalls'    => [],
 ];
-$configTokens = [];
+$configTokens = [
+    'env',
+    'run.path',
+    'project.path',
+];
 #endregion
 
 
@@ -35,43 +40,35 @@ set_error_handler("exception_error_handler");
 
 #region config
 
-$defaultConfig = [
-    'env'                   => getenv('APP_ENV') ? getenv('APP_ENV') : 'dev',
-    'projectPath'           => __DIR__,
-    'caches.options'        => [],
-    'caches.config'         => [],
-    'httpcache.store_name'  => 'http-store'
-];
-$runTimeOverride = array_merge($defaultConfig, $runTimeOverride);
+$tokens = [];
+foreach ($configTokens as $configToken) {
+    $tokens[$configToken] = $runtime[$configToken];
+}
 
-$configTokens = array_merge([
-    'env'           => $runTimeOverride['env'],
-    'projectPath'   => $runTimeOverride['projectPath'],
-], $configTokens);
-
-
-$app->register(new Igorw\Silex\ConfigServiceProvider(__DIR__ . "/config.php", $configTokens));
-
-foreach( $runTimeOverride as $key=>$value ){
+foreach( $runtime as $key=>$value ){
     $app[$key] = $value;
 }
+
+$app->register(new Igorw\Silex\ConfigServiceProvider(__DIR__ . "/config.php", $tokens));
 #endregion
 
 
 #region service providers
 
-$app->register(new Moust\Silex\Provider\CacheServiceProvider(), array(
-    'caches.default' => 'http-store',
-    'cache.options' => [
-        'http-store'=>[],
-    ],
+
+$app->register(new Moust\Silex\Provider\CacheServiceProvider(), [
+    'caches.default' => 'default',
     'caches.options' => array_merge([
-        'http-store'=>[]], $app['caches.options']
-    ),
-    'caches.config' => array_merge([
-        'http-store'=>['driver' => 'array']], $app['caches.config']
-    ),
-));
+        'default'=>[
+            'driver' => 'array',
+        ],
+    ], $app['caches.options']),
+]);
+
+//$app['cache.drivers'] = $app->extend('cache.drivers', function ($drivers) {
+//    $drivers[] = '\\Moust\\Silex\\Cache\\WincacheCache';
+//    return $drivers;
+//});
 
 //$app->register(new MonologServiceProvider([
 //]));
@@ -91,16 +88,18 @@ $app->register(new C\Provider\CapsuleServiceProvider());
 $app->register(new \C\Provider\RepositoryServiceProvider());
 $app->register(new C\Provider\LayoutServiceProvider());
 $app->register(new \C\Provider\ModernAppServiceProvider());
-$app->register(new \C\BlogData\ServiceProvider());
 #endregion
 
 
 
 #region controllers providers
+$app->register(new \C\BlogData\ServiceProvider());
 $blogController = new C\Blog\ControllersProvider();
 $myBlogController = new MyBlog\ControllersProvider();
+$formDemo = new C\FormDemo\ControllersProvider();
 $app->register($blogController);
 $app->register($myBlogController);
+$app->register($formDemo);
 #endregion
 
 

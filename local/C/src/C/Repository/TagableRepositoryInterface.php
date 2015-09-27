@@ -8,7 +8,7 @@ interface TagableRepositoryInterface {
      * @param $tager
      * @return RepositoryProxy
      */
-    public function tagable($tager);
+    public function tagable($tager=null);
 
     /**
      * @return RepositoryProxy

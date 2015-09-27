@@ -40,17 +40,21 @@ class Schema extends  EloquentSchema{
             $commentModel = new Comment();
             $entryModel->setCapsule($capsule);
             $commentModel->setCapsule($capsule);
-            $fixtureEntries = include(__DIR__ . '/../fixtures/blog-entries.php');
-            foreach ($fixtureEntries as $entry) {
-                $comments = $entry->comments;
-                unset($entry->blog_entry_id);
-                unset($entry->comments);
-                unset($entry->id);
-                $id = $entryModel->insert($entry);
-                foreach ($comments as $comment) {
-                    unset($comment->id);
-                    $comment->blog_entry_id = $id;
-                    $commentModel->insert($comment);
+            for ($i=0;$i<30;null) {
+                $fixtureEntries = include(__DIR__ . '/../fixtures/blog-entries.php');
+                foreach ($fixtureEntries as $entry) {
+                    $comments = $entry->comments;
+                    $entry->title = "#$i $entry->title";
+                    unset($entry->blog_entry_id);
+                    unset($entry->comments);
+                    unset($entry->id);
+                    $id = $entryModel->insert($entry);
+                    foreach ($comments as $comment) {
+                        unset($comment->id);
+                        $comment->blog_entry_id = $id;
+                        $commentModel->insert($comment);
+                    }
+                    $i++;
                 }
             }
         });

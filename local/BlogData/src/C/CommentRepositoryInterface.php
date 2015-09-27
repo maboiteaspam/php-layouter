@@ -9,7 +9,7 @@ interface CommentRepositoryInterface extends TagableRepositoryInterface{
      * @param $tager
      * @return CommentRepositoryInterface
      */
-    public function tagable($tager);
+    public function tagable($tager=null);
 
     /**
      * @return CommentRepositoryInterface
@@ -44,9 +44,9 @@ interface CommentRepositoryInterface extends TagableRepositoryInterface{
 
     /**
      * @param array $excludesEntries
-     * @param int $from
-     * @param int $length
+     * @param int $page
+     * @param int $by
      * @return array
      */
-    public function mostRecent($excludesEntries=[], $from=0, $length=5);
+    public function mostRecent($excludesEntries=[], $page=0, $by=20);
 }

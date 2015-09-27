@@ -2,67 +2,50 @@
 
 namespace MyBlog;
 
-
+use C\Layout\Layout;
 use C\Blog\Transforms as BlogLayout;
-
-use C\ModernApp\jQuery\Transforms as jQueryTransforms;
+use C\ModernApp\jQuery\Transforms as jQuery;
 use C\ModernApp\Dashboard\Transforms as Dashboard;
 use C\ModernApp\HTML\Transforms as HTML;
 
 class Transforms extends BlogLayout{
 
     /**
-     * @var jQueryTransforms
+     * @param Layout $layout
+     * @return Transforms
      */
-    public $jquery;
-    /**
-     * @var Dashboard
-     */
-    public $dashboard;
-    /**
-     * @var HTML
-     */
-    public $html;
-
-    public function setjQuery ( jQueryTransforms $jQuery) {
-        $this->jquery = $jQuery;
-    }
-    public function setDashboard ( Dashboard $dashboard) {
-        $this->dashboard = $dashboard;
-    }
-    public function setHTML ( HTML $T) {
-        $this->html = $T;
+    public static function transform(Layout $layout){
+        return new self($layout);
     }
 
     public function baseTemplate ($fromClass=__CLASS__) {
-
         $this->then(
-            $this->html->baseTemplate()
+            HTML::transform($this->layout)->baseTemplate()
         )->setTemplate('body_top',
-            __DIR__.'/templates/top.php'
+            'MyBlog:/top.php'
         )->updateData('body_top', [
             'logo'=> '',
         ])->updateAssets('body', [
             'template_head_css'=>[
-                __DIR__ . '/assets/blog.css',
-                __DIR__ . '/assets/template.css'
+                'MyBlog:/blog.css',
+                'MyBlog:/template.css'
             ],
             'page_footer_js'=>[
-                __DIR__ . '/assets/index.js'
+                'MyBlog:/index.js'
             ],
         ])->insertAfterBlock('body_footer', 'extra_footer', [
             'body'=>'some'
         ])->then(
-            $this->dashboard
-            ? $this->dashboard->show($fromClass)
+            $this->layout->debugEnabled
+            ? Dashboard::transform($this->layout)->show($fromClass)
             : null
         )->then(
-            $this->jquery->inject()
+            jQuery::transform($this->layout)->inject()
         );
         return $this;
     }
 
-    public function home ($entries, $latestComments) {
+    public function home ($entries, $latestComments, $entriesCount, $listEntryBy=5) {
 
         $this->then(
             parent::home()
@@ -72,8 +55,11 @@ class Transforms extends BlogLayout{
         )->updateBlock('body_content_right',
             ['from'      => 'home_rb'],
             ['comments'  => $latestComments],
-            ['template'  => __DIR__ . '/templates/right-bar.php']
-        );
+            ['template'  => 'MyBlog:/right-bar.php']
+        )->updateData('blog-entries-pagination', [
+            'count'         => $entriesCount,
+            'by'            => $listEntryBy,
+        ]);
         return $this;
     }
 
@@ -94,7 +80,7 @@ class Transforms extends BlogLayout{
         ]);
 
         $this->setTemplate('body_content_right',
-            __DIR__.'/templates/right-bar.php'
+            'MyBlog:/right-bar.php'
         )->updateData('body_content_right', [
             'comments'  => $latestComments,
         ])->updateMeta('body_content_right', [

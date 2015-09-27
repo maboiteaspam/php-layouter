@@ -5,7 +5,7 @@
 /* @var $id string */
 ?>
 <script type="text/javascript">
-    $.get('<?php echo $url; ?>', function(data){
+    $.get('<?php echo $url; ?>?target=<?php echo $target; ?>', function(data){
         data = $(data);
         if ($(data).first().is("c_block_node")) {
             data = $(data).first().children();

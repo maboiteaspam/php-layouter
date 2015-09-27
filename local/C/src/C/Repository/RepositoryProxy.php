@@ -4,8 +4,9 @@ namespace C\Repository;
 
 use C\TagableResource\TagableResourceInterface;
 use C\TagableResource\TagedResource;
+use C\TagableResource\UnwrapableResourceInterface;
 
-class RepositoryProxy implements TagableResourceInterface {
+class RepositoryProxy implements TagableResourceInterface, UnwrapableResourceInterface {
 
     /**
      * @var RepositoryInterface
@@ -30,7 +31,14 @@ class RepositoryProxy implements TagableResourceInterface {
      * @return mixed
      */
     public function unwrap() {
-        return call_user_func_array([$this->repository, $this->method[0]], $this->method[1]);
+        $method_name = $this->method[0];
+        $method_args = $this->method[1];
+        foreach( $method_args as $index=>$arg) {
+            if ($arg instanceof UnwrapableResourceInterface) {
+                $method_args[$index] = $arg->unwrap();
+            }
+        }
+        return call_user_func_array([$this->repository, $method_name], $method_args);
     }
 
     /**
@@ -47,6 +55,12 @@ class RepositoryProxy implements TagableResourceInterface {
         if (!$this->tager) {
             $res = new TagedResource();
             $res->addResource([$this->repository->getRepositoryName(), $this->method], 'repository');
+            $method_args = $this->method[1];
+            foreach( $method_args as $index=>$arg) {
+                if ($arg instanceof TagableResourceInterface) {
+                    $res->addTaggedResource($arg->getTaggedResource());
+                }
+            }
             return $res;
         }
         return $this->tager->getTaggedResource();

@@ -20,23 +20,33 @@ $console = new Cli('Silex - C Edition', '0.1');
 
 #region Command lines declaration
 $console
-    ->register('fs:init')
+    ->register('cache:init')
     ->setDescription('Generate fs cache')
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
-        $dump = $app['assets.fs']->registry->saveToFile();
+        $app['assets.fs']->registry->clearCached();
+        $dump = $app['assets.fs']->registry->saveToCache();
         echo "assets.fs signed with ".$dump['signature']."\n";
 
+        $app['layout.fs']->registry->clearCached();
+        $dump = $app['layout.fs']->registry->saveToCache();
+        echo "layout.fs signed with ".$dump['signature']."\n";
+
+        $app['capsule.schema']->registry->clearCached();
         $app['capsule.schema']->loadSchemas();
-        $dump = $app['capsule.schema']->registry->saveToFile();
+        $dump = $app['capsule.schema']->registry->saveToCache();
         echo "capsule.schema signed with ".$dump['signature']."\n";
     })
 ;
 $console
-    ->register('fs:reveal')
+    ->register('fs-cache:dump')
     ->setDescription('Show FS cache paths')
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
-        echo $app['assets.fs']->registry->file."\n";
-        echo $app['capsule.schema']->registry->file."\n";
+        $res = [];
+        $app['capsule.schema']->loadSchemas();
+        $res [] = $app['assets.fs']->registry->dump();
+        $res [] = $app['layout.fs']->registry->dump();
+        $res [] = $app['capsule.schema']->registry->dump();
+        echo json_encode($res);
     })
 ;
 $console

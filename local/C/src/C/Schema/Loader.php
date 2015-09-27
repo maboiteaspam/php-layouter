@@ -27,7 +27,7 @@ class Loader implements ISchema{
     }
 
     public function loadSchemas(){
-        $this->registry->loadFromFile();
+        $this->registry->loadFromCache();
         foreach( $this->schemas as $schema) {
             $this->registry->addClassFile($schema);
         }
@@ -35,7 +35,7 @@ class Loader implements ISchema{
 
     public function refreshDb(){
         if (!$this->registry->isFresh()) {
-            $this->registry->clearFile();
+            $this->registry->clearCached();
             $this->cleanDb();
             $this->initDb();
         }

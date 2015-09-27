@@ -2,10 +2,11 @@
 namespace C\Provider;
 
 use C\Assets\BuiltinResponder;
+use C\FS\Registry;
 use C\FS\LocalFs;
 use C\FS\KnownFs;
 use C\Assets\Bridger;
-use C\FS\Registry;
+use C\Misc\Utils;
 use C\View\AssetsViewHelper;
 
 use Silex\Application;
@@ -33,12 +34,15 @@ class AssetsServiceProvider implements ServiceProviderInterface
             return new Bridger();
         });
 
-        if (!isset($app['assets.fs_file_path']))
-            $app['assets.fs_file_path'] = '.assets_fs_cache';
+        if (!isset($app['assets.cache_store_name']))
+            $app['assets.cache_store_name'] = "assets-store";
 
         $app['assets.fs'] = $app->share(function() use($app) {
-            return new KnownFs(new Registry($app['assets.fs_file_path'], [
-                'basePath' => $app['projectPath']
+            $storeName = $app['assets.cache_store_name'];
+            if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
+            else $cache = $app['cache'];
+            return new KnownFs(new Registry('assets-', $cache, [
+                'basePath' => $app['project.path']
             ]));
         });
         $app['assets.responder'] = $app->share(function() use($app) {
@@ -65,13 +69,17 @@ class AssetsServiceProvider implements ServiceProviderInterface
             $tagger = $app['httpcache.tagger'];
             /* @var $fs \C\FS\KnownFs */
             /* @var $tagger \C\TagableResource\ResourceTagger */
-            $tagger->tagDataWith('file', function ($file) use($fs) {
+            $tagger->tagDataWith('asset', function ($file) use($fs) {
                 $template = $fs->get($file);
                 $h = '';
                 if ($template) {
                     $h .= $template['sha1'].$template['dir'].$template['name'];
                 } else if(LocalFs::file_exists($file)) {
                     $h .= LocalFs::file_get_contents($file);
+                } else {
+                    // that is bad, it means we have registered files
+                    // that does not exists
+                    // or that can t be located back.
                 }
                 return $h;
             });
@@ -83,11 +91,12 @@ class AssetsServiceProvider implements ServiceProviderInterface
             $app['layout.view']->addHelper($assetsViewHelper);
         }
 
+        if(!isset($app['assets.verbose'])) $app['assets.verbose'] = false;
         if (php_sapi_name()==='cli-server') {
-            $app['assets.fs']->registry->loadFromFile();
+            $app['assets.fs']->registry->loadFromCache();
             /* @var $responder \C\Assets\BuiltinResponder */
             $responder = $app['assets.responder'];
-            $responder->respond();
+            $responder->respond($app['assets.verbose']);
         }
 
     }

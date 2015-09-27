@@ -35,11 +35,18 @@ class EntryRepository extends TagableRepository implements EntryRepositoryInterf
     }
 
     /**
-     * @param int $from
-     * @param int $length
+     * @param int $page
+     * @param int $by
      * @return array
      */
-    public function mostRecent($from=0, $length=5) {
-        return array_splice($this->data, $from, $length);
+    public function mostRecent($page=0, $by=5) {
+        return array_splice(array_merge([], $this->data), $page*$by, $by);
+    }
+
+    /**
+     * @return int
+     */
+    public function countAll() {
+        return count($this->data);
     }
 }

@@ -23,14 +23,14 @@ class ModernAppServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['assets.fs']) {
-            $app['assets.fs']->register(__DIR__.'/../ModernApp/HTML/templates/');
-
-            $app['assets.fs']->register(__DIR__.'/../ModernApp/Dashboard/templates/');
-            $app['assets.fs']->register(__DIR__.'/../ModernApp/Dashboard/assets/');
-
-            $app['assets.fs']->register(__DIR__.'/../ModernApp/jQuery/templates/');
-            $app['assets.fs']->register(__DIR__.'/../ModernApp/jQuery/assets/');
+        if (isset($app['assets.fs'])) {
+            $app['assets.fs']->register(__DIR__.'/../ModernApp/Dashboard/assets/', 'Dashboard');
+            $app['assets.fs']->register(__DIR__.'/../ModernApp/jQuery/assets/', 'jQuery');
+        }
+        if (isset($app['layout.fs'])) {
+            $app['layout.fs']->register(__DIR__.'/../ModernApp/HTML/templates/', 'HTML');
+            $app['layout.fs']->register(__DIR__.'/../ModernApp/Dashboard/templates/', 'Dashboard');
+            $app['layout.fs']->register(__DIR__.'/../ModernApp/jQuery/templates/', 'jQuery');
         }
     }
 }

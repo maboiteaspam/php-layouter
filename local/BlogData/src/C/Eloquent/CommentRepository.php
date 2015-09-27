@@ -54,16 +54,16 @@ class CommentRepository extends TagableEloquentRepository implements CommentRepo
 
     /**
      * @param array $excludesEntries
-     * @param int $from
-     * @param int $length
+     * @param int $page
+     * @param int $by
      * @return array|static[]
      */
-    public function mostRecent($excludesEntries=[], $from=0, $length=5) {
+    public function mostRecent($excludesEntries=[], $page=0, $by=5) {
         return $this->capsule->getConnection()
             ->table('blog_comment')
             ->whereNotIn('blog_entry_id', $excludesEntries)
-            ->offset($from)
-            ->take($length)
+            ->offset($page*$by)
+            ->take($by)
             ->orderBy('updated_at', 'DESC')
             ->get();
     }

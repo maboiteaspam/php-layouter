@@ -1,11 +1,20 @@
 <?php
-namespace C\StaticLayoutBuilder;
+namespace C\ModernApp\File;
 
 use C\Layout\Transforms as BaseTransforms;
 use C\FS\LocalFs;
 use Symfony\Component\Yaml\Yaml;
+use C\Layout\Layout;
 
 class Transforms extends BaseTransforms{
+
+    /**
+     * @param Layout $layout
+     * @return Transforms
+     */
+    public static function transform(Layout $layout){
+        return new self($layout);
+    }
 
     public function resolveFilePath ($baseDir, $fileToResolve) {
         if (strpos($fileToResolve, ":")!==false) { // it s using some sort of module path : MyBlog:path/to/some/file.ext

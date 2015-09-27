@@ -48,6 +48,16 @@
                             </ul>
                         <?php } ?>
                     <?php } ?>
+
+                    <?php if(count($blockInfo['data'])) { ?>
+                        <h5>Data</h5>
+                        <ul>
+                            <?php foreach( $blockInfo['data'] as $key=>$v) { ?>
+                                <li><?php echo $key; ?></li>
+                            <?php } ?>
+                        </ul>
+                    <?php } ?>
+
                 </div>
             </div>
         </div>

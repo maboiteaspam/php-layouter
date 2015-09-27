@@ -8,9 +8,9 @@ abstract class TagableRepository implements TagableRepositoryInterface, Reposito
      * @param $tager
      * @return RepositoryProxy
      */
-    public function tagable ($tager) {
+    public function tagable ($tager=null) {
         $taged = new RepositoryProxy($this);
-        $taged->setTager($tager);
+        if ($tager) $taged->setTager($tager);
         return $taged;
     }
     /**

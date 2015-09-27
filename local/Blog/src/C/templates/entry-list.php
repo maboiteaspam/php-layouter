@@ -22,4 +22,5 @@
             </a>
         </div>
     <?php } ?>
+    <?php $this->display('blog-entries-pagination') ?>
 </div>

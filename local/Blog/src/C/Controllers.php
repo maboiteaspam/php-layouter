@@ -1,59 +1,64 @@
 <?php
 namespace C\Blog;
 
-use C\BlogData\CommentRepositoryInterface as CommentRepo;
-use C\BlogData\EntryRepositoryInterface as EntryRepo;
 use C\Blog\Transforms as BlogLayout;
+use Silex\Application;
 
 class Controllers {
 
+    /**
+     * name of the repo
+     * @var string
+     */
     public $entryRepo;
-    public $commentRepo;
 
     /**
-     * @var BlogLayout
+     * name of the repo
+     * @var string
      */
-    public $blog;
+    public $commentRepo;
 
-    public function __construct(EntryRepo $entryRepo, CommentRepo $commentRepo) {
+    public function __construct($entryRepo, $commentRepo) {
         $this->entryRepo = $entryRepo;
         $this->commentRepo = $commentRepo;
     }
 
-    public function setBlogTransforms ( BlogLayout $T) {
-        $this->blog = $T;
-    }
-
     public function entryList() {
-        return function () {
-            $this->blog
+        return function (Application $app) {
+            /* @var $entryRepo \C\BlogData\EntryRepositoryInterface as EntryRepo */
+            $entryRepo = $app[$this->entryRepo];
+            BlogLayout::transform($app['layout'])
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
-                    'entries' => $this->entryRepo->mostRecent()
+                    'entries' => $entryRepo->mostRecent()
                 ]);
-            return $this->blog->layout->render();
+            return $app['layout']->render();
         };
     }
 
     public function entryDetail() {
-        return function ($id) {
-            $this->blog
+        return function (Application $app, $id) {
+            /* @var $entryRepo \C\BlogData\EntryRepositoryInterface as EntryRepo */
+            $entryRepo = $app[$this->entryRepo];
+            BlogLayout::transform($app['layout'])
                 ->setTemplate('root', __DIR__.'/templates/entry-list.php')
                 ->setTemplate('root', [
-                    'entry' => $this->entryRepo->byId($id)
+                    'entry' => $entryRepo->byId($id)
                 ]);
-            return $this->blog->layout->render();
+            return $app['layout']->render();
         };
     }
 
     public function entryComments() {
-        return function () {
-            $this->blog
+        return function (Application $app) {
+            /* @var $commentRepo \C\BlogData\CommentRepositoryInterface as EntryRepo */
+            $commentRepo = $app[$this->commentRepo];
+            BlogLayout::transform($app['layout'])
                 ->setTemplate('root', __DIR__.'/templates/entry-comments.php')
                 ->setTemplate('root', [
-                    'comments' => $this->commentRepo->mostRecent()
+                    'comments' => $commentRepo->mostRecent()
                 ]);
-            return $this->blog->layout->render();
+            return $app['layout']->render();
         };
     }
 

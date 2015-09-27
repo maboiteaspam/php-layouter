@@ -1,27 +1,44 @@
 <?php
 namespace C\Layout;
 
-class Transforms{
+class Transforms implements TransformsInterface{
+
+    /**
+     * @param Layout $layout
+     */
+    public function __construct(Layout $layout=null){
+        if ($layout) $this->setLayout($layout);
+    }
+
+    /**
+     * @param Layout $layout
+     * @return Transforms
+     */
+    public static function transform(Layout $layout){
+        return new self($layout);
+    }
 
     /**
      * @var \C\Layout\Layout
      */
     public $layout;
 
-    /**
-     * @param Layout $layout
-     */
-    public function __construct(Layout $layout) {
+    public function setLayout (Layout $layout) {
         $this->layout = $layout;
+        return $this;
+    }
+
+    public function getLayout () {
+        return $this->layout;
     }
 
     /**
      * stub method
      *
-     * @param Transforms $t
+     * @param TransformsInterface $t
      * @return $this
      */
-    public function then(Transforms $t=null) {
+    public function then(TransformsInterface $t=null) {
         // totally wanted this parameter is ignored.
         return $this;
     }

@@ -1,11 +1,20 @@
 <?php
 namespace C\ModernApp\Dashboard;
 
+use \C\ModernApp\jQuery\Transforms as jQuery;
 use C\Layout\Transforms as Base;
 use C\Layout\Layout;
 use C\Misc\Utils;
 
 class Transforms extends Base{
+
+    /**
+     * @param Layout $layout
+     * @return Transforms
+     */
+    public static function transform(Layout $layout){
+        return new self($layout);
+    }
 
     /**
      * @param string $fromClass
@@ -18,14 +27,14 @@ class Transforms extends Base{
 
         $this->insertBeforeBlock('html_end', 'dashboard', [
             'options' => [
-                'template'=>__DIR__.'/templates/dashboard.php'
+                'template'=>'Dashboard:/dashboard.php'
             ]
         ])->updateAssets('dashboard', [
             'template_head_css'=>[
-                __DIR__ . '/assets/dashboard.css'
+                'Dashboard:/dashboard.css'
             ],
             'page_footer_js'=>[
-                __DIR__ . '/assets/dashboard.js'
+                'Dashboard:/dashboard.js'
             ],
         ]);
 
@@ -33,16 +42,16 @@ class Transforms extends Base{
             'body' => "<!-- layout_structure_placeholder -->",
         ])->updateAssets('dashboard-layout', [
             'template_head_css'=>[
-                __DIR__ . '/assets/layout-structure.css'
+                'Dashboard:/layout-structure.css'
             ],
             'page_footer_js'=>[
-                __DIR__ . '/assets/layout-structure.js'
+                'Dashboard:/layout-structure.js'
             ],
         ]);
 
         $this->set('dashboard-options', [
             'options' => [
-                'template'=>__DIR__.'/templates/options.php'
+                'template'=>'Dashboard:/options.php'
             ],
             'data' => [
                 'options'=> []
@@ -52,13 +61,13 @@ class Transforms extends Base{
 
         $this->set('dashboard-stats', [
             'options' => [
-                'template'=>__DIR__.'/templates/stats.php'
+                'template'=>'Dashboard:/stats.php'
             ],
             'data' => [
                 'options'=> []
             ]
         ])->updateAssets('dashboard-options', [
-        ]);
+        ])->then( jQuery::transform($layout)->inject() );
 
         $this->layout->beforeRenderAnyBlock(function ($ev, Layout $layout, $id) use($fromClass) {
             $block = $layout->get($id);
@@ -82,6 +91,7 @@ class Transforms extends Base{
                 $block = $options['block'];
                 $template = 'inlined body';
                 $assets = [];
+                $data = [];
 
                 if ($block) {
                     if (isset($block->options['template']) && $block->options['template'])
@@ -92,12 +102,14 @@ class Transforms extends Base{
                             $assets[$assetGroup][] = Utils::shorten($asset);
                         }
                     }
+                    $data = $block->data;
                 }
 
                 $struct[$path] = [
                     'template'=>$template,
                     'assets'=>$assets,
                     'id'=>$blockId,
+                    'data'=>$data,
                     'exists'=>$options['exists'],
                     'shown'=>$options['shown'],
                     'parentId'=>$parentId,
@@ -111,7 +123,7 @@ class Transforms extends Base{
 
             $this->set('dashboard-layout-structure', [
                 'options' => [
-                    'template'=>__DIR__.'/templates/layout-structure.php'
+                    'template'=>'Dashboard:/layout-structure.php'
                 ],
                 'data' => [
                     'struct'=> $structGen

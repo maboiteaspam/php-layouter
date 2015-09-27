@@ -1,10 +1,12 @@
 <?php
 namespace C\Provider;
 
+use C\FS\KnownFs;
 use C\FS\LocalFs;
-use C\Layout\Transforms;
+use C\FS\Registry;
 use C\Layout\Layout;
 
+use C\Misc\Utils;
 use C\View\CommonViewHelper;
 use C\View\Env;
 use C\View\LayoutViewHelper;
@@ -13,6 +15,7 @@ use C\View\FormViewHelper;
 use C\View\Context;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+use Symfony\Component\Form\Extension\Core\CoreExtension;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -32,6 +35,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
             if ($app['debug']) $layout->enableDebug(true);
             if (isset($app['dispatcher'])) $layout->setDispatcher($app['dispatcher']);
             $layout->setContext($app['layout.view']);
+            $layout->setFS($app['layout.fs']);
 
             $app['layout.helper.layout']->setLayout($layout);
             $app['layout.view']->addHelper($app['layout.helper.layout']);
@@ -52,7 +56,9 @@ class LayoutServiceProvider implements ServiceProviderInterface
             $commonHelper = new CommonViewHelper();
             $commonHelper->setEnv($app['layout.env']);
             // see more about translator here http://stackoverflow.com/questions/25482856/basic-use-of-translationserviceprovider-in-silex
-            $commonHelper->setTranslator($app['translator']);
+            if (isset($app['translator'])) {
+                $commonHelper->setTranslator($app['translator']);
+            }
             return $commonHelper;
         });
 
@@ -91,56 +97,64 @@ class LayoutServiceProvider implements ServiceProviderInterface
         $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {
             $request = $app['request'];
             /* @var $request \Symfony\Component\HttpFoundation\Request */
+            /* @var $layout Layout */
+            $layout = $app['layout'];
 
             if (isset($app['httpcache.tagger'])) {
-                $TaggedResource = $app['layout']->getTaggedResource();
-                $etag = $app['httpcache.tagger']->sign($TaggedResource);
-                $app['httpcache.taggedResource'] = $TaggedResource;
-                $response->setETag($etag);
+                $layout->preRender();
+                $TaggedResource = $layout->getTaggedResource();
+                if ($TaggedResource===false) {
+                    Utils::stderr('this layout prevents caching');
+                    // this layout contains resource which prevent from being cached.
+                    // we shall not let that happen.
+                } else {
+                    $TaggedResource->addResource($app['env']);
+                    $TaggedResource->addResource($app['debug']?'with-debug':'without-debug');
+                    $etag = $app['httpcache.tagger']->sign($TaggedResource);
+                    $app['httpcache.taggedResource'] = $TaggedResource;
+                    $response->setETag($etag);
 
-                // this is super important to get etag working properly.
-                $response->setProtocolVersion('1.1');
-//            $response->mustRevalidate(true);
-//            $response->setPrivate(true);
+                    $response->setPublic(true);
+                    $response->mustRevalidate(true);
+//                    $response->setMaxAge(60*10);
 
-                if ($response->isNotModified($request)) {
-                    return $response;
+                    if ($response->isNotModified($request)) {
+                        Utils::stderr('response is not modified '.$request->getUri());
+                        return $response;
+                    }
                 }
-            }
 
-            $response->setContent($app['layout']->render());
+            }
+            Utils::stderr('response is new '.$request->getUri());
+            // here could lie an fpc like cache.
+
+            $response->setContent($layout->render());
 
             return $response;
         });
 
-        $app['layout.transforms'] = $app->share(function () use ($app) {
-            $transforms = new Transforms($app['layout']);
-            return $transforms;
+        $app['layout.file.helpers'] = $app->share(function () use ($app) {
+            //-
         });
 
-        $app['layout.html.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\ModernApp\HTML\Transforms($app['layout']);
-            $transforms->setApp($app);
-            $transforms->concatenateAssets($app['assets.concat']);
-            $transforms->setAssetsFS($app['assets.fs']);
-            $transforms->setDocumentRoot($app['documentRoot']);
-            return $transforms;
+        if (!isset($app['layout.cache_store_name']))
+            $app['layout.cache_store_name'] = "layout-store";
+
+        $app['layout.fs'] = $app->share(function() use($app) {
+            $storeName = $app['layout.cache_store_name'];
+            if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
+            else $cache = $app['cache'];
+            return new KnownFs(new Registry('layout-', $cache, [
+                'basePath' => $app['project.path']
+            ]));
         });
 
-        $app['layout.jquery.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\ModernApp\jQuery\Transforms($app['layout']);
-            return $transforms;
-        });
-
-        $app['layout.dashboard.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\ModernApp\Dashboard\Transforms($app['layout']);
-            return $transforms;
-        });
-
-        $app['layout.static.transforms'] = $app->share(function () use ($app) {
-            $transforms = new \C\StaticLayoutBuilder\Transforms($app['layout']);
-            return $transforms;
-        });
+        if (isset($app['form.extensions'])) {
+            $app['form.extensions'] = $app->share($app->extend('form.extensions', function ($extensions) use ($app) {
+                $extensions[] = new CoreExtension();
+                return $extensions;
+            }));
+        }
     }
     /**
      *
@@ -151,9 +165,36 @@ class LayoutServiceProvider implements ServiceProviderInterface
     public function boot(Application $app)
     {
         $app->before(function (Request $request) use ($app) {
-            $app['translator']->setLocale(
-                $request->getPreferredLanguage($app['layout.translator.available_languages'])
-            );
+            $app['layout.fs']->registry->loadFromCache();
+            if (isset($app['translator'])) {
+                $app['translator']->setLocale(
+                    $request->getPreferredLanguage($app['layout.translator.available_languages'])
+                );
+            }
         });
+
+        if (isset($app['httpcache.tagger'])) {
+            $fs = $app['layout.fs'];
+            $tagger = $app['httpcache.tagger'];
+            /* @var $fs \C\FS\KnownFs */
+            /* @var $tagger \C\TagableResource\ResourceTagger */
+            $tagger->tagDataWith('template', function ($file) use($fs) {
+                $template = $fs->get($file);
+                $h = '';
+                if ($template) {
+                    $h .= $template['sha1'].$template['dir'].$template['name'];
+                } else if(LocalFs::file_exists($file)) {
+                    $h .= LocalFs::file_get_contents($file);
+                } else {
+                    // that is bad, it means we have registered files
+                    // that does not exists
+                    // or that can t be located back.
+                    Utils::stderr('----: '.var_export($template, true));
+                    Utils::stderr('----: '.var_export($fs->registry->config, true));
+                    Utils::stderr('----: '.$file);
+                }
+                return $h;
+            });
+        }
     }
 }

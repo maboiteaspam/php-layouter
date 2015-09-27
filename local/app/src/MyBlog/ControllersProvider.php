@@ -16,18 +16,8 @@ class ControllersProvider implements
     public function register(Application $app)
     {
         $app['myblog.controllers'] = $app->share(function() use ($app) {
-            $controllers = new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
-            $controllers->setBlogTransforms($app['myblog.transforms']);
-            $controllers->setjQueryTransforms($app['layout.jquery.transforms']);
-            $controllers->setStaticTransforms($app['layout.static.transforms']);
+            $controllers = new Controllers('blogdata.entry', 'blogdata.comment');
             return $controllers;
-        });
-        $app['myblog.transforms'] = $app->share(function() use ($app) {
-            $T = new Transforms($app['layout']);
-            $T->setHTML($app['layout.html.transforms']);
-            if($app["debug"]) $T->setDashboard($app['layout.dashboard.transforms']);
-            $T->setjQuery($app['layout.jquery.transforms']);
-            return $T;
         });
     }
     /**
@@ -37,9 +27,11 @@ class ControllersProvider implements
      **/
     public function boot(Application $app)
     {
-        if ($app['assets.fs']) {
-            $app['assets.fs']->register(__DIR__.'/assets/');
-            $app['assets.fs']->register(__DIR__.'/templates/');
+        if (isset($app['assets.fs'])) {
+            $app['assets.fs']->register(__DIR__.'/assets/', 'MyBlog');
+        }
+        if (isset($app['layout.fs'])) {
+            $app['layout.fs']->register(__DIR__.'/templates/', 'MyBlog');
         }
     }
 
@@ -47,19 +39,19 @@ class ControllersProvider implements
     {
         $controllers = $app['controllers_factory'];
 
-        $app->get( '/',
+        $controllers->get( '/',
             $app['myblog.controllers']->home()
         )->bind ('home');
 
-        $app->get( '/blog/{id}',
+        $controllers->get( '/blog/{id}',
             $app['myblog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry');
 
-        $app->get( '/blog/{id}/blog_detail_comments',
+        $controllers->get( '/blog/{id}/blog_detail_comments',
             $app['myblog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry.detail_comments');
 
-        $app->get( '/blog/{id}/add_comment',
+        $controllers->get( '/blog/{id}/add_comment',
             $app['myblog.controllers']->postComment()
         )->bind ('blog_entry.add_comment');
 

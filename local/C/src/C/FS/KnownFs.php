@@ -26,7 +26,7 @@ class KnownFs {
     public $registry;
     public $fs;
 
-    public function __construct( Registry $registry) {
+    public function __construct (Registry $registry) {
         $this->registry = $registry;
         $this->fs = new LocalFs();
     }

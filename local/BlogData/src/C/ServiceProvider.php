@@ -57,7 +57,7 @@ class ServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-        if ($app['capsule.schema']) {
+        if (isset($app['capsule.schema'])) {
             $app['capsule.schema']->register($app['blogdata.schema']);
         }
     }

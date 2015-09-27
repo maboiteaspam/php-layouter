@@ -45,7 +45,7 @@ class BuiltinResponder {
     /**
      * @return bool
      */
-    public function respond () {
+    public function respond ($verbose=false) {
         $reqUrl = $_SERVER['PHP_SELF'];
         $acceptableAssets = ['jpeg','jpg','png','gif','css','js'];
         $extension = substr(strrchr($reqUrl, "."), 1);
@@ -53,10 +53,10 @@ class BuiltinResponder {
             $item = $this->fs->get($reqUrl);
             if ($item) {
                 echo $this->sendAsset($item);
-                Utils::stdout("served $reqUrl");
+                if ($verbose) Utils::stdout("served $reqUrl");
             } else {
                 header("HTTP/1.0 404 Not Found");
-                Utils::stdout("missed $reqUrl");
+                if ($verbose) Utils::stdout("missed $reqUrl");
             }
             exit;
         }

@@ -3,5 +3,5 @@
 FORM FORM FORM
 
 <?php
-var_dump($form['email']);
+dump($form);
 ?>

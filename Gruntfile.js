@@ -1,5 +1,5 @@
 var exec = require('child_process').exec;
-var watchr = require('watchr');
+var chokidar = require('chokidar');
 var async = require('async');
 
 module.exports = function (grunt) {
@@ -23,6 +23,17 @@ module.exports = function (grunt) {
   // Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-open');
 
+  var childs = [];
+  process.on('SIGINT', function() {
+    childs.forEach(function (destroyChild) {
+      destroyChild(true);
+    })
+  });
+  process.on('exit', function() {
+    childs.forEach(function (destroyChild) {
+      destroyChild();
+    })
+  });
   var spawnPhp = function(cmd, done, voidStdout){
     var killed = false;
     var stdout = '';
@@ -45,59 +56,36 @@ module.exports = function (grunt) {
       grunt.log.error((''+d).replace(/\s+$/, ''))
       stderr += d;
     });
-    process.on('SIGINT', function() {
-      killed = true;
+    childs.push(function (wasKilled) {
+      killed = wasKilled;
       child.kill();
-    });
-    process.on('exit', function() {
-      child.kill();
-    });
+    })
     return child;
   };
   var spawnWatchr = function (watchPaths) {
     grunt.log.ok('Watching paths');
     grunt.log.writeflags(watchPaths)
-    watchr.watch({
-      paths: watchPaths,
-      ignoreInitial: true,
+    // Full list of options. See below for descriptions.
+    chokidar.watch(watchPaths, {
       persistent: true,
-      delay: 1500,
-      catchupDelay: 750,
-      listeners: {
-        log: function(logLevel){
-          grunt.verbose.writeln('a log message occured:', arguments);
-        },
-        error: function(err){
-          grunt.log.error('an error occured:', err);
-        },
-        watching: function(err, watcherInstance, isWatching){
-          if (err) {
-            grunt.verbose.error("watching the path " + watcherInstance.path + " failed with error", err);
-          } else {
-            grunt.verbose.ok("watching the path " + watcherInstance.path + " completed");
-          }
-        },
-        change: function(changeType, filePath){
-          grunt.log.ok('%s %s', changeType, filePath);
-          exec('grunt dump-fs', function (error, stdout, stderr) {
-            grunt.log.ok('updated dumps');
-          });
-        }
-      },
-      next: function(err, watchers){
-        if (err) {
-          console.log(err.stack)
-          return grunt.log.error("watching everything failed with error", err);
-        } else {
-          grunt.verbose.ok('watching everything completed', watchers);
-        }
-        process.on('SIGINT', function () {
-          for ( var i=0;  i<watchers.length; i++ ) {
-            watchers[i].close();
-          }
-        });
-      }
-    });
+
+      ignoreInitial: true,
+      followSymlinks: true,
+      cwd: '.',
+
+      //usePolling: false,
+      alwaysStat: false,
+      depth: 3,
+      interval: 250,
+
+      ignorePermissionErrors: false,
+      atomic: true
+    }).on('change', function(filePath){
+      grunt.log.ok('%s', filePath);
+      spawnPhp('php cli.php cache:init', function (error) {
+        grunt.log.ok('cache is now up to date');
+      });
+    })
   };
 
   grunt.registerTask('db-init', function() {
@@ -106,9 +94,15 @@ module.exports = function (grunt) {
       done(error);
     });
   });
-  grunt.registerTask('fs-init', function() {
+  grunt.registerTask('cache-init', function() {
     var done = this.async();
-    spawnPhp('php cli.php fs:init', function (error) {
+    spawnPhp('php cli.php cache:init', function (error) {
+      done(error);
+    });
+  });
+  grunt.registerTask('http-init', function() {
+    var done = this.async();
+    spawnPhp('php cli.php http:bridge', function (error) {
       done(error);
     });
   });
@@ -118,43 +112,26 @@ module.exports = function (grunt) {
       done(error);
     });
   });
-  grunt.registerTask('reveal-fs-dumps', function() {
+  grunt.registerTask('fs-cache-dump', function() {
     var done = this.async();
-
-    var dumps_file_path = [];
     var path_to_watch = [];
 
-    async.series([
-      function(next){
-        spawnPhp('php cli.php fs:reveal', function (error, stdout, stderr) {
-          dumps_file_path = stdout.replace(/\s*$/, '').split('\n');
-          next(error);
-        });
-      },
-      function(next){
-        var p = [];
-        dumps_file_path.forEach(function(k) {
-          p.push(function(next_){
-            spawnPhp('php -r "echo json_encode(include(\\"' + k + '\\"));"', function (error, stdout, stderr) {
-              var data = JSON.parse(stdout);
-              if (data.config.paths.length) {
-                path_to_watch = path_to_watch.concat(data.config.paths)
-              } else {
-                Object.keys(data.items).forEach(function(p){
-                  path_to_watch.push(p)
-                })
-              }
-              next_(error);
-            }, true);
+    spawnPhp('php cli.php fs-cache:dump', function (error, stdout, stderr) {
+      var data = JSON.parse(stdout);
+      data.forEach(function(cache){
+        if (cache.config
+          && cache.config.paths
+          && cache.config.paths.length) {
+          path_to_watch = path_to_watch.concat(cache.config.paths)
+        } else {
+          Object.keys(cache.items).forEach(function(p){
+            path_to_watch.push(p)
           })
-        });
-        async.parallelLimit(p, 2, next);
-      }
-    ], function (error) {
+        }
+      });
       grunt.config.set('path_to_watch', path_to_watch);
-      done(error);
+      done();
     });
-
   });
 
   grunt.registerTask('watch', function() {
@@ -162,6 +139,13 @@ module.exports = function (grunt) {
     if (watchPaths) {
       spawnWatchr( watchPaths )
     }
+  });
+
+  grunt.registerTask('classes-dump', function() {
+    var done = this.async();
+    spawnPhp('php composer.phar dumpautoload', function () {
+      done();
+    });
   });
 
   grunt.registerTask('start', function() {
@@ -173,11 +157,14 @@ module.exports = function (grunt) {
 
   // Default task(s).
   grunt.registerTask('init', [
-    'fs-init','db-init'
+    'classes-dump',
+    'cache-init',
+    'http-init',
+    'db-init'
   ]);
   grunt.registerTask('default', [
     'init',
-    'reveal-fs-dumps',
+    'fs-cache-dump',
     //'open:browser',
     'watch',
     'start'

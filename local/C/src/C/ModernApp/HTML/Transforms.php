@@ -6,55 +6,31 @@ use C\Layout\Transforms as BaseTransforms;
 use C\Misc\Utils;
 use C\FS\LocalFs;
 use Silex\Application;
+use C\Layout\Layout;
 
 class Transforms extends BaseTransforms{
 
     /**
-     * @var bool
+     * @param Layout $layout
+     * @return Transforms
      */
-    public $concatAssets;
-    /**
-     * @var string
-     */
-    public $documentRoot;
-    /**
-     * @var KnownFs
-     */
-    public $assetsFS;
-    /**
-     * @var Application
-     */
-    public $app;
-
-    public function setApp ($app){
-        $this->app = $app;
-    }
-
-    public function concatenateAssets ($concatAssets){
-        $this->concatAssets = $concatAssets;
-    }
-
-    public function setAssetsFS (KnownFs $assetsFS){
-        $this->assetsFS = $assetsFS;
-    }
-
-    public function setDocumentRoot ($documentRoot){
-        $this->documentRoot = $documentRoot;
+    public static function transform(Layout $layout){
+        return new self($layout);
     }
 
     public function baseTemplate () {
         $this->setTemplate('root',
-            __DIR__.'/templates/html.php'
+            'HTML:/html.php'
         )->set('html_begin', [
             'body'=>'<html>'
         ])->setTemplate('head',
-            __DIR__.'/templates/head.php'
+            'HTML:/head.php'
         )->set('body', [
             'options'=>[
-                'template'=> __DIR__ . '/templates/1-column.php'
+                'template'=> 'HTML:/1-column.php'
             ],
         ])->setTemplate('footer',
-            __DIR__.'/templates/footer.php'
+            'HTML:/footer.php'
         )->set('script_bottom',  [
             'body'=>''
         ])->set('html_end',[
@@ -63,13 +39,12 @@ class Transforms extends BaseTransforms{
         return $this;
     }
 
-    public function applyAssets(){
+    public function applyAssets (Application $app){
 
-        $app = $this->app;
-        $documentRoot = $this->documentRoot;
-        $assetsFS = $this->assetsFS;
+        $documentRoot = $app['documentRoot'];
+        $assetsFS = $app['assets.fs'];
         $basePath = $assetsFS->getBasePath();
-        $concat = $this->concatAssets;
+        $concat = $app['assets.concat'];
         $layout = $this->layout;
 
         $this->layout->beforeRender(function () use(&$app, &$assetsFS, &$layout, $basePath, $concat, $documentRoot) {
@@ -104,7 +79,7 @@ class Transforms extends BaseTransforms{
                                 }
                             }
 
-                            if ($this->app['debug']) $h = sha1($h.Utils::fileToEtag(__FILE__));
+                            if ($layout->debugEnabled) $h = sha1($h.Utils::fileToEtag(__FILE__));
                             else $h = sha1($h);
 
                             $concatAssetName = "$target-$h.$ext";
@@ -197,8 +172,8 @@ class Transforms extends BaseTransforms{
 
 
 
-    public function finalize () {
-        $this->applyAssets();
+    public function finalize (Application $app) {
+        $this->applyAssets($app);
         return $this;
     }
 }

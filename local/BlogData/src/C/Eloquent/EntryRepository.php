@@ -41,16 +41,25 @@ class EntryRepository extends TagableEloquentRepository implements EntryReposito
     }
 
     /**
-     * @param int $from
-     * @param int $length
+     * @param int $page
+     * @param int $by
      * @return array|static[]
      */
-    public function mostRecent($from=0, $length=20) {
+    public function mostRecent($page=0, $by=5) {
         return $this->capsule->getConnection()
             ->table('blog_entry')
-            ->offset($from)
-            ->take($length)
+            ->offset($page*$by)
+            ->take($by)
             ->orderBy('updated_at', 'DESC')
             ->get();
+    }
+
+    /**
+     * @return int
+     */
+    public function countAll() {
+        return $this->capsule->getConnection()
+            ->table('blog_entry')
+            ->count('id');
     }
 }

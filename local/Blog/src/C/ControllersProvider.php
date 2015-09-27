@@ -16,12 +16,8 @@ class ControllersProvider implements
     public function register(Application $app)
     {
         $app['blog.controllers'] = $app->share(function() use ($app) {
-            $controllers = new Controllers($app['blogdata.entry'], $app['blogdata.comment']);
-            $controllers->setBlogTransforms($app['blog.transforms']);
+            $controllers = new Controllers('blogdata.entry', 'blogdata.comment');
             return $controllers;
-        });
-        $app['blog.transforms'] = $app->share(function() use ($app) {
-            return new Transforms($app['layout']);
         });
     }
 
@@ -32,10 +28,11 @@ class ControllersProvider implements
      **/
     public function boot(Application $app)
     {
-        $app['controllers_factory'];
-        if ($app['assets.fs']) {
-            $app['assets.fs']->register(__DIR__.'/assets/');
-            $app['assets.fs']->register(__DIR__.'/templates/');
+        if (isset($app['assets.fs'])) {
+            $app['assets.fs']->register(__DIR__.'/assets/', 'Blog');
+        }
+        if (isset($app['layout.fs'])) {
+            $app['layout.fs']->register(__DIR__.'/templates/', 'Blog');
         }
     }
 
@@ -43,19 +40,19 @@ class ControllersProvider implements
     {
         $controllers = $app['controllers_factory'];
 
-        $app->get( '/',
+        $controllers->get( '/',
             $app['blog.controllers']->home()
         )->bind ('home');
 
-        $app->get( '/blog/{id}',
+        $controllers->get( '/blog/{id}',
             $app['blog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry');
 
-        $app->get( '/blog/{id}/blog_detail_comments',
+        $controllers->get( '/blog/{id}/blog_detail_comments',
             $app['blog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry.detail_comments');
 
-        $app->get( '/blog/{id}/add_comment',
+        $controllers->get( '/blog/{id}/add_comment',
             $app['blog.controllers']->postComment()
         )->bind ('blog_entry.add_comment');
 
