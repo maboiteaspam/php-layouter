@@ -56,33 +56,30 @@ class Block implements TagableResourceInterface{
     }
 
     public function resolve (KnownFs $fs, Context $context){
-        $block = $this;
-        if ($block
-            && !$block->resolved
-            && isset($block->options['template'])
-            && $block->options['template']) {
+        if (!$this->resolved) {
+            $this->resolved = true;
+            if (isset($this->options['template'])
+                && $this->options['template']) {
 
-            $fn = $block->options['template'];
-            if(!is_callable($block->options['template'])) {
-                $fn = function (Block $block) use($fs) {
-                    $block->resolved = true; // this will help to prevent recursive call when set above.
-                    ob_start();
-                    extract($block->unwrapData(['block']), EXTR_SKIP);
-                    $template = $fs->get($block->options['template']);
-                    if ($template!==false) require ($template['absolute_path']);
-                    else require ($block->options['template']);
-                    $block->body = ob_get_clean();
-                };
-            } else {
-                $block->resolved = true;
-            }
+                $fn = $this->options['template'];
+                if(!is_callable($this->options['template'])) {
+                    $fn = function (Block $block) use($fs) {
+                        ob_start();
+                        extract($block->unwrapData(['block']), EXTR_SKIP);
+                        $template = $fs->get($block->options['template']);
+                        if ($template!==false) require ($template['absolute_path']);
+                        else require ($block->options['template']);
+                        $block->body = ob_get_clean();
+                    };
+                }
 
-            if ($fn) {
-                $context->setBlockToRender($this);
-                $boundFn = \Closure::bind($fn, $context);
-                $boundFn($block);
-            } else {
-                // weird stuff in template.
+                if ($fn) {
+                    $context->setBlockToRender($this);
+                    $boundFn = \Closure::bind($fn, $context);
+                    $boundFn($this);
+                } else {
+                    // weird stuff in template.
+                }
             }
         }
     }

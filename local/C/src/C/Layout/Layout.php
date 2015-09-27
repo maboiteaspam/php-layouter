@@ -93,6 +93,7 @@ class Layout implements TagableResourceInterface{
     public function resolve ($id){
         $parentBlock = null;
         $this->emit('before_block_resolve', $id);
+        $this->emit('before_resolve_' . $id);
         $block = $this->registry->get($id);
         $currentBlockInRender = $this->currentBlockInRender;
         $this->currentBlockInRender = $id;
@@ -101,6 +102,7 @@ class Layout implements TagableResourceInterface{
         }
         $this->currentBlockInRender = $currentBlockInRender;
         $this->emit('after_block_resolve', $id);
+        $this->emit('after_resolve_' . $id);
         return $block;
     }
 
@@ -247,8 +249,10 @@ class Layout implements TagableResourceInterface{
         try{
             $res->addResource($this->block);
             foreach($this->registry->blocks as $block) {
-                /* @var $block Block */
-                $res->addTaggedResource($block->getTaggedResource());
+                if ($block->resolved) {
+                    /* @var $block Block */
+                    $res->addTaggedResource($block->getTaggedResource());
+                }
             }
         }catch(\Exception $ex) {
             $res = false;
@@ -308,6 +312,32 @@ class Layout implements TagableResourceInterface{
     public function afterBlockRender ($id, $fn){
         $layout = $this;
         $this->on('after_render_'.$id, function($event) use($layout, $id, $fn){
+            $fn($event, $layout, $id);
+        });
+    }
+    public function beforeResolveAnyBlock ($fn){
+        $layout = $this;
+        $this->on('before_block_resolve', function($event) use($layout, $fn){
+            /* @var $event \Symfony\Component\EventDispatcher\GenericEvent */
+            $fn($event, $layout, $event->getArgument(0));
+        });
+    }
+    public function afterResolveAnyBlock ($fn){
+        $layout = $this;
+        $this->on('after_block_resolve', function($event) use($layout, $fn){
+            /* @var $event \Symfony\Component\EventDispatcher\GenericEvent */
+            $fn($event, $layout, $event->getArgument(0));
+        });
+    }
+    public function beforeBlockResolve ($id, $fn){
+        $layout = $this;
+        $this->on('before_resolve_'.$id, function($event) use($layout, $id, $fn){
+            $fn($event, $layout, $id);
+        });
+    }
+    public function afterBlockResolve ($id, $fn){
+        $layout = $this;
+        $this->on('after_resolve_'.$id, function($event) use($layout, $id, $fn){
             $fn($event, $layout, $id);
         });
     }

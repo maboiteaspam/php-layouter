@@ -115,6 +115,9 @@ class Transforms implements TransformsInterface{
 
     public function insertAfterBlock ($target, $id, $options){
         $this->layout->set($id, $options);
+        $this->layout->afterBlockResolve($target, function ($ev, Layout $layout) use($target, $id) {
+            $layout->resolve($id);
+        });
         $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
 //            $layout->displayBlock($id);
             $block = $layout->registry->get($target);
@@ -126,6 +129,9 @@ class Transforms implements TransformsInterface{
 
     public function insertBeforeBlock ($target, $id, $options){
         $this->layout->set($id, $options);
+        $this->layout->beforeBlockResolve($target, function ($ev, Layout $layout) use($target, $id) {
+            $layout->resolve($id);
+        });
         $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
 //            $layout->displayBlock($id);
             $block = $layout->registry->get($target);
