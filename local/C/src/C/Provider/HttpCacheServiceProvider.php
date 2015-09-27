@@ -100,7 +100,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                 if(count($etags)) Utils::stderr('etag KO');
                 else Utils::stderr('no etag in this request');
 
-                if(!count($etags)) {
+                if(!count($etags) && false) { // @todo check if resource explicitly wants fresh version
                     $knownEtag = $store->getEtag($request->getUri());
                     if ($knownEtag) {
                         Utils::stderr('yeah, we found a matching known etag for this url');
