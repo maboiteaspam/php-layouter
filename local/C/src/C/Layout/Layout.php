@@ -106,10 +106,16 @@ class Layout implements TagableResourceInterface{
 
     public function getContent ($id) {
         $body = "";
-        $this->emit('before_block_render', $id);
-        $this->emit('before_render_' . $id);
         $block = $this->registry->get($id);
         if ($block) {
+            if(!$block->resolved) {
+                $currentBlockInRender = $this->currentBlockInRender;
+                $this->currentBlockInRender = $id;
+                $block->resolve($this->fs, $this->context);
+                $this->currentBlockInRender = $currentBlockInRender;
+            }
+            $this->emit('before_block_render', $id);
+            $this->emit('before_render_' . $id);
             $body = $block->body;
             foreach($block->displayed_block as $displayedBlock) {
                 $body = str_replace("<!-- placeholder for block ".$displayedBlock['id']." -->",
@@ -117,6 +123,9 @@ class Layout implements TagableResourceInterface{
                     $body);
             }
             $block->body = $body;
+        } else {
+            $this->emit('before_block_render', $id);
+            $this->emit('before_render_' . $id);
         }
         $this->emit('after_render_' . $id);
         $this->emit('after_block_render', $id);
@@ -131,11 +140,22 @@ class Layout implements TagableResourceInterface{
             $layout->resolve($block->id);
         });
     }
+    public function resolveInCascade ($startBlock){
+        $layout = $this;
+        $layout->resolve($startBlock);
+        $block = $this->get($startBlock);
+        if ($block) {
+            foreach ($block->displayed_block as $displayed) {
+                $this->resolveInCascade($displayed['id']);
+            }
+        }
+    }
     public $hasPreRendered = false;
     public function preRender (){
         if (!$this->hasPreRendered) {
             $this->emit('before_layout_render');
-            $this->resolveAllBlocks ();
+//            $this->resolveAllBlocks ();
+            $this->resolveInCascade($this->block);
             $this->hasPreRendered = true;
             return true;
         }
