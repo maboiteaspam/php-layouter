@@ -80,6 +80,7 @@ $app->register(new Moust\Silex\Provider\CacheServiceProvider(), [
 
 $app->register(new Silex\Provider\TranslationServiceProvider( ));
 $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
+$app->register(new Silex\Provider\ValidatorServiceProvider());
 $app->register(new Silex\Provider\FormServiceProvider());
 
 $app->register(new C\Provider\AssetsServiceProvider());

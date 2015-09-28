@@ -67,7 +67,7 @@ class Layout implements TagableResourceInterface{
     public function __construct ($config=[]) {
         $this->registry = new RegistryBlock();
         $this->block = 'root';
-        $this->config = array_merge(['helpers'=>[]],$config);
+        $this->config = array_merge([], $config);
     }
 
     public function setDispatcher (EventDispatcher $dispatcher) {

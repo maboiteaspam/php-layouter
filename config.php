@@ -18,19 +18,19 @@ return [
 
     'caches.options' => [
         'http-store'=>[
-            'driver' => 'redis',
+            'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/http/',
         ],
         'assets-store'=>[
-            'driver' => 'redis',
+            'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/assets/',
         ],
         'capsule-store'=>[
-            'driver' => 'redis',
+            'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/capsule/',
         ],
         'layout-store'=>[
-            'driver' => 'redis',
+            'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/layout/',
         ],
     ],

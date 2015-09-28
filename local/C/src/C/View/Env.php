@@ -40,12 +40,4 @@ class Env {
     public function getCharset () {
         return $this->charset;
     }
-
-    /**
-     * @var Translator
-     */
-    public $translator;
-    public function setTranslator (Translator $helper) {
-        $this->translator = $helper;
-    }
 }

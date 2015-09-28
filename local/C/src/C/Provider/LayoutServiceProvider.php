@@ -91,7 +91,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
 
         $app['layout.view'] = $app->share(function() use($app) {
-            return  new Context();
+            return new Context();
         });
 
         $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {

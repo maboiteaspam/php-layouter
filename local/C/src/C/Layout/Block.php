@@ -35,19 +35,19 @@ class Block implements TagableResourceInterface{
     }
 
     public function clear ($what='all') {
-        if ($what==='all') {
+        if ($what==='all' || $what==='') {
             $this->body = "";
             $this->data = [];
             $this->assets = [];
             $this->options = [
-                'template'=>''
+                'template' => ''
             ];
         } else {
             if (strpos($what, "data")) {
                 $this->data = [];
             }
             if (strpos($what, "options")) {
-                $this->options = ["template"=>""];
+                $this->options = ["template" => ""];
             }
             if (strpos($what, "assets")) {
                 $this->assets = [];
@@ -130,7 +130,7 @@ class Block implements TagableResourceInterface{
                     $unwrapped[$name] = $data;
                 }
             } else {
-                throw new \Exception("Forbidden data name '$name'' is forbidden and can t be overwritten");
+                throw new \Exception("Forbidden data name '$name' is forbidden and can t be overwritten");
             }
         }
         return $unwrapped;
