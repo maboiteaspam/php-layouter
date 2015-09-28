@@ -15,7 +15,7 @@ class Controllers {
 
             /* @var $form \Symfony\Component\Form\Form*/
             $form = $app['form.factory']
-                ->createBuilder(new DemoForm(), ["email"=>"some"])
+                ->createBuilder(new DemoForm(), ["email"=>"some@mail.com"])
                 ->setAction($generator->generate("form_demo_post", []))
                 ->setMethod('POST')
                 ->getForm();
@@ -50,6 +50,12 @@ class Controllers {
             if ($form->isValid()) {
                 $data = $form->getData();
                 var_dump($data);
+
+                $nextAction = $form->get('save')->isClicked()
+                    ? 'save'
+                    : 'post';
+
+                var_dump($nextAction);
             }
             var_dump($form->isValid());
 

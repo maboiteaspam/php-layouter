@@ -70,7 +70,8 @@ class FormViewHelper extends AbstractViewHelper {
         } else {
             if ($vars['type']==='choice')
                 $str .= $this->choice_widget($form, $vars);
-            else $str .= $this->form_widget_simple($form, $vars);
+            else
+                $str .= $this->form_widget_simple($form, $vars);
         }
         return $str;
     }
@@ -134,9 +135,9 @@ class FormViewHelper extends AbstractViewHelper {
         foreach ($attrs as $attr=>$val) {
             if (in_array($attr, ['placeholder', 'title',])) {
                 $str .= " $attr='$val' "; // here should do translation.
-            } else if ($val==true) { // triple eq ? or double eq ?
+            } else if ($val===true) { // triple eq ? or double eq ?
                 $str .= " $attr='$attr' ";
-            } else if ($val!=false) { // triple eq ? or double eq ?
+            } else if ($val!==false) { // triple eq ? or double eq ?
                 $str .= " $attr='$val' ";
             }
         }

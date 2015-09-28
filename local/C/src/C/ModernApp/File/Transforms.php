@@ -1,25 +1,60 @@
 <?php
 namespace C\ModernApp\File;
 
+use C\FS\KnownFs;
 use C\Layout\Transforms as BaseTransforms;
 use C\FS\LocalFs;
+use Moust\Silex\Cache\CacheInterface;
 use Symfony\Component\Yaml\Yaml;
-use C\Layout\Layout;
 
 class Transforms extends BaseTransforms{
 
     /**
-     * @param Layout $layout
-     * @return Transforms
+     * @var KnownFs
      */
-    public static function transform(Layout $layout){
-        return new self($layout);
+    protected $staticLayoutFS;
+    /**
+     * @var KnownFs
+     */
+    protected $templateFS;
+    /**
+     * @var KnownFs
+     */
+    protected $assetsFS;
+
+    /**
+     * @var CacheInterface
+     */
+    protected $cache;
+
+    protected $helpers = [];
+
+    public function addHelper (StaticLayoutHelperInterface $helper) {
+        $this->helpers[] = $helper;
+    }
+
+    public function setStaticLayoutFS (KnownFs $fs) {
+        $this->staticLayoutFS = $fs;
+    }
+
+    public function setAssetsFS (KnownFs $fs) {
+        $this->assetsFS = $fs;
+    }
+
+    public function setTemplateFS (KnownFs $fs) {
+        $this->templateFS = $fs;
+    }
+
+    public function setCache(CacheInterface $cache) {
+        $this->cache = $cache;
     }
 
     public function resolveFilePath ($baseDir, $fileToResolve) {
-        if (strpos($fileToResolve, ":")!==false) { // it s using some sort of module path : MyBlog:path/to/some/file.ext
-            // to be resolved later.
-        } else if (substr($fileToResolve, 0, 1)==="/"
+        $item = $this->templateFS->get($fileToResolve);
+        if ($item) {
+            return $item['absolute_path'];
+        }
+        if (substr($fileToResolve, 0, 1)==="/"
             || preg_match("/[a-z]:[\\\]/i", substr($fileToResolve, 0, 3))>0) { // it s an absolute path, pass.
             // nothing to do in current impl.
         } else {
@@ -27,17 +62,15 @@ class Transforms extends BaseTransforms{
             $fileToResolve = "$baseDir/$fileToResolve";
         }
         return $fileToResolve;
-        // see also
-        // http://stackoverflow.com/questions/9990961/how-do-i-get-a-list-of-bundles-in-symfony2
-        // http://stackoverflow.com/questions/7585474/accessing-files-relative-to-bundle-in-symfony2
-        // https://github.com/symfony/symfony/tree/master/src/Symfony/Component/HttpKernel
-        // https://github.com/symfony/symfony/blob/master/src/Symfony/Component/HttpKernel/Kernel.php
-        // http://symfony.com/doc/current/components/finder.html
     }
 
     public function loadFile ($filePath) {
-        $ymlContent     = LocalFs::file_get_contents ($filePath);
-        $layoutStruct   = Yaml::parse ($ymlContent, true, false, true);
+        $layoutStruct = $this->cache->fetch($filePath);
+
+        if (!$layoutStruct) {
+            $layoutStruct   = Yaml::parse (LocalFs::file_get_contents ($filePath), true, false, true);
+        }
+
         $ymlDir         = dirname ($filePath);
         // search paths, if they are relative, make them absolute.
         foreach ($layoutStruct["structure"] as $blockId => $block) {
