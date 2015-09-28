@@ -20,6 +20,7 @@ return [
         'http-store'=>[
             'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/http/',
+//            'driver' => 'redis', // if you prefer
         ],
         'assets-store'=>[
             'driver' => 'file',
@@ -32,6 +33,10 @@ return [
         'layout-store'=>[
             'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/layout/',
+        ],
+        'modern-layout-store'=>[
+            'driver' => 'file',
+            'cache_dir' => __DIR__ . '/run/modern-layout/',
         ],
     ],
     'assets.concat' => false,

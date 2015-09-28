@@ -3,12 +3,14 @@
 namespace MyBlog;
 
 use C\Layout\Layout;
+use C\Layout\Transforms as BaseTransforms;
 use C\Blog\Transforms as BlogLayout;
 use C\ModernApp\jQuery\Transforms as jQuery;
 use C\ModernApp\Dashboard\Transforms as Dashboard;
 use C\ModernApp\HTML\Transforms as HTML;
+use Silex\Application;
 
-class Transforms extends BlogLayout{
+class Transforms extends BaseTransforms{
 
     /**
      * @param Layout $layout
@@ -48,7 +50,7 @@ class Transforms extends BlogLayout{
     public function home ($entries, $latestComments, $entriesCount, $listEntryBy=5) {
 
         $this->then(
-            parent::home()
+            BlogLayout::transform($this->layout)->home()
         )->updateBlock('body_content',
             ['from'      => 'home'],
             ['entries'   => $entries]
@@ -66,7 +68,7 @@ class Transforms extends BlogLayout{
     public function detail ($entry, $comments, $latestComments) {
 
         $this->then(
-            parent::detail()
+            BlogLayout::transform($this->layout)->detail()
         )->updateData('body_content', [
             'entry'  => $entry,
         ])->updateMeta('body_content', [

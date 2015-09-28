@@ -19,7 +19,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
      **/
     public function register(Application $app)
     {
-        $app['httpcache.tagger'] = $app->share(function() use($app) {
+        $app['httpcache.tagger'] = $app->share(function() {
             return new ResourceTagger();
         });
         $app['httpcache.request'] = $app->share(function(Application $app) {
@@ -31,7 +31,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
         if (!isset($app['httpcache.cache_store_name']))
             $app['httpcache.cache_store_name'] = "http-store";
 
-        $app['httpcache.store'] = $app->share(function() use($app) {
+        $app['httpcache.store'] = $app->share(function(Application $app) {
             $storeName = $app['httpcache.cache_store_name'];
             if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
             else $cache = $app['cache'];
@@ -73,7 +73,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                             $response->setProtocolVersion('1.1');
                             $response->setContent($body);
                             $response->headers->set("X-CACHED", "true");
-                            Utils::stderr('etag OK '.strlen($body));
+                            Utils::stderr('responding from cache a content length ='.strlen($body));
                             return $response;
                         } else {
                             Utils::stderr('is etag fresh:'.var_export($fresh, true));
@@ -87,17 +87,25 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
 
                 Utils::stderr('-------------');
                 Utils::stderr('check etag for uri '.$request->getUri());
+                $hasFoundAnyResource = false;
                 foreach ($etags as $etag) {
                     if (!in_array($etag, ['*'])) {
                         $etag = str_replace(['"',"'"], '', $etag);
                         $resultResponse = $respondEtagedResource($etag);
                         if ($resultResponse!==false) {
+                            $hasFoundAnyResource = true;
                             $resultResponse->setNotModified();
                             return $resultResponse;
                         }
                     }
                 }
-                if(count($etags)) Utils::stderr('etag KO');
+                if(count($etags)) {
+                    Utils::stderr('request has etag but '.
+                        (!$hasFoundAnyResource?
+                            'there is no cache to serve':
+                            'there is some keys, but they are outdated..'
+                        ));
+                }
                 else Utils::stderr('no etag in this request');
 
                 if(!count($etags) && false) { // @todo check if resource explicitly wants fresh version

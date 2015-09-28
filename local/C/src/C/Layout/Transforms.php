@@ -61,6 +61,10 @@ class Transforms implements TransformsInterface{
         }
         return $this;
     }
+    public function deleteBlock($id){
+        $this->layout->remove($id);
+        return $this;
+    }
     public function setBody($id, $body){
         $block = $this->layout->getOrCreate($id);
         if ($block) {
@@ -127,14 +131,14 @@ class Transforms implements TransformsInterface{
         return $this;
     }
 
-    public function insertBeforeBlock ($target, $id, $options){
+    public function insertBeforeBlock ($beforeTarget, $id, $options){
         $this->layout->set($id, $options);
-        $this->layout->beforeBlockResolve($target, function ($ev, Layout $layout) use($target, $id) {
+        $this->layout->beforeBlockResolve($beforeTarget, function ($ev, Layout $layout) use($beforeTarget, $id) {
             $layout->resolve($id);
         });
-        $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
+        $this->layout->afterBlockRender($beforeTarget, function ($ev, Layout $layout) use($beforeTarget, $id) {
 //            $layout->displayBlock($id);
-            $block = $layout->registry->get($target);
+            $block = $layout->registry->get($beforeTarget);
             $block->body = $layout->getContent($id).$block->body;
             $block->displayed_block[] = ["id"=>$id, "shown"=>true];
         });

@@ -41,7 +41,7 @@ class CapsuleServiceProvider implements ServiceProviderInterface
         if (!isset($app['capsule.cache_store_name']))
             $app['capsule.cache_store_name'] = "capsule-store";
 
-        $app['capsule.schema'] = $app->share(function() use($app) {
+        $app['capsule.schema'] = $app->share(function(Application $app) {
             $storeName = $app['capsule.cache_store_name'];
             if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
             else $cache = $app['cache'];
@@ -52,7 +52,7 @@ class CapsuleServiceProvider implements ServiceProviderInterface
             return $loader;
         });
 
-        $app['capsule.dispatcher'] = $app->share(function() use($app) {
+        $app['capsule.dispatcher'] = $app->share(function(Application $app) {
             return new Dispatcher($app['capsule.container']);
         });
 
@@ -62,7 +62,7 @@ class CapsuleServiceProvider implements ServiceProviderInterface
 //            });
 //        }
 
-        $app['capsule'] = $app->share(function() use ($app) {
+        $app['capsule'] = $app->share(function(Application $app) {
 
             $capsule = new Capsule($app['capsule.container']);
             $capsule->setEventDispatcher($app['capsule.dispatcher']);

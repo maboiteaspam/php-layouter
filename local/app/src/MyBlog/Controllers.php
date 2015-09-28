@@ -41,7 +41,7 @@ class Controllers{
             /* @var $requestData \C\HTTP\RequestProxy */
             $requestData = $app['httpcache.request'];
             $listEntryBy = 5;
-            MyBlogLayout::transform($app['layout'])
+            MyBlogLayout::transform($app['layout'], $app)
                 ->baseTemplate(__CLASS__)
                 ->home(
                     $entryRepo
@@ -52,8 +52,8 @@ class Controllers{
                         ->mostRecent(),
                     $entryRepo->tagable()->countAll(),
                     $listEntryBy
-                )->then(
-                    FileLayout::transform($app['layout'])->loadFile( "test_layout.yml" )
+//                )->then(
+//                    FileLayout::transform($app['layout'])->loadFile( "test_layout.yml" )
                 )->then(
                     HTML::transform($app['layout'])->finalize($app)
                 );

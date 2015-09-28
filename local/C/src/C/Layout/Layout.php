@@ -18,6 +18,12 @@ class Layout implements TagableResourceInterface{
      * @var string
      */
     public $id;
+    /**
+     * Layout's description
+     *
+     * @var string
+     */
+    public $description;
 
     /**
      * id of the block to start display from
@@ -54,7 +60,19 @@ class Layout implements TagableResourceInterface{
      * @var KnownFs
      */
     public $fs;
+    /**
+     * this let you inject extra
+     * resources tags to apply on
+     * the layout level
+     * @var array
+     */
+    public $globalResourceTags = [];
 
+    /**
+     * The default options for each
+     * new block
+     * @var array
+     */
     public $defaultOptions = [
         'options'=>[]
     ];
@@ -84,6 +102,9 @@ class Layout implements TagableResourceInterface{
 
     public function setId ($layoutId) {
         $this->id = $layoutId;
+    }
+    public function setDescription ($description) {
+        $this->description = $description;
     }
 
     public function setContext (Context $ctx) {
@@ -244,10 +265,16 @@ class Layout implements TagableResourceInterface{
 
 
 
+    public function addGlobalResourceTag (TagedResource $resource) {
+        $this->globalResourceTags[] = $resource;
+    }
     public function getTaggedResource () {
         $res = new TagedResource();
         try{
             $res->addResource($this->block);
+            foreach($this->globalResourceTags as $extra) {
+                $res->addTaggedResource($extra);
+            }
             foreach($this->registry->blocks as $block) {
                 if ($block->resolved) {
                     /* @var $block Block */
@@ -276,6 +303,12 @@ class Layout implements TagableResourceInterface{
     public function off ($id, $fn){
         if ($this->dispatcher)
             call_user_func_array([$this->dispatcher, ' removeListener'], func_get_args());
+    }
+    public function onControllerBuildFinish ($fn){
+        $layout = $this;
+        $this->on('controller_build_finish', function($event) use($layout, $fn){
+            $fn($event, $layout);
+        });
     }
     public function beforeRender ($fn){
         $layout = $this;

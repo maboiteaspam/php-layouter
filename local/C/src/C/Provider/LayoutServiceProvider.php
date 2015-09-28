@@ -29,7 +29,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
     {
         LocalFs::$record = $app['debug'];
 
-        $app['layout'] = $app->share(function() use($app) {
+        $app['layout'] = $app->share(function(Application $app) {
             $layout = new Layout();
             if ($app['debug']) $layout->enableDebug(true);
             if (isset($app['dispatcher'])) $layout->setDispatcher($app['dispatcher']);
@@ -45,13 +45,13 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $layout;
         });
 
-        $app['layout.helper.layout'] = $app->share(function () use($app) {
+        $app['layout.helper.layout'] = $app->share(function (Application $app) {
             $layoutViewHelper = new LayoutViewHelper();
             $layoutViewHelper->setEnv($app['layout.env']);
             return $layoutViewHelper;
         });
 
-        $app['layout.helper.common'] = $app->share(function () use($app) {
+        $app['layout.helper.common'] = $app->share(function (Application $app) {
             $commonHelper = new CommonViewHelper();
             $commonHelper->setEnv($app['layout.env']);
             // see more about translator here http://stackoverflow.com/questions/25482856/basic-use-of-translationserviceprovider-in-silex
@@ -61,14 +61,14 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $commonHelper;
         });
 
-        $app['layout.helper.routing'] = $app->share(function () use($app) {
+        $app['layout.helper.routing'] = $app->share(function (Application $app) {
             $routingHelper = new RoutingViewHelper();
             $routingHelper->setEnv($app['layout.env']);
             $routingHelper->setUrlGenerator($app["url_generator"]);
             return $routingHelper;
         });
 
-        $app['layout.helper.form'] = $app->share(function () use($app) {
+        $app['layout.helper.form'] = $app->share(function (Application $app) {
             $formHelper = new FormViewHelper();
             $formHelper->setEnv($app['layout.env']);
             $formHelper->setCommonHelper($app['layout.helper.common']);
@@ -80,7 +80,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
         $app['layout.env.date_format'] = '';
         $app['layout.env.timezone'] = '';
         $app['layout.env.number_format'] = '';
-        $app['layout.env'] = $app->share(function() use($app) {
+        $app['layout.env'] = $app->share(function(Application $app) {
             $env = new Env();
             $env->setCharset($app['layout.env.charset']);
             $env->setDateFormat($app['layout.env.date_format']);
@@ -89,7 +89,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $env;
         });
 
-        $app['layout.view'] = $app->share(function() use($app) {
+        $app['layout.view'] = $app->share(function() {
             return new Context();
         });
 
@@ -98,6 +98,8 @@ class LayoutServiceProvider implements ServiceProviderInterface
             /* @var $request \Symfony\Component\HttpFoundation\Request */
             /* @var $layout Layout */
             $layout = $app['layout'];
+
+            $layout->emit('controller_build_finish');
 
             if (isset($app['httpcache.tagger'])) {
                 $layout->preRender();
@@ -132,14 +134,14 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $response;
         });
 
-        $app['layout.file.helpers'] = $app->share(function () use ($app) {
+        $app['layout.file.helpers'] = $app->share(function () {
             //-
         });
 
         if (!isset($app['layout.cache_store_name']))
             $app['layout.cache_store_name'] = "layout-store";
 
-        $app['layout.fs'] = $app->share(function() use($app) {
+        $app['layout.fs'] = $app->share(function(Application $app) {
             $storeName = $app['layout.cache_store_name'];
             if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
             else $cache = $app['cache'];

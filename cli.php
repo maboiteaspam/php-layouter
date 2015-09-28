@@ -31,6 +31,10 @@ $console
         $dump = $app['layout.fs']->registry->saveToCache();
         echo "layout.fs signed with ".$dump['signature']."\n";
 
+        $app['modern.fs']->registry->clearCached();
+        $dump = $app['modern.fs']->registry->saveToCache();
+        echo "modern.fs signed with ".$dump['signature']."\n";
+
         $app['capsule.schema']->registry->clearCached();
         $app['capsule.schema']->loadSchemas();
         $dump = $app['capsule.schema']->registry->saveToCache();
@@ -44,6 +48,7 @@ $console
         $res = [];
         $app['capsule.schema']->loadSchemas();
         $res [] = $app['assets.fs']->registry->dump();
+        $res [] = $app['modern.fs']->registry->dump();
         $res [] = $app['layout.fs']->registry->dump();
         $res [] = $app['capsule.schema']->registry->dump();
         echo json_encode($res);

@@ -30,14 +30,14 @@ class AssetsServiceProvider implements ServiceProviderInterface
         if (!isset($app['assets.bridge_file_path']))
             $app['assets.bridge_file_path'] = '.assets_bridge';
 
-        $app['assets.bridger'] = $app->share(function() use($app) {
+        $app['assets.bridger'] = $app->share(function() {
             return new Bridger();
         });
 
         if (!isset($app['assets.cache_store_name']))
             $app['assets.cache_store_name'] = "assets-store";
 
-        $app['assets.fs'] = $app->share(function() use($app) {
+        $app['assets.fs'] = $app->share(function(Application $app) {
             $storeName = $app['assets.cache_store_name'];
             if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
             else $cache = $app['cache'];
@@ -45,7 +45,7 @@ class AssetsServiceProvider implements ServiceProviderInterface
                 'basePath' => $app['project.path']
             ]));
         });
-        $app['assets.responder'] = $app->share(function() use($app) {
+        $app['assets.responder'] = $app->share(function(Application $app) {
             $responder = new BuiltinResponder();
 //            $responder->setDocumentRoot($app['assets.www_path']);
             $responder->setFS($app['assets.fs']);

@@ -12,4 +12,7 @@ structure:
       template_footer_css:
         - MyBlog:/template.css
         - MyBlog:/blog.css
-        
+    insert_before:
+      target: some_id
+      options:
+        - some
