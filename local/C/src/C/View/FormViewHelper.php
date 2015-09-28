@@ -229,7 +229,7 @@ class FormViewHelper extends AbstractViewHelper {
             $str .= "<ul>";
             foreach ($vars['errors'] as $error) {
                 $str .= "<li>";
-                $str .= $error->message;
+                $str .= $error->getMessage();
                 $str .= "</ul>";
             }
             $str .= "</ul>";
