@@ -5,7 +5,7 @@ use Symfony\Component\Form\FormView;
 
 /**
  * This is a virtual class (interface)
- * to let user add documentation hint about $this
+ * to let user have documentation hint about $this
  * when he is developing templates.
  *
  * That way he can get auto completion

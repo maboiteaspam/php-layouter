@@ -15,7 +15,6 @@ use C\View\FormViewHelper;
 use C\View\Context;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
-use Symfony\Component\Form\Extension\Core\CoreExtension;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -91,7 +90,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
         });
 
         $app['layout.view'] = $app->share(function() use($app) {
-            return  new Context();
+            return new Context();
         });
 
         $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {
@@ -151,7 +150,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
 
         if (isset($app['form.extensions'])) {
             $app['form.extensions'] = $app->share($app->extend('form.extensions', function ($extensions) use ($app) {
-                $extensions[] = new CoreExtension();
+//                $extensions[] = new CoreExtension();
                 return $extensions;
             }));
         }

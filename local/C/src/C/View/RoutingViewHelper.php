@@ -1,7 +1,6 @@
 <?php
 namespace C\View;
 
-use C\Layout\Block;
 use C\Misc\Utils;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 
