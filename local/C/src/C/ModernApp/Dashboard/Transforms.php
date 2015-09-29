@@ -29,7 +29,7 @@ class Transforms extends Base{
             'options' => [
                 'template'=>'Dashboard:/dashboard.php'
             ]
-        ])->updateAssets('dashboard', [
+        ])->addAssets('dashboard', [
             'template_head_css'=>[
                 'Dashboard:/dashboard.css'
             ],
@@ -40,7 +40,7 @@ class Transforms extends Base{
 
         $this->set('dashboard-layout', [
             'body' => "<!-- layout_structure_placeholder -->",
-        ])->updateAssets('dashboard-layout', [
+        ])->addAssets('dashboard-layout', [
             'template_head_css'=>[
                 'Dashboard:/layout-structure.css'
             ],
@@ -56,7 +56,7 @@ class Transforms extends Base{
             'data' => [
                 'options'=> []
             ]
-        ])->updateAssets('dashboard-options', [
+        ])->addAssets('dashboard-options', [
         ]);
 
         $this->set('dashboard-stats', [
@@ -66,7 +66,7 @@ class Transforms extends Base{
             'data' => [
                 'options'=> []
             ]
-        ])->updateAssets('dashboard-options', [
+        ])->addAssets('dashboard-options', [
         ])->then( jQuery::transform($layout)->inject() );
 
         $this->layout->beforeRenderAnyBlock(function ($ev, Layout $layout, $id) use($fromClass) {
