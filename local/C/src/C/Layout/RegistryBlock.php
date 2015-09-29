@@ -28,8 +28,8 @@ class RegistryBlock{
     }
 
     public function each ($fn){
-        foreach ($this->blocks as $block) {
-            $fn($block);
+        foreach ($this->blocks as $id=>$block) {
+            $fn($block, $id);
         }
     }
 }
