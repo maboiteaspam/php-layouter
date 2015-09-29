@@ -33,8 +33,6 @@ class ModernAppServiceProvider implements ServiceProviderInterface
         $app['modern.layout'] = $app->share(function (Application $app) {
             $transform = new \C\ModernApp\File\Transforms();
             $transform->setLayout($app['layout']);
-//            $transform->setAssetsFS($app['assets.fs']);
-//            $transform->setLayoutFS($app['layout.fs']);
             $transform->setModernLayoutFS($app['modern.fs']);
 
             $helpers = $app['modern.layout.helpers'];
@@ -50,7 +48,11 @@ class ModernAppServiceProvider implements ServiceProviderInterface
             return $transform;
         });
         $app['modern.layout.helpers'] = $app->share(function (Application $app) {
-            return [];
+            // @todo this should probably be moved away into separate service providers, for now on it s only inlined
+            $helpers = [];
+            $helpers[] = new \C\ModernApp\File\Helpers\LayoutHelper();
+            $helpers[] = new \C\ModernApp\File\Helpers\AssetsHelper();
+            return $helpers;
         });
     }
     /**
