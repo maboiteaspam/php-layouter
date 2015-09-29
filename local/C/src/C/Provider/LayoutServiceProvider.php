@@ -1,18 +1,22 @@
 <?php
 namespace C\Provider;
 
+
 use C\FS\KnownFs;
 use C\FS\LocalFs;
 use C\FS\Registry;
-use C\Layout\Layout;
 
-use C\Misc\Utils;
+use C\Layout\Layout;
+use C\Layout\LayoutSerializer;
 use C\View\CommonViewHelper;
 use C\View\Env;
 use C\View\LayoutViewHelper;
 use C\View\RoutingViewHelper;
 use C\View\FormViewHelper;
 use C\View\Context;
+
+use C\Misc\Utils;
+
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -114,6 +118,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     $etag = $app['httpcache.tagger']->sign($TaggedResource);
                     $app['httpcache.taggedResource'] = $TaggedResource;
                     $response->setETag($etag);
+                    $response->setProtocolVersion('1.1');
 
                     $response->setPublic(true);
                     $response->mustRevalidate(true);
@@ -134,8 +139,13 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $response;
         });
 
-        $app['layout.file.helpers'] = $app->share(function () {
-            //-
+        $app['layout.serializer'] = $app->share(function (Application $app) {
+            // @todo split across service providers
+            $serializer = new LayoutSerializer();
+            $serializer->setAssetsFS($app["assets.fs"]);
+            $serializer->setLayoutFS($app["layout.fs"]);
+            $serializer->setModernFS($app["modern.fs"]);
+            return $serializer;
         });
 
         if (!isset($app['layout.cache_store_name']))

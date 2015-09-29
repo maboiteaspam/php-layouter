@@ -2,6 +2,7 @@
 namespace C\Provider;
 
 use C\FS\KnownFs;
+use C\FS\LocalFs;
 use C\FS\Registry;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
@@ -72,6 +73,27 @@ class ModernAppServiceProvider implements ServiceProviderInterface
             $app['layout.fs']->register(__DIR__.'/../ModernApp/HTML/templates/', 'HTML');
             $app['layout.fs']->register(__DIR__.'/../ModernApp/Dashboard/templates/', 'Dashboard');
             $app['layout.fs']->register(__DIR__.'/../ModernApp/jQuery/templates/', 'jQuery');
+        }
+
+        if (isset($app['httpcache.tagger'])) {
+            $fs = $app['modern.fs'];
+            $tagger = $app['httpcache.tagger'];
+            /* @var $fs \C\FS\KnownFs */
+            /* @var $tagger \C\TagableResource\ResourceTagger */
+            $tagger->tagDataWith('modern.layout', function ($file) use($fs) {
+                $template = $fs->get($file);
+                $h = '';
+                if ($template) {
+                    $h .= $template['sha1'].$template['dir'].$template['name'];
+                } else if(LocalFs::file_exists($file)) {
+                    $h .= LocalFs::file_get_contents($file);
+                } else {
+                    // that is bad, it means we have registered files
+                    // that does not exists
+                    // or that can t be located back.
+                }
+                return $h;
+            });
         }
     }
 }
