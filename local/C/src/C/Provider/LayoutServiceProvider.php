@@ -4,8 +4,9 @@ namespace C\Provider;
 use C\FS\KnownFs;
 use C\FS\LocalFs;
 use C\FS\Registry;
-use C\Layout\Layout;
 
+use C\Layout\Layout;
+use C\Layout\LayoutSerializer;
 use C\Layout\RequestTypeMatcher;
 use C\Misc\Utils;
 use C\View\CommonViewHelper;
@@ -165,8 +166,13 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return $response;
         });
 
-        $app['layout.file.helpers'] = $app->share(function () {
-            //-
+        $app['layout.serializer'] = $app->share(function (Application $app) {
+            // @todo split across service providers
+            $serializer = new LayoutSerializer();
+            $serializer->setAssetsFS($app["assets.fs"]);
+            $serializer->setLayoutFS($app["layout.fs"]);
+            $serializer->setModernFS($app["modern.fs"]);
+            return $serializer;
         });
 
         if (!isset($app['layout.cache_store_name']))

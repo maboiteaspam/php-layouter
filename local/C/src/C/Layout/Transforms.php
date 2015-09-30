@@ -78,7 +78,7 @@ class Transforms implements TransformsInterface{
         return $this;
     }
 
-    public function updateAssets($id, $assets=[], $first=false){
+    public function addAssets($id, $assets=[], $first=false){
         $block = $this->layout->getOrCreate($id);
         foreach($assets as $targetAssetGroupName => $files) {
             if(!isset($block->assets[$targetAssetGroupName]))
@@ -87,6 +87,41 @@ class Transforms implements TransformsInterface{
                 ? array_merge($files, $block->assets[$targetAssetGroupName])
                 : array_merge($block->assets[$targetAssetGroupName], $files);
         }
+        return $this;
+    }
+
+    public function removeAssets($id, $assets=[]){
+        $block = $this->layout->getOrCreate($id);
+        foreach($assets as $targetAssetGroupName => $files) {
+            if(!isset($block->assets[$targetAssetGroupName]))
+                $block->assets[$targetAssetGroupName] = [];
+            foreach($files as $file) {
+                $index = array_search($file, $block->assets[$targetAssetGroupName]);
+                if ($index!==false) {
+                    array_splice($files, $index, 1);
+                }
+            }
+        }
+        return $this;
+    }
+
+    public function replaceAssets($id, $replacements=[]){
+        $block = $this->layout->getOrCreate($id);
+        foreach($replacements as $search => $replacement) {
+            foreach ($block->assets as $blockAssetsName=>$blockAssets) {
+                foreach($blockAssets as $i=>$asset) {
+                    if ($asset===$search) {
+                        $block->assets[$blockAssetsName][$i] = $replacement;
+                    }
+                }
+            }
+        }
+        return $this;
+    }
+
+    public function sefDefaultData($id, $data=[]){
+        $block = $this->layout->getOrCreate($id);
+        $block->data = array_merge($data, $block->data);
         return $this;
     }
 

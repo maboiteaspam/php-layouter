@@ -27,7 +27,7 @@ class Transforms extends BaseTransforms{
             'MyBlog:/top.php'
         )->updateData('body_top', [
             'logo'=> '',
-        ])->updateAssets('body', [
+        ])->addAssets('body', [
             'template_head_css'=>[
                 'MyBlog:/blog.css',
                 'MyBlog:/template.css'

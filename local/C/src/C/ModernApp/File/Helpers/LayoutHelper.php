@@ -1,21 +1,11 @@
 <?php
 namespace C\ModernApp\File\Helpers;
 
-use C\FS\KnownFs;
 use C\Layout\Layout;
 use C\Layout\Transforms;
 use C\ModernApp\File\AbstractStaticLayoutHelper;
 
 class LayoutHelper extends  AbstractStaticLayoutHelper{
-
-    /**
-     * @var KnownFs
-     */
-    protected $layoutFS;
-
-    public function setLayoutFS (KnownFs $fs) {
-        $this->layoutFS = $fs;
-    }
 
     public function executeMetaNode (Layout $layout, $nodeAction, $nodeContents) {
         if ($nodeAction==="id") {
@@ -28,6 +18,9 @@ class LayoutHelper extends  AbstractStaticLayoutHelper{
     public function executeStructureNode (Layout $layout, $blockSubject, $nodeAction, $nodeContents) {
         if ($nodeAction==="set_template") {
             Transforms::transform($layout)->setTemplate($blockSubject, (string)$nodeContents);
+
+        } else if ($nodeAction==="set_default_data") {
+            Transforms::transform($layout)->sefDefaultData($blockSubject, $nodeContents);
 
         } else if ($nodeAction==="insert_before") {
             $nodeContents = array_merge([

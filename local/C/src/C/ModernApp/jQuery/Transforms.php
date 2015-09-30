@@ -19,7 +19,7 @@ class Transforms extends base{
             'jquery' => 'jQuery:/jquery-2.1.3.min.js',
             'target' => 'page_footer_js',
         ], $options);
-        $this->updateAssets('body', [
+        $this->addAssets('body', [
             $options['target']=>[$options['jquery']],
         ], true);
         return $this;
@@ -33,7 +33,7 @@ class Transforms extends base{
             'css_target'=> 'page_head_css',
             'js_target' => 'page_footer_js',
         ], $options);
-        $this->updateAssets('body', [
+        $this->addAssets('body', [
             $options['css_target'] => [$options['css'], $options['theme']],
             $options['js_target'] => [$options['js']],
         ]);

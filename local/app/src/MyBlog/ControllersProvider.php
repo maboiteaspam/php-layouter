@@ -33,6 +33,9 @@ class ControllersProvider implements
         if (isset($app['layout.fs'])) {
             $app['layout.fs']->register(__DIR__.'/templates/', 'MyBlog');
         }
+        if (isset($app['modern.fs'])) {
+            $app['modern.fs']->register(__DIR__.'/layouts/', 'MyBlog');
+        }
     }
 
     public function connect(Application $app)

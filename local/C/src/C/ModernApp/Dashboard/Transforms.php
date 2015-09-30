@@ -1,6 +1,7 @@
 <?php
 namespace C\ModernApp\Dashboard;
 
+use C\Layout\LayoutSerializer;
 use \C\ModernApp\jQuery\Transforms as jQuery;
 use C\Layout\Transforms as Base;
 use C\Layout\Layout;
@@ -17,6 +18,15 @@ class Transforms extends Base{
     }
 
     /**
+     * @var LayoutSerializer
+     */
+    public $serializer;
+
+    public function setLayoutSerializer (LayoutSerializer $serializer) {
+        $this->serializer = $serializer;
+    }
+
+    /**
      * @param string $fromClass
      * @return \C\Layout\Transforms
      */
@@ -29,7 +39,7 @@ class Transforms extends Base{
             'options' => [
                 'template'=>'Dashboard:/dashboard.php'
             ]
-        ])->updateAssets('dashboard', [
+        ])->addAssets('dashboard', [
             'template_head_css'=>[
                 'Dashboard:/dashboard.css'
             ],
@@ -40,7 +50,7 @@ class Transforms extends Base{
 
         $this->set('dashboard-layout', [
             'body' => "<!-- layout_structure_placeholder -->",
-        ])->updateAssets('dashboard-layout', [
+        ])->addAssets('dashboard-layout', [
             'template_head_css'=>[
                 'Dashboard:/layout-structure.css'
             ],
@@ -56,7 +66,7 @@ class Transforms extends Base{
             'data' => [
                 'options'=> []
             ]
-        ])->updateAssets('dashboard-options', [
+        ])->addAssets('dashboard-options', [
         ]);
 
         $this->set('dashboard-stats', [
@@ -66,7 +76,7 @@ class Transforms extends Base{
             'data' => [
                 'options'=> []
             ]
-        ])->updateAssets('dashboard-options', [
+        ])->addAssets('dashboard-options', [
         ])->then( jQuery::transform($layout)->inject() );
 
         $this->layout->beforeRenderAnyBlock(function ($ev, Layout $layout, $id) use($fromClass) {
@@ -84,65 +94,30 @@ class Transforms extends Base{
         });
 
 
-        $structGen = function () use($layout) {
-            $struct = [];
-            $root = $layout->get($layout->block);
-            $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use(&$struct) {
-                $block = $options['block'];
-                $template = 'inlined body';
-                $assets = [];
-                $data = [];
-                $isCacheable = true;
+        if ($this->serializer) {
+            $serializer = $this->serializer;
 
-                if ($block) {
-                    if (isset($block->options['template']) && $block->options['template'])
-                        $template = Utils::shorten($block->options['template']);
-                    foreach ($block->assets as $assetGroup=>$assetsGroup) {
-                        if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
-                        foreach ($assetsGroup as $asset) {
-                            $assets[$assetGroup][] = Utils::shorten($asset);
-                        }
-                    }
-                    $data = $block->unwrapData();
-                    try{
-                        serialize($data);
-                    }catch(\Exception $ex){
-                        $isCacheable = false;
-                    }
-                }
+            // this is a special case.
+            // the block needs to be generated after ALL blocks,
+            // then re injected into the document.
+            $this->layout->afterRender(function ($ev, Layout $layout) use($serializer) {
+                $content = $layout->getRoot()->body;
 
-                $struct[$path] = [
-                    'template'=>$template,
-                    'assets'=>$assets,
-                    'id'=>$blockId,
-                    'data'=>$data,
-                    'exists'=>$options['exists'],
-                    'shown'=>$options['shown'],
-                    'isCacheable'=>$isCacheable,
-                    'parentId'=>$parentId,
-                ];
-
-            });
-            return $struct;
-        };
-        $this->layout->afterRender(function ($ev, Layout $layout) use(&$structGen) {
-            $content = $layout->getRoot()->body;
-
-            $this->set('dashboard-layout-structure', [
-                'options' => [
-                    'template'=>'Dashboard:/layout-structure.php'
-                ],
-            ]);
-
-            $this->updateData('dashboard-layout-structure', [
-                'struct'=> $structGen()
+                $this->set('dashboard-layout-structure', [
+                    'options' => [
+                        'template'=>'Dashboard:/layout-structure.php'
+                    ],
+                    'data' => [
+                        'struct'=> $serializer->serialize($layout)
+                    ]
                 ]);
 
-            $layout->getRoot()->body = str_replace(
-                "<!-- layout_structure_placeholder -->",
-                $layout->resolve('dashboard-layout-structure')->body,
-                $content);
-        });
+                $layout->getRoot()->body = str_replace(
+                    "<!-- layout_structure_placeholder -->",
+                    $layout->resolve('dashboard-layout-structure')->body,
+                    $content);
+            });
+        }
 
         return $this;
     }

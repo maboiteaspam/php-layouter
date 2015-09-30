@@ -66,7 +66,7 @@ class Transforms extends BaseTransforms{
         $layoutStruct   = $this->cache->fetch($layoutFile['dir'].'/'.$layoutFile['name']);
 
         $resourceTag = new TagedResource();
-        $resourceTag->addResource('layout', $layoutFile['absolute_path']);
+        $resourceTag->addResource('modern.layout', $filePath);
         $this->layout->addGlobalResourceTag($resourceTag);
 
         foreach ($this->helpers as $helper) {
