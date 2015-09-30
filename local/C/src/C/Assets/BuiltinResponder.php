@@ -1,9 +1,14 @@
 <?php
 namespace C\Assets;
 
+use C\FS\LocalFs;
 use C\Misc\Utils;
 
 class BuiltinResponder {
+    /**
+     * @var string
+     */
+    public $wwwDir;
     /**
      * @var \C\FS\KnownFs
      */
@@ -11,10 +16,7 @@ class BuiltinResponder {
     public function setFS ($fs) {
         $this->fs = $fs;
     }
-    public function sendAsset ($item) {
-
-        $f = $item['absolute_path'];
-        $extension = $item['extension'];
+    public function sendAsset ($f, $extension) {
 
         $content = file_get_contents($f);
 
@@ -52,7 +54,10 @@ class BuiltinResponder {
         if (in_array($extension, $acceptableAssets)) {
             $item = $this->fs->get($reqUrl);
             if ($item) {
-                echo $this->sendAsset($item);
+                echo $this->sendAsset($item['absolute_path'], $item['extension']);
+                if ($verbose) Utils::stdout("served $reqUrl");
+            } else if (LocalFs::file_exists("{$this->wwwDir}{$reqUrl}")) {
+                echo $this->sendAsset("{$this->wwwDir}{$reqUrl}", strpos('js', $reqUrl)===false?'css':'js');
                 if ($verbose) Utils::stdout("served $reqUrl");
             } else {
                 header("HTTP/1.0 404 Not Found");

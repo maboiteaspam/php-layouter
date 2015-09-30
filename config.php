@@ -39,7 +39,9 @@ return [
             'cache_dir' => __DIR__ . '/run/modern-layout/',
         ],
     ],
-    'assets.concat' => false,
+    'assets.concat' => !false,
+    'assets.build_dir' => 'www/run',
+    'assets.www_dir' => '/run',
     'assets.patterns' => [
         'blog_detail' => '/images/blog/detail/:id.jpg',
         'blog_list' => '/images/blog/list/:id.jpg',

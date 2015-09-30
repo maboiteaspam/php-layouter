@@ -26,7 +26,12 @@ class ResourceTagger{
             $tagger = $res['type'];
             if (isset($this->taggers[$tagger])) {
                 $computer = $this->taggers[$tagger];
-                $h .= serialize($computer($res['value']));
+                $value = $computer($res['value']);
+                try{
+                    $h .= serialize($value);
+                }catch(\Exception $ex) {
+                    echo $ex;
+                }
             } else {
                 throw new \Exception("Missing tag computer type '$tagger'");
             }

@@ -92,6 +92,7 @@ class Transforms extends Base{
                 $template = 'inlined body';
                 $assets = [];
                 $data = [];
+                $isCacheable = true;
 
                 if ($block) {
                     if (isset($block->options['template']) && $block->options['template'])
@@ -102,7 +103,12 @@ class Transforms extends Base{
                             $assets[$assetGroup][] = Utils::shorten($asset);
                         }
                     }
-                    $data = $block->data;
+                    $data = $block->unwrapData();
+                    try{
+                        serialize($data);
+                    }catch(\Exception $ex){
+                        $isCacheable = false;
+                    }
                 }
 
                 $struct[$path] = [
@@ -112,6 +118,7 @@ class Transforms extends Base{
                     'data'=>$data,
                     'exists'=>$options['exists'],
                     'shown'=>$options['shown'],
+                    'isCacheable'=>$isCacheable,
                     'parentId'=>$parentId,
                 ];
 
@@ -125,10 +132,11 @@ class Transforms extends Base{
                 'options' => [
                     'template'=>'Dashboard:/layout-structure.php'
                 ],
-                'data' => [
-                    'struct'=> $structGen
-                ]
             ]);
+
+            $this->updateData('dashboard-layout-structure', [
+                'struct'=> $structGen()
+                ]);
 
             $layout->getRoot()->body = str_replace(
                 "<!-- layout_structure_placeholder -->",

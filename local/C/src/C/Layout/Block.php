@@ -89,7 +89,6 @@ class Block implements TagableResourceInterface{
     public function getTaggedResource (){
         $res = new TagedResource();
 
-//        var_dump($this->resolved);
         if ($this->resolved) {
             $res->addResource($this->id);
             if (isset($this->options['template'])) {

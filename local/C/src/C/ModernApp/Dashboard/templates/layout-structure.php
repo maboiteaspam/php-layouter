@@ -1,18 +1,21 @@
 <?php
 /* @var $this \C\View\ConcreteContext */
-/* @var $struct \Closure */
+/* @var $struct array */
 /* @var $comment stdClass */
 ?>
 <b class="dashboard-title">Layout structure</b>
 <div class="dashboard-block-content">
-    <?php foreach ($struct() as $blockPath=>$blockInfo) { ?>
+    <?php foreach ($struct as $blockPath=>$blockInfo) { ?>
         <div class="layout-block">
             <div>
-                <span class="layout-block-path"><?php echo $blockPath; ?></span>
+                <?php echo str_repeat(" -", substr_count($blockPath, '/')-1); ?>
+                <span class="layout-block-path"><?php echo $blockInfo['id']; ?></span>
+                -
+                <?php echo $blockInfo['isCacheable']?'✓':'✖'; ?>
                 -
                 <span class="enable-help" target="<?php echo $blockInfo['id']; ?>">
-                    <span class="enabled-text">Disable help</span>
-                    <span class="disabled-text">Enable help</span>
+                    <span class="enabled-text">mask</span>
+                    <span class="disabled-text">reveal</span>
                 </span>
             </div>
             <div class="layout-block-meta">

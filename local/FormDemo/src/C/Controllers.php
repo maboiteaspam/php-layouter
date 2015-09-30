@@ -26,8 +26,7 @@ class Controllers {
                 ->updateData('body_content', [
                     'form'=>$form->createView()
                 ])
-                ->then(Dashboard::transform($app['layout'])->show())
-                ->finalize($app);
+                ->then(Dashboard::transform($app['layout'])->show());
             return $app['layout']->render();
         };
     }
@@ -65,8 +64,7 @@ class Controllers {
                 ->updateData('body_content', [
                     'form'=>$form->createView()
                 ])
-                ->then(Dashboard::transform($app['layout'])->show())
-                ->finalize($app);
+                ->then(Dashboard::transform($app['layout'])->show());
             return $app['layout']->render();
         };
     }

@@ -7,11 +7,13 @@ use C\Layout\TransformsInterface;
 class VoidTransforms implements TransformsInterface{
 
     /**
-     * @param Layout $layout
+     * @param TransformsInterface $transform
      */
-    public function __construct(Layout $layout=null){
-        if ($layout) $this->setLayout($layout);
+    public function __construct(TransformsInterface $transform){
+        $this->setLayout($transform->getLayout());
+        $this->innerTransform = $transform;
     }
+    public $innerTransform;
 
     /**
      * @var \C\Layout\Layout
@@ -23,16 +25,29 @@ class VoidTransforms implements TransformsInterface{
         return $this;
     }
 
+    /**
+     * @return Layout
+     */
     public function getLayout () {
         return $this->layout;
     }
-
-    /**
-     * @param Layout $layout
-     * @return Transforms
-     */
-    public static function transform(Layout $layout){
-        return new self($layout);
+    public function forDevice ($device) {
+        if ($this->layout->requestMatcher->isDevice($device)) {
+            return $this->innerTransform;
+        }
+        return $this;
+    }
+    public function forRequest ($kind) {
+        if ($this->layout->requestMatcher->isRequestKind($kind)) {
+            return $this->innerTransform;
+        }
+        return $this;
+    }
+    public function forLang ($lang) {
+        if ($this->layout->requestMatcher->isLang($lang)) {
+            return $this->innerTransform;
+        }
+        return $this;
     }
 
     public function __call ($a, $b) {

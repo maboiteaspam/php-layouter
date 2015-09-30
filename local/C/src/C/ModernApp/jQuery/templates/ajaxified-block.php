@@ -7,10 +7,15 @@
 <script type="text/javascript">
     $.get('<?php echo $url; ?>?target=<?php echo $target; ?>', function(data){
         data = $(data);
+        var receiver = $('#<?php echo $id; ?>');
         if ($(data).first().is("c_block_node")) {
-            $(data).unwrap();
+            if ($(data).children().length) {
+                data = $(data).children().unwrap();
+            } else {
+                data = $(data).html();
+            }
         }
-        $('#<?php echo $id; ?>').replaceWith(data);
+        receiver.replaceWith(data);
         $(document).trigger('c_block_loaded', '#<?php echo $target; ?>')
     });
 </script>

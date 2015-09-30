@@ -1,16 +1,17 @@
 <?php
 namespace C\Provider;
 
+use C\Assets\AssetsInjector;
 use C\Assets\BuiltinResponder;
 use C\FS\Registry;
 use C\FS\LocalFs;
 use C\FS\KnownFs;
 use C\Assets\Bridger;
-use C\Misc\Utils;
 use C\View\AssetsViewHelper;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 class AssetsServiceProvider implements ServiceProviderInterface
 {
@@ -47,7 +48,7 @@ class AssetsServiceProvider implements ServiceProviderInterface
         });
         $app['assets.responder'] = $app->share(function(Application $app) {
             $responder = new BuiltinResponder();
-//            $responder->setDocumentRoot($app['assets.www_path']);
+            $responder->wwwDir = $app['documentRoot'];
             $responder->setFS($app['assets.fs']);
             return $responder;
         });
@@ -85,15 +86,33 @@ class AssetsServiceProvider implements ServiceProviderInterface
             });
         }
 
+        if (isset($app['layout'])) {
+            $app->before(function (Request $request, Application $app) {
+                $injector = new AssetsInjector();
+                $injector->concatenate = $app['assets.concat'];
+                $injector->assetsFS = $app['assets.fs'];
+                $injector->wwwDir = $app['assets.www_dir'];
+                $injector->buildDir = $app['assets.build_dir'];
+                $app['layout']->beforeRender(function () use($injector, $app) {
+                    $injector->applyToLayout($app['layout']);
+                });
+                if ($injector->concatenate) {
+                    $app->after(function() use($injector, $app){
+                        $injector->createMergedAssetsFiles($app['layout']);
+                    }, Application::LATE_EVENT);
+                }
+            });
+        }
+
         if (isset($app['layout.view'])) {
             $assetsViewHelper = new AssetsViewHelper();
             $assetsViewHelper->setPatterns($app["assets.patterns"]);
             $app['layout.view']->addHelper($assetsViewHelper);
         }
 
+        $app['assets.fs']->registry->loadFromCache();
         if(!isset($app['assets.verbose'])) $app['assets.verbose'] = false;
         if (php_sapi_name()==='cli-server') {
-            $app['assets.fs']->registry->loadFromCache();
             /* @var $responder \C\Assets\BuiltinResponder */
             $responder = $app['assets.responder'];
             $responder->respond($app['assets.verbose']);

@@ -11,8 +11,9 @@ class TagedResource implements \Serializable{
     }
 
     public function addResource ($resource, $type='po') {
-        if (is_object($resource) && !($resource instanceof \Serializable))
+        if (is_object($resource) && !($resource instanceof \Serializable)) {
             throw new \Exception("not serializable object");
+        }
         $this->resources[] = [
             'value'=>$resource,
             'type'=>$type,

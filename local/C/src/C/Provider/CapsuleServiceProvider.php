@@ -116,7 +116,8 @@ class CapsuleServiceProvider implements ServiceProviderInterface
                 $capsule = $app['capsule'];
                 /* @var $tagger \C\TagableResource\ResourceTagger */
                 $tagger->tagDataWith('sql', function ($sql) use($capsule) {
-                    return $capsule->getConnection()->select($sql);
+                    $k = $capsule->getConnection()->select($sql);
+                    return $k;
                 });
             }
         }

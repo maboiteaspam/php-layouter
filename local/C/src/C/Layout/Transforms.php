@@ -1,6 +1,8 @@
 <?php
 namespace C\Layout;
 
+use C\ModernApp\jQuery\VoidTransforms;
+
 class Transforms implements TransformsInterface{
 
     /**
@@ -33,13 +35,11 @@ class Transforms implements TransformsInterface{
     }
 
     /**
-     * stub method
-     *
-     * @param TransformsInterface $t
+     * @param mixed $some
      * @return $this
      */
-    public function then(TransformsInterface $t=null) {
-        // totally wanted this parameter is ignored.
+    public function then($some=null) {
+        if (is_callable($some)) $some($this);
         return $this;
     }
 
@@ -116,6 +116,25 @@ class Transforms implements TransformsInterface{
     }
 
 
+
+    public function forDevice ($device) {
+        if ($this->layout->requestMatcher->isDevice($device)) {
+            return $this;
+        }
+        return new VoidTransforms($this);
+    }
+    public function forRequest ($kind) {
+        if ($this->layout->requestMatcher->isRequestKind($kind)) {
+            return $this;
+        }
+        return new VoidTransforms($this);
+    }
+    public function forLang ($lang) {
+        if ($this->layout->requestMatcher->isLang($lang)) {
+            return $this;
+        }
+        return new VoidTransforms($this);
+    }
 
     public function insertAfterBlock ($target, $id, $options){
         $this->layout->set($id, $options);

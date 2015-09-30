@@ -41,27 +41,29 @@ class Transforms extends base{
     }
 
     public function ajaxify($target, $options=[]){
-        $options = array_merge(['url'=>'', 'isAjax'=>false], $options);
-        if (!$options['isAjax']) {
-            $id = sha1($target.$options['url']);
+        $options = array_merge(['url'=>'',], $options);
+        return $this->forRequest('get')
+            ->then(function (Transforms $transform) use ($target, $options) {
+                $id = sha1($target.$options['url']);
 
-            $this->clearBlock($target
-            )->setBody($target,
-                '<div id="'.$id.'"></div>'
-            )->setTemplate($target.'_ajax',
-                'jQuery:/ajaxified-block.php'
-            )->updateData($target.'_ajax', [
-                'url'   => $options['url'],
-                'id'    => $id,
-                'target'=> $target,
-            ]);
-
-            $this->insertAfterBlock('page_footer_js', $target.'_ajax', []);
-        } else if ($_GET['target']===$target) {
-            $this->layout->block = $target;
-            return $this;
-        }
-        return VoidTransforms::transform($this->layout);
+                $transform->clearBlock($target
+                )->setBody($target,
+                    '<div id="'.$id.'"></div>'
+                )->setTemplate($target.'_ajax',
+                    'jQuery:/ajaxified-block.php'
+                )->updateData($target.'_ajax', [
+                    'url'   => $options['url'],
+                    'id'    => $id,
+                    'target'=> $target,
+                ]);
+                $this->insertAfterBlock('page_footer_js', $target.'_ajax', []);
+            })
+            ->forRequest('ajax')
+            ->then(function (Transforms $transform) use($target) {
+                if ($_GET['target']===$target) {
+                    $transform->getLayout()->block = $target;
+                }
+            });
     }
 
     // jQuery like methods

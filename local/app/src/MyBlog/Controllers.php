@@ -1,6 +1,7 @@
 <?php
 namespace MyBlog;
 
+use C\Layout\TransformsInterface;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +42,8 @@ class Controllers{
             /* @var $requestData \C\HTTP\RequestProxy */
             $requestData = $app['httpcache.request'];
             $listEntryBy = 5;
-            MyBlogLayout::transform($app['layout'], $app)
+            MyBlogLayout::transform($app['layout'])
+                ->forDevice('desktop')
                 ->baseTemplate(__CLASS__)
                 ->home(
                     $entryRepo
@@ -54,8 +56,6 @@ class Controllers{
                     $listEntryBy
 //                )->then(
 //                    FileLayout::transform($app['layout'])->loadFile( "test_layout.yml" )
-                )->then(
-                    HTML::transform($app['layout'])->finalize($app)
                 );
 
             $response = new Response();
@@ -84,6 +84,7 @@ class Controllers{
             $form->handleRequest($request);
 
             MyBlogLayout::transform($app['layout'])
+                ->forDevice('desktop')
                 ->baseTemplate(__CLASS__)
                 ->detail(
                     $entryRepo
@@ -95,21 +96,17 @@ class Controllers{
                     $commentRepo
                         ->tagable( $commentRepo->tager()->mostRecent([$id]) )
                         ->mostRecent([$id])
-                )->then(
-                    jQuery::transform($app['layout'])->ajaxify('blog_detail_comments', [
-                        'isAjax'=> $request->isXmlHttpRequest(),
+                )->then(function (MyBlogLayout $transform) use($request, $generator) {
+                    jQuery::transform($transform->getLayout())->ajaxify('blog_detail_comments', [
                         'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
-                    ])
-                )->then(
-                    jQuery::transform($app['layout'])->ajaxify('blog_form_comments', [
-                        'isAjax'=> $request->isXmlHttpRequest(),
+                    ]);
+                })->then(function (MyBlogLayout $transform) use($form, $request, $generator) {
+                    jQuery::transform($transform->getLayout())->ajaxify('blog_form_comments', [
                         'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
                     ])->updateData('blog_form_comments', [
                         'form' => FormBuilder::createView($form),
-                    ])
-                )->then(
-                    HTML::transform($app['layout'])->finalize($app)
-                );
+                    ]);
+                });
 
             $response = new Response();
             return $app['layout.responder']($response);

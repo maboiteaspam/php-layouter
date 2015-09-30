@@ -56,6 +56,11 @@ class Layout implements TagableResourceInterface{
      * @var \Symfony\Component\EventDispatcher\EventDispatcher
      */
     public $dispatcher;
+
+    /**
+     * @var RequestTypeMatcher
+     */
+    public $requestMatcher;
     /**
      * @var KnownFs
      */
@@ -74,7 +79,8 @@ class Layout implements TagableResourceInterface{
      * @var array
      */
     public $defaultOptions = [
-        'options'=>[]
+        'options'=>[],
+        'meta'=>[],
     ];
 
     /**
@@ -86,6 +92,10 @@ class Layout implements TagableResourceInterface{
         $this->registry = new RegistryBlock();
         $this->block = 'root';
         $this->config = array_merge([], $config);
+    }
+
+    public function setRequestMatcher (RequestTypeMatcher $requestMatcher) {
+        $this->requestMatcher = $requestMatcher;
     }
 
     public function setDispatcher (EventDispatcher $dispatcher) {
@@ -173,19 +183,10 @@ class Layout implements TagableResourceInterface{
             }
         }
     }
-    public $hasPreRendered = false;
-    public function preRender (){
-        if (!$this->hasPreRendered) {
-            $this->emit('before_layout_render');
-//            $this->resolveAllBlocks ();
-            $this->resolveInCascade($this->block);
-            $this->hasPreRendered = true;
-            return true;
-        }
-        return false;
-    }
     public function render (){
-        $this->preRender();
+        $this->emit('before_layout_render');
+//            $this->resolveAllBlocks ();
+        $this->resolveInCascade($this->block);
         $this->getContent ($this->block);
         $this->emit('after_layout_render');
         return $this->getRoot()->body;
@@ -268,10 +269,16 @@ class Layout implements TagableResourceInterface{
     public function addGlobalResourceTag (TagedResource $resource) {
         $this->globalResourceTags[] = $resource;
     }
+    public function addGlobalTag ($tag, $type) {
+        $res = new TagedResource();
+        $res->addResource($tag, $type);
+        $this->globalResourceTags[] = $res;
+    }
     public function getTaggedResource () {
         $res = new TagedResource();
         try{
             $res->addResource($this->block);
+            $res->addResource($this->requestMatcher->getTaggedResource());
             foreach($this->globalResourceTags as $extra) {
                 $res->addTaggedResource($extra);
             }

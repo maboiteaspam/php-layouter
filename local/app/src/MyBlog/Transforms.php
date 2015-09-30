@@ -20,7 +20,7 @@ class Transforms extends BaseTransforms{
         return new self($layout);
     }
 
-    public function baseTemplate ($fromClass=__CLASS__) {
+    public function baseTemplate ($fromClass=__CLASS__, $fromFile=__FILE__) {
         $this->then(
             HTML::transform($this->layout)->baseTemplate()
         )->setTemplate('body_top',
