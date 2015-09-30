@@ -94,6 +94,7 @@ class Layout implements TagableResourceInterface{
         $this->config = array_merge([], $config);
     }
 
+    #region initialization
     public function setRequestMatcher (RequestTypeMatcher $requestMatcher) {
         $this->requestMatcher = $requestMatcher;
     }
@@ -120,7 +121,9 @@ class Layout implements TagableResourceInterface{
     public function setContext (Context $ctx) {
         $this->context = $ctx;
     }
+    #endregion
 
+    #region block rendering
     public function resolve ($id){
         $parentBlock = null;
         $this->emit('before_block_resolve', $id);
@@ -191,14 +194,16 @@ class Layout implements TagableResourceInterface{
         $this->emit('after_layout_render');
         return $this->getRoot()->body;
     }
-    public function getRoot (){
-        return $this->get($this->block);
-    }
 
     public function displayBlock ($id){
         echo $this->getContent($id);
     }
+    #endregion
 
+    #region block manipulation
+    public function getRoot (){
+        return $this->get($this->block);
+    }
     /**
      * @param $id
      * @return Block
@@ -253,7 +258,9 @@ class Layout implements TagableResourceInterface{
     function remove($id){
         $this->registry->remove($id);
     }
+    #endregion
 
+    #region bulk block manipulation
     function keepOnly($pattern){
         $blocks = $this->registry->blocks;
         foreach($blocks as $block) {
@@ -262,10 +269,11 @@ class Layout implements TagableResourceInterface{
             }
         }
     }
+    #endregion
 
 
 
-
+    #region resource tagging
     public function addGlobalResourceTag (TagedResource $resource) {
         $this->globalResourceTags[] = $resource;
     }
@@ -274,6 +282,10 @@ class Layout implements TagableResourceInterface{
         $res->addResource($tag, $type);
         $this->globalResourceTags[] = $res;
     }
+
+    /**
+     * @return bool|TagedResource
+     */
     public function getTaggedResource () {
         $res = new TagedResource();
         try{
@@ -293,9 +305,11 @@ class Layout implements TagableResourceInterface{
         }
         return $res;
     }
+    #endregion
 
 
 
+    #region event dispatching
     public function emit ($id){
         $args = func_get_args();
         $id = array_shift($args);
@@ -381,8 +395,21 @@ class Layout implements TagableResourceInterface{
             $fn($event, $layout, $id);
         });
     }
+    #endregion
 
 
+    #region serializer
+    /**
+     * @var LayoutSerializer
+     */
+    public $serializer;
+
+    public function setLayoutSerializer (LayoutSerializer $serializer) {
+        $this->serializer = $serializer;
+    }
+    #endregion
+
+    #region block iteration
     function traverseBlocksWithStructure (Block $block, Layout $layout, $then, $path=null){
         $parentId = $block->id;
         if ($path===null) {
@@ -397,6 +424,7 @@ class Layout implements TagableResourceInterface{
             if ($sub) $this->traverseBlocksWithStructure($sub, $layout, $then, "$path/$subId");
         }
     }
+    #endregion
 }
 
 

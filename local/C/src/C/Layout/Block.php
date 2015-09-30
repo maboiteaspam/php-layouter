@@ -85,7 +85,10 @@ class Block implements TagableResourceInterface{
     }
 
 
-
+    /**
+     * @return TagedResource
+     * @throws \Exception
+     */
     public function getTaggedResource (){
         $res = new TagedResource();
 
@@ -109,9 +112,9 @@ class Block implements TagableResourceInterface{
 
             foreach($this->data as $name => $data){
                 if ($data instanceof TagableResourceInterface) {
-                    $res->addTaggedResource($data->getTaggedResource());
+                    $res->addTaggedResource($data->getTaggedResource(), $name);
                 } else {
-                    $res->addResource($data);
+                    $res->addResource($data, 'po', $name);
                 }
             }
         }

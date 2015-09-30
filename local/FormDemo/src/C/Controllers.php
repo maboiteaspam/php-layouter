@@ -26,7 +26,7 @@ class Controllers {
                 ->updateData('body_content', [
                     'form'=>$form->createView()
                 ])
-                ->then(Dashboard::transform($app['layout'])->show());
+                ->then(Dashboard::transform($app['layout'])->forRequest('get')->show());
             return $app['layout']->render();
         };
     }
@@ -64,7 +64,7 @@ class Controllers {
                 ->updateData('body_content', [
                     'form'=>$form->createView()
                 ])
-                ->then(Dashboard::transform($app['layout'])->show());
+                ->then(Dashboard::transform($app['layout'])->forRequest('get')->show());
             return $app['layout']->render();
         };
     }

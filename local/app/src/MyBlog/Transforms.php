@@ -39,7 +39,7 @@ class Transforms extends BaseTransforms{
             'body'=>'some'
         ])->then(
             $this->layout->debugEnabled
-            ? Dashboard::transform($this->layout)->show($fromClass)
+            ? Dashboard::transform($this->layout)->forRequest('get')->show($fromClass)
             : null
         )->then(
             jQuery::transform($this->layout)->inject()

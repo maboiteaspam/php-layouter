@@ -6,19 +6,35 @@ class TagedResource implements \Serializable{
     public $originalTag = '';
     public $resources = [];
 
-    public function addTaggedResource (TagedResource $resource) {
-        $this->resources = array_merge($this->resources, $resource->resources);
+    public function addTaggedResource (TagedResource $tags, $asName=null) {
+        if ($asName!==null) {
+            foreach ($tags->resources as $i=>$resource) {
+                $tags->resources[$i]['asName'] = $asName;
+            }
+        }
+        $this->resources = array_merge($this->resources, $tags->resources);
     }
 
-    public function addResource ($resource, $type='po') {
+    public function addResource ($resource, $type='po', $asName=null) {
         if (is_object($resource) && !($resource instanceof \Serializable)) {
             throw new \Exception("not serializable object");
         }
         $this->resources[] = [
             'value'=>$resource,
             'type'=>$type,
+            'asName'=>$asName,
         ];
         return true;
+    }
+
+    public function getResourcesByName($name) {
+        $resources = [];
+        foreach ($this->resources as $resource) {
+            if ($resource['asName']===$name) {
+                $resources[] = $resource;
+            }
+        }
+        return $resources;
     }
 
     public function serialize() {

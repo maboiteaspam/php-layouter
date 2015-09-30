@@ -37,10 +37,11 @@ class FormBuilder implements TagableResourceInterface, UnwrapableResourceInterfa
     }
 
     /**
+     * @param null $asName
      * @return TagedResource
      * @throws \Exception
      */
-    public function getTaggedResource () {
+    public function getTaggedResource ($asName=null) {
         throw new \Exception("not taggable rsource");
         $res = new TagedResource();
         return $res;

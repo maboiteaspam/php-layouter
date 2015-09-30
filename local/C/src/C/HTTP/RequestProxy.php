@@ -55,11 +55,13 @@ class RequestProxy implements TagableResourceInterface, UnwrapableResourceInterf
 
 
     /**
+     * @param null $asName
      * @return TagedResource
+     * @throws \Exception
      */
-    public function getTaggedResource() {
+    public function getTaggedResource($asName=null) {
         $res = new TagedResource();
-        $res->addResource([$this->repository, $this->param], 'request');
+        $res->addResource([$this->repository, $this->param], 'request', $asName);
         return $res;
     }
 

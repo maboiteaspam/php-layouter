@@ -66,6 +66,10 @@ class RequestTypeMatcher implements TagableResourceInterface{
         return $this->langPreferred===$language;
     }
 
+    /**
+     * @return TagedResource
+     * @throws \Exception
+     */
     public function getTaggedResource() {
         $res = new TagedResource();
         $res->addResource($this->requestKind);

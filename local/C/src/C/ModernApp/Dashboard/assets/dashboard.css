@@ -2,7 +2,7 @@
     position: fixed;
     left: 100%;
     top: 0;
-    width: 650px;
+    width: 30%;
     height: 100%;
     transition-property: margin-left;
     transition-duration: .5s;
@@ -10,10 +10,10 @@
     background-color: white;
 }
 .dashboard.close {
-    margin-left: 0;
+    margin-left: 0%;
 }
 .dashboard.open {
-    margin-left: -450px;
+    margin-left: -30%;
 }
 .dashboard .dashboard-handle{
     opacity: 1;

@@ -57,11 +57,12 @@ class LayoutSerializer {
         $root = $layout->get($layout->block);
         $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use(&$blocks, $modernFS, $layoutFS, $assetsFS, $intlFS) {
             $block = $options['block'];
+            /* @var $block Block */
             $template = 'inlined body';
             $templateFile = '';
             $assets = [];
-            $assetsFile = [];
             $data = [];
+            $isCacheable = true;
 
             if ($block) {
                 if (isset($block->options['template'])) {
@@ -70,23 +71,71 @@ class LayoutSerializer {
                     $templateFile = Utils::shorten($templateFile['absolute_path']);
                 }
                 foreach ($block->assets as $assetGroup=>$assetsGroup) {
-                    if (!isset($assetsFile[$assetGroup])) $assetsFile[$assetGroup] = [];
+                    if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
                     foreach ($assetsGroup as $asset) {
-                        $assetsFile[$assetGroup][] = Utils::shorten($asset);
+                        $item = $this->assetsFS->get($asset);
+                        $assets[$assetGroup][] = [
+                            'name'=>$asset,
+                            'path'=> $item?$item['dir'].$item['name']:'not found'
+                        ];
                     }
                 }
-                $data = $block->data;
+
+                $blockTags = null;
+                try{
+                    $blockTags = $block->getTaggedResource();
+                }catch(\Exception $ex){
+
+                }
+                $unWrapped = $block->unwrapData();
+
+                foreach( $unWrapped as $k=>$v) {
+                    $tags = !$blockTags?[]:$blockTags->getResourcesByName($k);
+                    $tagsClear = [];
+                    foreach ($tags as $tag) {
+                        $t = [
+                            'type'=>$tag['type'],
+                            'value'=>''
+                        ];
+                        if ($tag['type']==='repository') {
+                            $t['value'] = $tag['value'][0]."->".$tag['value'][1][0];
+                        } else if ($tag['type']==='asset' || $tag['type']==='modern.layout') {
+                            // @todo to complete, check tagDataWith('asset'...
+//                            var_dump($tag);
+//                            $t['file'] = $tag['value'][0]."->".$tag['value'][1][0];
+                        } else if ($tag['type']==='sql') {
+                            // @todo to complete, check tagDataWith('sql'...
+//                            var_dump($tag);
+                        } else if ($tag['type']==='po') {
+                            $t['value'] = var_export($tag['value'], true);
+                        }
+                        $tagsClear[] = $t;
+                    }
+                    $data[] = [
+                        'name' =>$k,
+                        'tags' => $tagsClear,
+                        'value' => is_object($v)? get_class($v):
+                            is_array($v) ? "Array(".gettype($v).")[".count($v)."]" : var_export($v, true)
+                            ,
+                    ];
+                }
+
+                try{
+                    serialize($unWrapped);
+                }catch(\Exception $ex){
+                    $isCacheable = false;
+                }
             }
 
             $blocks[$path] = [
                 'template'=>$template,
                 'templateFile'=>$templateFile,
                 'assets'=>$assets,
-                'assetsFile'=>$assetsFile,
                 'id'=>$blockId,
                 'data'=>$data,
                 'exists'=>$options['exists'],
                 'shown'=>$options['shown'],
+                'isCacheable'=>$isCacheable,
                 'parentId'=>$parentId,
             ];
         });

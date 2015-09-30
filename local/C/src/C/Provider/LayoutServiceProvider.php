@@ -45,6 +45,8 @@ class LayoutServiceProvider implements ServiceProviderInterface
             $requestMatcher->setLang($request->getPreferredLanguage($locales));
             $layout->setRequestMatcher($requestMatcher);
 
+            $layout->setLayoutSerializer($app['layout.serializer']);
+
             $app['layout.helper.layout']->setLayout($layout);
             $app['layout.view']->addHelper($app['layout.helper.layout']);
             $app['layout.view']->addHelper($app['layout.helper.common']);

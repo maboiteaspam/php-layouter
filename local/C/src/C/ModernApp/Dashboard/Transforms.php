@@ -18,20 +18,10 @@ class Transforms extends Base{
     }
 
     /**
-     * @var LayoutSerializer
-     */
-    public $serializer;
-
-    public function setLayoutSerializer (LayoutSerializer $serializer) {
-        $this->serializer = $serializer;
-    }
-
-    /**
      * @param string $fromClass
      * @return \C\Layout\Transforms
      */
     public function show ($fromClass=''){
-
         /* @var $layout \C\Layout\Layout */
         $layout = $this->layout;
 
@@ -94,8 +84,8 @@ class Transforms extends Base{
         });
 
 
-        if ($this->serializer) {
-            $serializer = $this->serializer;
+        if ($this->layout->serializer) {
+            $serializer = $this->layout->serializer;
 
             // this is a special case.
             // the block needs to be generated after ALL blocks,
@@ -108,7 +98,7 @@ class Transforms extends Base{
                         'template'=>'Dashboard:/layout-structure.php'
                     ],
                     'data' => [
-                        'struct'=> $serializer->serialize($layout)
+                        'serialized'=> $serializer->serialize($layout)
                     ]
                 ]);
 

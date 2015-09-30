@@ -4,7 +4,7 @@ namespace C\TagableResource;
 interface TagableResourceInterface{
 
     /**
-     * @return TagedResource
+     * @return mixed
      */
     public function getTaggedResource ();
 
