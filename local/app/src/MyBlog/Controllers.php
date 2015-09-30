@@ -56,7 +56,10 @@ class Controllers{
                     $listEntryBy
 //                )->then(
 //                    FileLayout::transform($app['layout'])->loadFile( "test_layout.yml" )
-                );
+                )
+                ->forDevice('mobile')
+                ->baseTemplate(__CLASS__)
+                ->setBody('body_content', 'Hello, this mobile layout !!');
 
             $response = new Response();
             return $app['layout.responder']($response);
@@ -106,7 +109,9 @@ class Controllers{
                     ])->updateData('blog_form_comments', [
                         'form' => FormBuilder::createView($form),
                     ]);
-                });
+                })
+                ->forDevice('mobile')
+                ->baseTemplate(__CLASS__);
 
             $response = new Response();
             return $app['layout.responder']($response);

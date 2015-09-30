@@ -75,6 +75,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                             $response->setContent($body);
                             $response->headers->set("X-CACHED", "true");
                             Utils::stderr('responding from cache a content length ='.strlen($body));
+                            Utils::stderr('headers ='.var_export($content['headers'], true));
                             return $response;
                         } else {
                             Utils::stderr('is etag fresh:'.var_export($fresh, true));
@@ -99,8 +100,8 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     if (!in_array($etag, ['*'])) {
                         $etag = str_replace(['"',"'"], '', $etag);
                         $resultResponse = $respondEtagedResource($etag);
+                        $hasFoundAnyResource = true;
                         if ($resultResponse!==false) {
-                            $hasFoundAnyResource = true;
                             $resultResponse->setNotModified();
                             return $resultResponse;
                         }
@@ -143,7 +144,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
         }, Application::LATE_EVENT);
 
         // once app has finished,
-        // let s check is the response is cache-able,
+        // let s check if the response is cache-able,
         // not a cached response itself,
         // and using safe method.
         // in that case, lets record that into the cache store.
@@ -163,13 +164,17 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     $headers = $response->headers->all();
                     // those are headers to save into cahce.
                     // later when the cache is served, they are re injected.
-                    $headers = Utils::arrayPick($headers, ['cache-control', 'etag', 'last-modified', 'expires']);
+                    $headers = Utils::arrayPick($headers, [
+                        'cache-control', 'etag', 'last-modified', 'expires',
+                        'date',
+                    ]);
                     $app["httpcache.store"]->store(
                         $app["httpcache.taggedResource"],
                         $request->getUri(), [
                         'headers'   => $headers,
                         'body'      => $response->getContent()
                     ]);
+                    Utils::stderr('headers ='.var_export($headers, true));
                 }
             }
             $response->headers->remove("X-CACHED");

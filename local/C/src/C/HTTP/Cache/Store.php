@@ -39,9 +39,6 @@ class Store{
 
     public function getContent ($etag) {
         $f = "{$this->storeName}content-{$etag}.php";
-        if ($this->cache->exists($f)) {
-            return ($this->cache->fetch($f));
-        }
-        return false;
+        return ($this->cache->fetch($f));
     }
 }

@@ -1,8 +1,5 @@
 <?php
-namespace C\ModernApp\jQuery;
-
-use C\Layout\Layout;
-use C\Layout\TransformsInterface;
+namespace C\Layout;
 
 class VoidTransforms implements TransformsInterface{
 

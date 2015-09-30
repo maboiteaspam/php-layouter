@@ -47,14 +47,14 @@ foreach( $runtime as $key=>$value ){
     $app[$key] = $value;
 }
 
-$app->register(new Igorw\Silex\ConfigServiceProvider(__DIR__ . "/config.php", $tokens));
+$app->register(new \Igorw\Silex\ConfigServiceProvider(__DIR__ . "/config.php", $tokens));
 #endregion
 
 
 #region service providers
 
 
-$app->register(new Moust\Silex\Provider\CacheServiceProvider(), [
+$app->register(new \Moust\Silex\Provider\CacheServiceProvider(), [
     'caches.default' => 'default',
     'caches.options' => array_merge([
         'default'=>[
@@ -76,17 +76,18 @@ $app->register(new Moust\Silex\Provider\CacheServiceProvider(), [
 //$app->register(new RememberMeServiceProvider([
 //]));
 
-$app->register(new Silex\Provider\TranslationServiceProvider( ));
-$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
-$app->register(new Silex\Provider\ValidatorServiceProvider());
-$app->register(new Silex\Provider\FormServiceProvider());
+$app->register(new \Silex\Provider\TranslationServiceProvider( ));
+$app->register(new \Silex\Provider\UrlGeneratorServiceProvider());
+$app->register(new \Silex\Provider\ValidatorServiceProvider());
+$app->register(new \Silex\Provider\FormServiceProvider());
 
-$app->register(new C\Provider\AssetsServiceProvider());
-$app->register(new C\Provider\HttpCacheServiceProvider());
-$app->register(new C\Provider\CapsuleServiceProvider());
+$app->register(new \C\Provider\AssetsServiceProvider());
+$app->register(new \C\Provider\HttpCacheServiceProvider());
+$app->register(new \C\Provider\CapsuleServiceProvider());
 $app->register(new \C\Provider\RepositoryServiceProvider());
-$app->register(new C\Provider\LayoutServiceProvider());
+$app->register(new \C\Provider\LayoutServiceProvider());
 $app->register(new \C\Provider\ModernAppServiceProvider());
+$app->register(new \Binfo\Silex\MobileDetectServiceProvider());
 #endregion
 
 
@@ -94,8 +95,8 @@ $app->register(new \C\Provider\ModernAppServiceProvider());
 #region controllers providers
 $app->register(new \C\BlogData\ServiceProvider());
 $blogController = new C\Blog\ControllersProvider();
-$myBlogController = new MyBlog\ControllersProvider();
-$formDemo = new C\FormDemo\ControllersProvider();
+$myBlogController = new \MyBlog\ControllersProvider();
+$formDemo = new \C\FormDemo\ControllersProvider();
 $app->register($blogController);
 $app->register($myBlogController);
 $app->register($formDemo);

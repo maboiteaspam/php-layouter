@@ -1,8 +1,6 @@
 <?php
 namespace C\Layout;
 
-use C\ModernApp\jQuery\VoidTransforms;
-
 class Transforms implements TransformsInterface{
 
     /**
@@ -177,10 +175,11 @@ class Transforms implements TransformsInterface{
             $layout->resolve($id);
         });
         $this->layout->afterBlockRender($target, function ($ev, Layout $layout) use($target, $id) {
-//            $layout->displayBlock($id);
             $block = $layout->registry->get($target);
-            $block->body = $block->body.$layout->getContent($id);
-            $block->displayed_block[] = ["id"=>$id, "shown"=>true];
+            if ($block) {
+                $block->body = $block->body.$layout->getContent($id);
+                $block->displayed_block[] = ["id"=>$id, "shown"=>true];
+            }
         });
         return $this;
     }

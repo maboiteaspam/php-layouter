@@ -38,12 +38,21 @@ class LayoutServiceProvider implements ServiceProviderInterface
             $layout->setContext($app['layout.view']);
             $layout->setFS($app['layout.fs']);
 
+
             $locales = $app['layout.translator.available_languages'];
             $request = $app['request'];
+
             $requestMatcher = new RequestTypeMatcher();
             $requestMatcher->setRequest($request);
             $requestMatcher->setLang($request->getPreferredLanguage($locales));
+            $requestMatcher->setDevice('desktop');
+            if ($app["mobile_detect"]->isTablet()) {
+                $requestMatcher->setDevice('tablet');
+            } elseif ($app["mobile_detect"]->isMobile()) {
+                $requestMatcher->setDevice('mobile');
+            }
             $layout->setRequestMatcher($requestMatcher);
+
 
             $layout->setLayoutSerializer($app['layout.serializer']);
 
@@ -151,10 +160,11 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     $etag = $app['httpcache.tagger']->sign($TaggedResource);
                     $app['httpcache.taggedResource'] = $TaggedResource;
                     $response->setETag($etag);
-                    $response->setProtocolVersion('1.1');
 
+                    $response->setProtocolVersion('1.1');
                     $response->setPublic(true);
                     $response->mustRevalidate(true);
+                    $response->headers->addCacheControlDirective( 'must-revalidate');
 //                    $response->setMaxAge(60*10);
                 }
 

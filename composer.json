@@ -18,7 +18,8 @@
     "symfony/yaml": "^2.7",
     "wa72/htmlpagedom": "~1.1",
     "symfony/var-dumper": "^2.7",
-    "symfony/console": "^2.7"
+    "symfony/console": "^2.7",
+    "jbinfo/mobile-detect-service-provider": "^1.1"
   },
   "autoload": {
     "psr-4": {
