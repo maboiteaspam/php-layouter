@@ -91,6 +91,9 @@ class ModernAppServiceProvider implements ServiceProviderInterface
                     // that is bad, it means we have registered files
                     // that does not exists
                     // or that can t be located back.
+                    //
+                    // you may have forgotten somewhere
+                    // $app['modern.fs']->register(__DIR__.'/path/to/templates/', 'ModuleName');
                 }
                 return $h;
             });

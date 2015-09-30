@@ -8,7 +8,6 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Container\Container;
 use C\Schema\Loader;
 use C\FS\Registry;
-use C\FS\LocalFs;
 
 class CapsuleServiceProvider implements ServiceProviderInterface
 {
@@ -19,7 +18,6 @@ class CapsuleServiceProvider implements ServiceProviderInterface
      **/
     public function register(Application $app)
     {
-
         $app['capsule.connection_defaults'] = array(
             'driver' => 'mysql',
             'host' => 'localhost',

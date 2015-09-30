@@ -49,7 +49,8 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
-
+        // before the app is executed, we should check the cache
+        // and try to take a shortcut.
         $app->before(function (Request $request, Application $app) {
             if ($request->isMethodSafe()) {
                 /* @var $tagger ResourceTagger */
@@ -87,6 +88,12 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
 
                 Utils::stderr('-------------');
                 Utils::stderr('check etag for uri '.$request->getUri());
+                // when the request is sent by user
+                // it may contain an if-none-match: header
+                // which means the user is looking for an url page he already seensbefore,
+                // he knows its etag.
+                // We should check the cache to know how to handle this request
+                // in the best response time possible.
                 $hasFoundAnyResource = false;
                 foreach ($etags as $etag) {
                     if (!in_array($etag, ['*'])) {
@@ -99,6 +106,8 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                         }
                     }
                 }
+
+                // there request have no etag.
                 if(count($etags)) {
                     Utils::stderr('request has etag but '.
                         (!$hasFoundAnyResource?
@@ -108,7 +117,13 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                 }
                 else Utils::stderr('no etag in this request');
 
-                if(!count($etags) && false) { // @todo check if resource explicitly wants fresh version
+                // here can exists a FPC cache layer.
+                // using url+ua+lang+request kind.
+                if(!count($etags) && false) {
+                    // @todo check if resource explicitly wants fresh version
+                    // when user press ctl+f5, it sends request with max-age=0 (+/-),
+                    // it means the user wants fresh version of the document.
+                    // so we should not call cache here.
                     $knownEtag = $store->getEtag($request->getUri());
                     if ($knownEtag) {
                         Utils::stderr('yeah, we found a matching known etag for this url');
@@ -127,6 +142,11 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
             return null;
         }, Application::LATE_EVENT);
 
+        // once app has finished,
+        // let s check is the response is cache-able,
+        // not a cached response itself,
+        // and using safe method.
+        // in that case, lets record that into the cache store.
         $app->after(function (Request $request, Response $response, Application $app) {
 
             Utils::stderr('is response cache-able '.var_export($response->isCacheable(), true));
@@ -141,6 +161,8 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                 Utils::stderr(' etag '.$etag);
                 if ($etag) {
                     $headers = $response->headers->all();
+                    // those are headers to save into cahce.
+                    // later when the cache is served, they are re injected.
                     $headers = Utils::arrayPick($headers, ['cache-control', 'etag', 'last-modified', 'expires']);
                     $app["httpcache.store"]->store(
                         $app["httpcache.taggedResource"],

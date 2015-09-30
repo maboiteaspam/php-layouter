@@ -25,6 +25,9 @@ class RepositoryServiceProvider implements ServiceProviderInterface
     {
         if (isset($app['httpcache.tagger'])) {
             $tagger = $app['httpcache.tagger'];
+            // this will resolve a repository data proxy.
+            // the repository data records methods calls,
+            // this resolver executes those methods calls on-delayed-demand.
             /* @var $tagger \C\TagableResource\ResourceTagger */
             $tagger->tagDataWith('repository', function ($data) use($app) {
                 $repositoryName = $data[0];

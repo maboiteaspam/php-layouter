@@ -189,12 +189,13 @@ class LayoutServiceProvider implements ServiceProviderInterface
             ]));
         });
 
-        if (isset($app['form.extensions'])) {
-            $app['form.extensions'] = $app->share($app->extend('form.extensions', function ($extensions) use ($app) {
+//        if (isset($app['form.extensions'])) {
+            // @todo dig more about form framework...
+//            $app['form.extensions'] = $app->share($app->extend('form.extensions', function ($extensions) use ($app) {
 //                $extensions[] = new CoreExtension();
-                return $extensions;
-            }));
-        }
+//                return $extensions;
+//            }));
+//        }
     }
     /**
      *
@@ -229,9 +230,9 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     // that is bad, it means we have registered files
                     // that does not exists
                     // or that can t be located back.
-                    Utils::stderr('----: '.var_export($template, true));
-                    Utils::stderr('----: '.var_export($fs->registry->config, true));
-                    Utils::stderr('----: '.$file);
+                    //
+                    // you may have forgotten somewhere
+                    // $app['layout.fs']->register(__DIR__.'/path/to/templates/', 'ModuleName');
                 }
                 return $h;
             });
