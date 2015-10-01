@@ -12,7 +12,7 @@ use Symfony\Component\Console\Application as Cli;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Filesystem\Filesystem;
+use \Symfony\Component\Console\Input\InputArgument;
 use C\FS\LocalFs;
 
 $console = new Cli('Silex - C Edition', '0.1');
@@ -23,22 +23,88 @@ $console
     ->register('cache:init')
     ->setDescription('Generate fs cache')
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
-        $app['assets.fs']->registry->clearCached();
-        $dump = $app['assets.fs']->registry->saveToCache();
-        echo "assets.fs signed with ".$dump['signature']."\n";
+        $registries = [
+            'assets.fs'=> $app['assets.fs']->registry,
+            'layout.fs'=> $app['layout.fs']->registry,
+            'modern.fs'=> $app['modern.fs']->registry,
+            'capsule.schema'=> $app['capsule.schema']->registry,
+        ];
 
-        $app['layout.fs']->registry->clearCached();
-        $dump = $app['layout.fs']->registry->saveToCache();
-        echo "layout.fs signed with ".$dump['signature']."\n";
-
-        $app['modern.fs']->registry->clearCached();
-        $dump = $app['modern.fs']->registry->saveToCache();
-        echo "modern.fs signed with ".$dump['signature']."\n";
-
-        $app['capsule.schema']->registry->clearCached();
+        foreach ($registries as $name=>$registry) {
+            /* @var $registry \C\FS\Registry */
+            $registry->clearCached();
+        }
         $app['capsule.schema']->loadSchemas();
-        $dump = $app['capsule.schema']->registry->saveToCache();
-        echo "capsule.schema signed with ".$dump['signature']."\n";
+        foreach ($registries as $name=>$registry) {
+            /* @var $registry \C\FS\Registry */
+            $dump = $app['assets.fs']->registry->build()->saveToCache();
+            echo "$name signed with ".$dump['signature']."\n";
+        }
+    })
+;
+$console
+    ->register('cache:update')
+    ->setDefinition([
+        new InputArgument('change', InputArgument::REQUIRED, 'Type of change'),
+        new InputArgument('file', InputArgument::REQUIRED, 'The path changed'),
+    ])
+    ->setDescription('Update fs cache')
+    ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
+
+        $file = $input->getArgument('file');
+        $change = $input->getArgument('change');
+
+        $updated = [];
+        $assets = [
+            'assets.fs'=>$app['assets.fs']->registry,
+            'layout.fs'=>$app['layout.fs']->registry,
+            'modern.fs'=>$app['modern.fs']->registry,
+            'capsule.schema'=> $app['capsule.schema']->registry,
+        ];
+
+        foreach ($assets as $registry) {
+            /* @var $registry \C\FS\Registry */
+            $registry->loadFromCache();
+        }
+
+        if ($change==='unlink'){
+            foreach ($assets as $name=>$registry) {
+                /* @var $registry \C\FS\Registry */
+                $item = $registry->get($file);
+                if ($item) {
+                    \C\Misc\Utils::stdout("removed from $name");
+                    $registry->removeItem($file);
+                    $updated[] = $name;
+                }
+            }
+        } else if($change==='change'){
+            foreach ($assets as $name=>$registry) {
+                /* @var $registry \C\FS\Registry */
+                $item = $registry->get($file);
+                if ($item) {
+                    \C\Misc\Utils::stdout("updated in $name");
+                    $registry->refreshItem($file);
+                    $updated[] = $name;
+                }
+            }
+        } else if($change==='add' || $change==='addDir'){
+            foreach ($assets as $name=>$registry) {
+                /* @var $registry \C\FS\Registry */
+                if ($registry->isInRegisteredPaths($file)) {
+                    \C\Misc\Utils::stdout("added to $name");
+                    $registry->addItem($file);
+                    $updated[] = $name;
+                }
+            }
+        }
+
+        if (!count($updated)) {
+            \C\Misc\Utils::stderr("not updated");
+        } else {
+            foreach ($updated as $name) {
+                $assets[$name]->saveToCache();
+            }
+        }
     })
 ;
 $console
@@ -47,10 +113,16 @@ $console
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
         $res = [];
         $app['capsule.schema']->loadSchemas();
-        $res [] = $app['assets.fs']->registry->dump();
-        $res [] = $app['modern.fs']->registry->dump();
-        $res [] = $app['layout.fs']->registry->dump();
-        $res [] = $app['capsule.schema']->registry->dump();
+        $assets = [
+            'assets.fs'=>$app['assets.fs']->registry,
+            'layout.fs'=>$app['layout.fs']->registry,
+            'modern.fs'=>$app['modern.fs']->registry,
+            'capsule.schema'=> $app['capsule.schema']->registry,
+        ];
+        foreach ($assets as $name=>$registry) {
+            /* @var $registry \C\FS\Registry */
+            $res [] = $registry->dump();
+        }
         echo json_encode($res);
     })
 ;

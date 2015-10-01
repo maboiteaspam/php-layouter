@@ -98,5 +98,10 @@ class ModernAppServiceProvider implements ServiceProviderInterface
                 return $h;
             });
         }
+
+
+        $app->before(function(Application $app){
+            $app['modern.fs']->registry->loadFromCache();
+        }, Application::EARLY_EVENT);
     }
 }

@@ -23,7 +23,13 @@ namespace C\FS;
  */
 class KnownFs {
 
+    /**
+     * @var Registry
+     */
     public $registry;
+    /**
+     * @var LocalFs
+     */
     public $fs;
 
     public function __construct (Registry $registry) {

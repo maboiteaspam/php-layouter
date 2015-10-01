@@ -110,13 +110,17 @@ class AssetsServiceProvider implements ServiceProviderInterface
             $app['layout.view']->addHelper($assetsViewHelper);
         }
 
-        $app['assets.fs']->registry->loadFromCache();
         if(!isset($app['assets.verbose'])) $app['assets.verbose'] = false;
         if (php_sapi_name()==='cli-server') {
+//            $app['assets.fs']->registry->loadFromCache();
             /* @var $responder \C\Assets\BuiltinResponder */
             $responder = $app['assets.responder'];
             $responder->respond($app['assets.verbose']);
         }
+
+        $app->before(function(Application $app){
+            $app['assets.fs']->registry->loadFromCache();
+        }, Application::EARLY_EVENT);
 
     }
 }

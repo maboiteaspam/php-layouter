@@ -79,9 +79,8 @@ module.exports = function (grunt) {
 
       ignorePermissionErrors: false,
       atomic: true
-    }).on('change', function(filePath){
-      grunt.log.ok('%s', filePath);
-      spawnPhp('php cli.php cache:init', function (error) {
+    }).on('all', function(event, filePath){
+      spawnPhp('php cli.php cache:update '+event+' '+filePath, function (error) {
         grunt.log.ok('cache is now up to date');
       });
     })

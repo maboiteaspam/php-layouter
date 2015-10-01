@@ -82,7 +82,7 @@ class Registry {
     }
 
     public function saveToCache(){
-        $dump = $this->build()->dump();
+        $dump = $this->dump();
         $this->cache->store("{$this->storeName}dump", ($dump));
         return $dump;
     }
@@ -265,7 +265,16 @@ class Registry {
         }
     }
 
-
+    public function isInRegisteredPaths ($file) {
+        $paths = $this->config['paths'];
+        $d = dirname($file);
+        foreach ($paths as $path) {
+            if ($path===$d) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
 
