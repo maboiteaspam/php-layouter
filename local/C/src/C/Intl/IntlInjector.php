@@ -27,7 +27,7 @@ class IntlInjector {
     public function loadFile ($file, $ext, $locale, $domain=null) {
         $extLoader = $this->loader->getLoader($ext);
         $content = $extLoader->loadFromCache($file);
-        var_dump($content);
+//        var_dump($content);
         $this->translator->addResource(
             $extLoader->sfFmt(), $content, $locale, $domain);
     }
