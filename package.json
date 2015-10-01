@@ -18,11 +18,10 @@
   },
   "homepage": "https://github.com/maboiteaspam/php-layouter#readme",
   "dependencies": {
-    "chokidar": "^1.1.0"
   },
   "devDependencies": {
     "async": "^1.4.2",
-    "watchr": "^2.4.13",
+    "chokidar": "^1.1.0",
     "grunt": "^0.4.5",
     "grunt-open": "^0.2.3"
   }

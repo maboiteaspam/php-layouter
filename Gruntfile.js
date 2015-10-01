@@ -11,8 +11,7 @@ module.exports = function (grunt) {
 
     open : {
       browser : {
-        path: 'http://127.0.0.1:8000/',
-        app: 'firefox'
+        path: 'http://127.0.0.1:8000/'
       },
       options: {
         delay: 3000
@@ -165,7 +164,7 @@ module.exports = function (grunt) {
   grunt.registerTask('default', [
     'init',
     'fs-cache-dump',
-    //'open:browser',
+    'open:browser',
     'watch',
     'start'
   ]);
