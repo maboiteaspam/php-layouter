@@ -18,6 +18,8 @@ class Block implements TagableResourceInterface{
     public $data = [];
     public $assets = [
     ];
+    public $intl = [
+    ];
     public $meta = [
         'from' => false,
         'etag' => '',
@@ -108,6 +110,10 @@ class Block implements TagableResourceInterface{
                         $res->addResource($asset, 'asset');
                     }
                 }
+            }
+            foreach($this->intl as $i=>$intl) {
+                $res->addResource($i);
+                $res->addResource($intl, 'intl');
             }
 
             foreach($this->data as $name => $data){

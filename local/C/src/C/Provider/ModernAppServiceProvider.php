@@ -6,6 +6,7 @@ use C\FS\LocalFs;
 use C\FS\Registry;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+use C\Watch\WatchedRegistry;
 
 class ModernAppServiceProvider implements ServiceProviderInterface
 {
@@ -100,8 +101,19 @@ class ModernAppServiceProvider implements ServiceProviderInterface
         }
 
 
-        $app->before(function(Application $app){
+        $app->before(function($request, Application $app){
             $app['modern.fs']->registry->loadFromCache();
         }, Application::EARLY_EVENT);
+
+        if (isset($app['watchers.watched'])) {
+            $app['watchers.watched'] = $app->extend('watchers.watched', function($watched, Application $app) {
+                $w = new WatchedRegistry();
+                $w->setRegistry($app['modern.fs']->registry);
+                $w->setName("modern.fs");
+                $watched[] = $w;
+                return $watched;
+            });
+        }
+
     }
 }

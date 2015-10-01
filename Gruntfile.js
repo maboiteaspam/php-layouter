@@ -120,8 +120,10 @@ module.exports = function (grunt) {
         if (cache.config
           && cache.config.paths
           && cache.config.paths.length) {
+          grunt.log.success('paths %j', cache.config.paths);
           path_to_watch = path_to_watch.concat(cache.config.paths)
         } else {
+          grunt.log.success('items count %s', cache.items.length);
           Object.keys(cache.items).forEach(function(p){
             path_to_watch.push(p)
           })
@@ -129,7 +131,7 @@ module.exports = function (grunt) {
       });
       grunt.config.set('path_to_watch', path_to_watch);
       done();
-    });
+    }, true);
   });
 
   grunt.registerTask('watch', function() {

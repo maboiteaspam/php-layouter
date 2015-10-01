@@ -30,6 +30,9 @@ class ControllersProvider implements
         if (isset($app['assets.fs'])) {
             $app['assets.fs']->register(__DIR__.'/assets/', 'MyBlog');
         }
+        if (isset($app['intl.fs'])) {
+            $app['intl.fs']->register(__DIR__.'/intl/', 'MyBlog');
+        }
         if (isset($app['layout.fs'])) {
             $app['layout.fs']->register(__DIR__.'/templates/', 'MyBlog');
         }

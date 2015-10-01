@@ -87,7 +87,6 @@ class Transforms implements TransformsInterface{
         }
         return $this;
     }
-
     public function removeAssets($id, $assets=[]){
         $block = $this->layout->getOrCreate($id);
         foreach($assets as $targetAssetGroupName => $files) {
@@ -102,7 +101,6 @@ class Transforms implements TransformsInterface{
         }
         return $this;
     }
-
     public function replaceAssets($id, $replacements=[]){
         $block = $this->layout->getOrCreate($id);
         foreach($replacements as $search => $replacement) {
@@ -122,10 +120,41 @@ class Transforms implements TransformsInterface{
         $block->data = array_merge($data, $block->data);
         return $this;
     }
-
     public function updateData($id, $data=[]){
         $block = $this->layout->getOrCreate($id);
         $block->data = array_merge($block->data, $data);
+        return $this;
+    }
+
+    public function addIntl($id, $intl, $locale, $domain=null){
+        $block = $this->layout->getOrCreate($id);
+        $block->intl[] = [
+            'item'=>$intl,
+            'locale'=>$locale,
+            'domain'=>$domain,
+        ];
+        return $this;
+    }
+
+    public function replaceIntl($search, $replace){
+        foreach ($this->layout->registry->blocks as $i=>$block) {
+            foreach ($block->intl as $e=>$intl) {
+                if ($intl['item']===$search) {
+                    $this->layout->registry->blocks[$i]->intl[$e]['item'] = $replace;
+                }
+            }
+        }
+        return $this;
+    }
+
+    public function removeIntl($search){
+        foreach ($this->layout->registry->blocks as $i=>$block) {
+            foreach ($block->intl as $e=>$intl) {
+                if ($intl['item']===$search) {
+                    unset($this->layout->registry->blocks[$i]->intl[$e]);
+                }
+            }
+        }
         return $this;
     }
 

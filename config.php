@@ -26,6 +26,14 @@ return [
             'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/assets/',
         ],
+        'intl-fs-store'=>[
+            'driver' => 'file',
+            'cache_dir' => __DIR__ . '/run/intl-fs/',
+        ],
+        'intl-content-store'=>[
+            'driver' => 'file',
+            'cache_dir' => __DIR__ . '/run/intl-content/',
+        ],
         'capsule-store'=>[
             'driver' => 'file',
             'cache_dir' => __DIR__ . '/run/capsule/',

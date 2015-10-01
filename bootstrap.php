@@ -81,6 +81,7 @@ $app->register(new \Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new \Silex\Provider\ValidatorServiceProvider());
 $app->register(new \Silex\Provider\FormServiceProvider());
 
+$app->register(new \C\Provider\IntlServiceProvider());
 $app->register(new \C\Provider\AssetsServiceProvider());
 $app->register(new \C\Provider\HttpCacheServiceProvider());
 $app->register(new \C\Provider\CapsuleServiceProvider());

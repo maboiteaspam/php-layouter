@@ -25,6 +25,8 @@ class Transforms extends BaseTransforms{
             HTML::transform($this->layout)->baseTemplate()
         )->setTemplate('body_top',
             'MyBlog:/top.php'
+        )->addIntl(
+            'body_top', 'MyBlog:/en.yml', 'en'
         )->updateData('body_top', [
             'logo'=> '',
         ])->addAssets('body', [

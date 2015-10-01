@@ -8,6 +8,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Container\Container;
 use C\Schema\Loader;
 use C\FS\Registry;
+use C\Watch\WatchedCapsule;
 
 class CapsuleServiceProvider implements ServiceProviderInterface
 {
@@ -129,6 +130,15 @@ class CapsuleServiceProvider implements ServiceProviderInterface
                 }
             }
         });
-    }
 
+        if (isset($app['watchers.watched'])) {
+            $app['watchers.watched'] = $app->extend('watchers.watched', function($watched, Application $app) {
+                $w = new WatchedCapsule();
+                $w->setSchemaLoader($app['capsule.schema']);
+                $watched[] = $w;
+                return $watched;
+            });
+        }
+
+    }
 }

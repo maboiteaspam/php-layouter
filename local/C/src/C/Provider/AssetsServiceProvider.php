@@ -12,6 +12,7 @@ use C\View\AssetsViewHelper;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
+use C\Watch\WatchedRegistry;
 
 class AssetsServiceProvider implements ServiceProviderInterface
 {
@@ -118,9 +119,19 @@ class AssetsServiceProvider implements ServiceProviderInterface
             $responder->respond($app['assets.verbose']);
         }
 
-        $app->before(function(Application $app){
+        $app->before(function($request, Application $app){
             $app['assets.fs']->registry->loadFromCache();
         }, Application::EARLY_EVENT);
+
+        if (isset($app['watchers.watched'])) {
+            $app['watchers.watched'] = $app->extend('watchers.watched', function($watched, Application $app) {
+                $w = new WatchedRegistry();
+                $w->setRegistry($app['assets.fs']->registry);
+                $w->setName("assets.fs");
+                $watched[] = $w;
+                return $watched;
+            });
+        }
 
     }
 }

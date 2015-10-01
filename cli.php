@@ -15,31 +15,52 @@ use Symfony\Component\Console\Output\OutputInterface;
 use \Symfony\Component\Console\Input\InputArgument;
 use C\FS\LocalFs;
 
-$console = new Cli('Silex - C Edition', '0.1');
+$app->register(new C\Provider\WatcherServiceProvider());
 
+$console = new Cli('Silex - C Edition', '0.1');
 
 #region Command lines declaration
 $console
     ->register('cache:init')
     ->setDescription('Generate fs cache')
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
-        $registries = [
-            'assets.fs'=> $app['assets.fs']->registry,
-            'layout.fs'=> $app['layout.fs']->registry,
-            'modern.fs'=> $app['modern.fs']->registry,
-            'capsule.schema'=> $app['capsule.schema']->registry,
-        ];
+//        $registries = [
+//            'assets.fs'=> $app['assets.fs']->registry,
+//            'layout.fs'=> $app['layout.fs']->registry,
+//            'modern.fs'=> $app['modern.fs']->registry,
+//            'intl.fs'=> $app['intl.fs']->registry,
+//            'capsule.schema'=> $app['capsule.schema']->registry,
+//        ];
+        $watcheds = $app['watchers.watched'];
 
-        foreach ($registries as $name=>$registry) {
-            /* @var $registry \C\FS\Registry */
-            $registry->clearCached();
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            $watched->clearCache();
         }
-        $app['capsule.schema']->loadSchemas();
-        foreach ($registries as $name=>$registry) {
-            /* @var $registry \C\FS\Registry */
-            $dump = $app['assets.fs']->registry->build()->saveToCache();
-            echo "$name signed with ".$dump['signature']."\n";
+
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            $watched->resolveRuntime();
         }
+
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            $dump = $watched->build()->saveToCache();
+            echo $watched->getName()." signed with ".$dump['signature']."\n";
+        }
+
+//
+//
+//        foreach ($registries as $name=>$registry) {
+//            /* @var $registry \C\FS\Registry */
+//            $registry->clearCached();
+//        }
+//        $app['capsule.schema']->loadSchemas();
+//        foreach ($registries as $name=>$registry) {
+//            /* @var $registry \C\FS\Registry */
+//            $dump = $registry->build()->saveToCache();
+//            echo "$name signed with ".$dump['signature']."\n";
+//        }
     })
 ;
 $console
@@ -54,55 +75,19 @@ $console
         $file = $input->getArgument('file');
         $change = $input->getArgument('change');
 
-        $updated = [];
-        $assets = [
-            'assets.fs'=>$app['assets.fs']->registry,
-            'layout.fs'=>$app['layout.fs']->registry,
-            'modern.fs'=>$app['modern.fs']->registry,
-            'capsule.schema'=> $app['capsule.schema']->registry,
-        ];
+        $watcheds = $app['watchers.watched'];
 
-        foreach ($assets as $registry) {
-            /* @var $registry \C\FS\Registry */
-            $registry->loadFromCache();
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            $watched->loadFromCache();
         }
 
-        if ($change==='unlink'){
-            foreach ($assets as $name=>$registry) {
-                /* @var $registry \C\FS\Registry */
-                $item = $registry->get($file);
-                if ($item) {
-                    \C\Misc\Utils::stdout("removed from $name");
-                    $registry->removeItem($file);
-                    $updated[] = $name;
-                }
-            }
-        } else if($change==='change'){
-            foreach ($assets as $name=>$registry) {
-                /* @var $registry \C\FS\Registry */
-                $item = $registry->get($file);
-                if ($item) {
-                    \C\Misc\Utils::stdout("updated in $name");
-                    $registry->refreshItem($file);
-                    $updated[] = $name;
-                }
-            }
-        } else if($change==='add' || $change==='addDir'){
-            foreach ($assets as $name=>$registry) {
-                /* @var $registry \C\FS\Registry */
-                if ($registry->isInRegisteredPaths($file)) {
-                    \C\Misc\Utils::stdout("added to $name");
-                    $registry->addItem($file);
-                    $updated[] = $name;
-                }
-            }
-        }
-
-        if (!count($updated)) {
-            \C\Misc\Utils::stderr("not updated");
-        } else {
-            foreach ($updated as $name) {
-                $assets[$name]->saveToCache();
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            if ($watched->changed($change, $file)) {
+                \C\Misc\Utils::stderr($watched->getName()." updated");
+            } else {
+                \C\Misc\Utils::stderr("not updated");
             }
         }
     })
@@ -112,16 +97,18 @@ $console
     ->setDescription('Show FS cache paths')
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($app) {
         $res = [];
-        $app['capsule.schema']->loadSchemas();
-        $assets = [
-            'assets.fs'=>$app['assets.fs']->registry,
-            'layout.fs'=>$app['layout.fs']->registry,
-            'modern.fs'=>$app['modern.fs']->registry,
-            'capsule.schema'=> $app['capsule.schema']->registry,
-        ];
-        foreach ($assets as $name=>$registry) {
-            /* @var $registry \C\FS\Registry */
-            $res [] = $registry->dump();
+
+        $watcheds = $app['watchers.watched'];
+
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            $watched->resolveRuntime();
+        }
+
+        foreach ($watcheds as $watched) {
+            /* @var $watched \C\Watch\WatchedInterface */
+            $dump = $watched->dump();
+            if ($dump) $res[] = $dump;
         }
         echo json_encode($res);
     })

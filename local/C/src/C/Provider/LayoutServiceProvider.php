@@ -19,6 +19,7 @@ use Silex\Application;
 use Silex\ServiceProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use C\Watch\WatchedRegistry;
 
 class LayoutServiceProvider implements ServiceProviderInterface
 {
@@ -215,6 +216,16 @@ class LayoutServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
+        if (isset($app['watchers.watched'])) {
+            $app['watchers.watched'] = $app->extend('watchers.watched', function($watched, Application $app) {
+                $w = new WatchedRegistry();
+                $w->setRegistry($app['layout.fs']->registry);
+                $w->setName("layout.fs");
+                $watched[] = $w;
+                return $watched;
+            });
+        }
+
         $app->before(function (Request $request) use ($app) {
             $app['layout.fs']->registry->loadFromCache();
             if (isset($app['translator'])) {
