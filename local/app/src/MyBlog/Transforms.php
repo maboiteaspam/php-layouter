@@ -20,7 +20,8 @@ class Transforms extends BaseTransforms{
         return new self($layout);
     }
 
-    public function baseTemplate ($fromClass=__CLASS__, $fromFile=__FILE__) {
+    public function baseTemplate ($fromClass=__CLASS__,
+                                  $fromFile=__FILE__) {
         $this->then(
             HTML::transform($this->layout)->baseTemplate()
         )->setTemplate('body_top',
@@ -49,7 +50,10 @@ class Transforms extends BaseTransforms{
         return $this;
     }
 
-    public function home ($entries, $latestComments, $entriesCount, $listEntryBy=5) {
+    public function home ($entries,
+                          $latestComments,
+                          $entriesCount,
+                          $listEntryBy=5) {
 
         $this->then(
             BlogLayout::transform($this->layout)->home()
@@ -57,10 +61,20 @@ class Transforms extends BaseTransforms{
             ['from'      => 'home'],
             ['entries'   => $entries]
         )->updateBlock('body_content_right',
-            ['from'      => 'home_rb'],
-            ['comments'  => $latestComments],
             ['template'  => 'MyBlog:/right-bar.php']
-        )->updateData('blog-entries-pagination', [
+        )->insertAfterBlock('body_content_right',
+            'rb_latest_comments', [
+                'options'=>[
+                    'from'      => 'home_rb',
+                    'template'  => 'Blog:/entry-comments.php'
+                ],
+                'data'=>[
+                    'comments'  => $latestComments
+                ],
+                'meta'=>[
+
+                ]
+        ])->updateData('blog-entries-pagination', [
             'count'         => $entriesCount,
             'by'            => $listEntryBy,
         ]);

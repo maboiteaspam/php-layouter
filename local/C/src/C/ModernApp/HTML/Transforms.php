@@ -15,7 +15,7 @@ class Transforms extends BaseTransforms{
         return new self($layout);
     }
 
-    public function baseTemplate () {
+    public function baseTemplate ($bodyTemplate='HTML:/1-column.php') {
         $this->setTemplate('root',
             'HTML:/html.php'
         )->set('html_begin', [
@@ -24,7 +24,7 @@ class Transforms extends BaseTransforms{
             'HTML:/head.php'
         )->set('body', [
             'options'=>[
-                'template'=> 'HTML:/1-column.php'
+                'template' => $bodyTemplate
             ],
         ])->setTemplate('footer',
             'HTML:/footer.php'
