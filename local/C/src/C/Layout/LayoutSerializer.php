@@ -79,14 +79,16 @@ class LayoutSerializer {
                     $templateFile = $layoutFS->get($block->options['template']);
                     $templateFile = Utils::shorten($templateFile['absolute_path']);
                 }
-                foreach ($block->assets as $assetGroup=>$assetsGroup) {
-                    if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
-                    foreach ($assetsGroup as $asset) {
-                        $item = $this->assetsFS->get($asset);
-                        $assets[$assetGroup][] = [
-                            'name'=>$asset,
-                            'path'=> $item?$item['dir'].$item['name']:'not found'
-                        ];
+                if ($this->assetsFS) {
+                    foreach ($block->assets as $assetGroup=>$assetsGroup) {
+                        if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
+                        foreach ($assetsGroup as $asset) {
+                            $item = $this->assetsFS->get($asset);
+                            $assets[$assetGroup][] = [
+                                'name'=>$asset,
+                                'path'=> $item?$item['dir'].$item['name']:'not found'
+                            ];
+                        }
                     }
                 }
 

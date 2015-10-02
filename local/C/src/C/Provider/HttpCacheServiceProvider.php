@@ -22,11 +22,6 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
         $app['httpcache.tagger'] = $app->share(function() {
             return new ResourceTagger();
         });
-        $app['httpcache.request'] = $app->share(function(Application $app) {
-            /* @var $request Request */
-            $request = $app['request'];
-            return new RequestProxy($request);
-        });
 
         if (!isset($app['httpcache.cache_store_name']))
             $app['httpcache.cache_store_name'] = "http-store";

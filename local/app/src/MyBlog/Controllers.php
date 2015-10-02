@@ -1,6 +1,7 @@
 <?php
 namespace MyBlog;
 
+use C\HTTP\RequestProxy;
 use C\Layout\TransformsInterface;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,7 +41,7 @@ class Controllers{
             /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
             $commentRepo = $app[$this->commentRepo];
             /* @var $requestData \C\HTTP\RequestProxy */
-            $requestData = $app['httpcache.request'];
+            $requestData = new RequestProxy($app['request']);
             $listEntryBy = 5;
             MyBlogLayout::transform($app['layout'])
                 ->forDevice('desktop')

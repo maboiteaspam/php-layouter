@@ -47,10 +47,12 @@ class LayoutServiceProvider implements ServiceProviderInterface
             $requestMatcher->setRequest($request);
             $requestMatcher->setLang($request->getPreferredLanguage($locales));
             $requestMatcher->setDevice('desktop');
-            if ($app["mobile_detect"]->isTablet()) {
-                $requestMatcher->setDevice('tablet');
-            } elseif ($app["mobile_detect"]->isMobile()) {
-                $requestMatcher->setDevice('mobile');
+            if (isset($app["mobile_detect"])) {
+                if ($app["mobile_detect"]->isTablet()) {
+                    $requestMatcher->setDevice('tablet');
+                } elseif ($app["mobile_detect"]->isMobile()) {
+                    $requestMatcher->setDevice('mobile');
+                }
             }
             $layout->setRequestMatcher($requestMatcher);
 
@@ -183,9 +185,9 @@ class LayoutServiceProvider implements ServiceProviderInterface
             // @todo split across service providers
             $serializer = new LayoutSerializer();
             $serializer->setApp($app);
-            $serializer->setAssetsFS($app["assets.fs"]);
-            $serializer->setLayoutFS($app["layout.fs"]);
-            $serializer->setModernFS($app["modern.fs"]);
+            if(isset($app["assets.fs"])) $serializer->setAssetsFS($app["assets.fs"]);
+            if(isset($app["layout.fs"])) $serializer->setLayoutFS($app["layout.fs"]);
+            if(isset($app["modern.fs"])) $serializer->setModernFS($app["modern.fs"]);
             return $serializer;
         });
 
