@@ -57,24 +57,30 @@ class Transforms extends BaseTransforms{
 
         $this->then(
             BlogLayout::transform($this->layout)->home()
-        )->updateBlock('body_content',
-            ['from'      => 'home'],
-            ['entries'   => $entries]
-        )->updateBlock('body_content_right',
-            ['template'  => 'MyBlog:/right-bar.php']
-        )->insertAfterBlock('body_content_right',
-            'rb_latest_comments', [
-                'options'=>[
-                    'from'      => 'home_rb',
-                    'template'  => 'Blog:/entry-comments.php'
-                ],
-                'data'=>[
-                    'comments'  => $latestComments
-                ],
-                'meta'=>[
 
-                ]
-        ])->updateData('blog-entries-pagination', [
+        );
+
+        $this->updateData('body_content',[
+            'entries'   => $entries
+        ])->updateMeta('body_content',[
+            'from'   => 'home'
+
+        ]);
+
+        $this->setTemplate('body_content_right', 'MyBlog:/right-bar.php'
+        )->updateData('body_content_right',[
+            'title' => 'Latest comments'
+
+        ]);
+
+        $this->insertAfterBlock('body_content_right','rb_latest_comments'
+        )->setTemplate('rb_latest_comments', 'Blog:/entry-comments.php'
+        )->updateData('rb_latest_comments',[
+            'comments'  => $latestComments
+
+        ]);
+
+        $this->updateData('blog-entries-pagination', [
             'count'         => $entriesCount,
             'by'            => $listEntryBy,
         ]);
@@ -85,7 +91,9 @@ class Transforms extends BaseTransforms{
 
         $this->then(
             BlogLayout::transform($this->layout)->detail()
-        )->updateData('body_content', [
+        );
+
+        $this->updateData('body_content', [
             'entry'  => $entry,
         ])->updateMeta('body_content', [
             'from'      => 'blog_detail',
@@ -99,10 +107,16 @@ class Transforms extends BaseTransforms{
 
         $this->setTemplate('body_content_right',
             'MyBlog:/right-bar.php'
-        )->updateData('body_content_right', [
-            'comments'  => $latestComments,
-        ])->updateMeta('body_content_right', [
-            'from'      => 'blog_rb',
+        )->updateData('body_content_right',[
+            'title' => ''
+        ]);
+
+        $this->insertAfterBlock('body_content_right',  'rb_latest_comments'
+        )->setTemplate('rb_latest_comments', 'Blog:/entry-comments.php'
+        )->updateData('rb_latest_comments', [
+            'comments'  => $latestComments
+        ])->updateMeta('rb_latest_comments', [
+            'from'      => 'detail_rb',
         ]);
 
         return $this;

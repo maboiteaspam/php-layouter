@@ -12,7 +12,8 @@
             <?php echo $comment->author; ?>
             (<?php echo $comment->created_at; ?>)
             <br/>
-            <?php echo $comment->content; ?>
+            <?php echo $this->text_reduce($comment->content); ?>
+            <br/>
         </div>
     <?php } ?>
 </div>

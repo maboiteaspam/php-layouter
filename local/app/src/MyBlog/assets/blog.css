@@ -18,6 +18,22 @@
     margin-bottom: 10px;
 }
 
+.blog-entries-item{
+    float: left;
+}
+.blog-entries-item .read_more{
+    float: right;
+    margin: 5px 25px 5px 5px;
+}
+.pagination{
+    padding: 5px 21px 5px 5px;
+    text-align: right;
+}
+.pagination a{
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
 some{
     background: url("131231095645495866.jpg");
 }

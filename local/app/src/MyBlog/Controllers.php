@@ -38,7 +38,7 @@ class Controllers{
             /* @var $entryRepo \C\BlogData\EntryRepositoryInterface */
             $entryRepo = $app[$this->entryRepo];
             /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
-            $commentRepo = $app[$this->entryRepo];
+            $commentRepo = $app[$this->commentRepo];
             /* @var $requestData \C\HTTP\RequestProxy */
             $requestData = $app['httpcache.request'];
             $listEntryBy = 5;

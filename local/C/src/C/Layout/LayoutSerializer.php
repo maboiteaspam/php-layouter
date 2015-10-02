@@ -4,6 +4,7 @@ namespace C\Layout;
 
 use C\FS\KnownFs;
 use C\Misc\Utils;
+use Silex\Application;
 
 class LayoutSerializer {
 
@@ -23,6 +24,10 @@ class LayoutSerializer {
      * @var KnownFS
      */
     public $intlFS;
+    /**
+     * @var Application
+     */
+    public $app;
 
     public function setLayoutFS (KnownFs $layoutFS) {
         $this->layoutFS = $layoutFS;
@@ -35,6 +40,9 @@ class LayoutSerializer {
     }
     public function setIntlFS (KnownFs $intlFS) {
         $this->intlFS = $intlFS;
+    }
+    public function setApp (Application $app) {
+        $this->app = $app;
     }
 
     public function serialize (Layout $layout) {
@@ -54,8 +62,9 @@ class LayoutSerializer {
 
         $blocks = [];
 
+        $app = $this->app;
         $root = $layout->get($layout->block);
-        $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use(&$blocks, $modernFS, $layoutFS, $assetsFS, $intlFS) {
+        $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use($app, &$blocks, $modernFS, $layoutFS, $assetsFS, $intlFS) {
             $block = $options['block'];
             /* @var $block Block */
             $template = 'inlined body';
@@ -99,6 +108,7 @@ class LayoutSerializer {
                         ];
                         if ($tag['type']==='repository') {
                             $t['value'] = $tag['value'][0]."->".$tag['value'][1][0];
+                            $t['type'] = get_class($app[$tag['value'][0]]);
                         } else if ($tag['type']==='asset' || $tag['type']==='modern.layout') {
                             // @todo to complete, check tagDataWith('asset'...
 //                            var_dump($tag);

@@ -198,7 +198,7 @@ class Transforms implements TransformsInterface{
         return new VoidTransforms($this);
     }
 
-    public function insertAfterBlock ($target, $id, $options){
+    public function insertAfterBlock ($target, $id, $options=[]){
         $this->layout->set($id, $options);
         $this->layout->afterBlockResolve($target, function ($ev, Layout $layout) use($target, $id) {
             $layout->resolve($id);
@@ -213,7 +213,7 @@ class Transforms implements TransformsInterface{
         return $this;
     }
 
-    public function insertBeforeBlock ($beforeTarget, $id, $options){
+    public function insertBeforeBlock ($beforeTarget, $id, $options=[]){
         $this->layout->set($id, $options);
         $this->layout->beforeBlockResolve($beforeTarget, function ($ev, Layout $layout) use($beforeTarget, $id) {
             $layout->resolve($id);

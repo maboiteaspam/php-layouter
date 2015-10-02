@@ -235,6 +235,16 @@ interface ConcreteContext {
      */
     public function nl2br($string, $is_xhtml=false);
 
+    /**
+     * Reduce text to a maximum length
+     *
+     * @param $str
+     * @param int $maxlen
+     * @param string $append
+     * @return mixed
+     */
+    public function text_reduce ($str, $maxlen=50, $append='...');
+
 
     // array helpers
     /**

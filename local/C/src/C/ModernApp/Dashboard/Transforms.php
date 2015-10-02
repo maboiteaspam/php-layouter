@@ -1,7 +1,6 @@
 <?php
 namespace C\ModernApp\Dashboard;
 
-use C\Layout\LayoutSerializer;
 use \C\ModernApp\jQuery\Transforms as jQuery;
 use C\Layout\Transforms as Base;
 use C\Layout\Layout;

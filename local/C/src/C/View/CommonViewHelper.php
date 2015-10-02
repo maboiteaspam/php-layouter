@@ -428,6 +428,18 @@ class CommonViewHelper extends AbstractViewHelper {
         return $str;
     }
 
+    /**
+     * @param string $str
+     * @return string
+     */
+    public function text_reduce ($str, $maxlen=50, $append='...') {
+        $l = strlen($str);
+        if ($l>$maxlen) {
+            $str = substr($str,0,$maxlen).$append;
+        }
+        return $str;
+    }
+
 
     // array helpers
     /**

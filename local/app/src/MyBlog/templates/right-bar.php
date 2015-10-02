@@ -1,9 +1,9 @@
 <?php
 /* @var $this \C\View\ConcreteContext */
 /* @var $comments array */
-/* @var $comment stdClass */
+/* @var $title string Title of the right bar */
 ?>
 <div class="right-bar">
-    THE RIGHT BAR !! ::
+    <?php $this->upper($title) ?>
     <?php $this->display('right-bar') ?>
 </div>

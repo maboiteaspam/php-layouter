@@ -182,6 +182,7 @@ class LayoutServiceProvider implements ServiceProviderInterface
         $app['layout.serializer'] = $app->share(function (Application $app) {
             // @todo split across service providers
             $serializer = new LayoutSerializer();
+            $serializer->setApp($app);
             $serializer->setAssetsFS($app["assets.fs"]);
             $serializer->setLayoutFS($app["layout.fs"]);
             $serializer->setModernFS($app["modern.fs"]);

@@ -15,7 +15,7 @@
             <div class="blog-content">
                 <img src="<?php echo $this->urlAsset('blog_list', $entry, ['id']); ?>"
                      alt="<?php echo $entry->img_alt; ?>" />
-                <?php echo $entry->content; ?>
+                <?php echo $this->text_reduce($entry->content, 250); ?>
             </div>
             <a href="<?php echo $this->urlFor('blog_entry', $entry, ['id']).$this->urlArgs(); ?>" class="read_more">
                 read more
