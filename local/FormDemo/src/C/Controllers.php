@@ -22,6 +22,7 @@ class Controllers {
 
             HTML::transform($app['layout'])
                 ->baseTemplate()
+                ->addIntl('body_content', 'FormDemo:/en.yml', 'en')
                 ->setTemplate('body_content', __DIR__.'/templates/form-demo.php')
                 ->updateData('body_content', [
                     'form'=>$form->createView()

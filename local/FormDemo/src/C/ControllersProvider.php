@@ -32,6 +32,9 @@ class ControllersProvider implements
         if (isset($app['layout.fs'])) {
             $app['layout.fs']->register(__DIR__.'/templates/', 'FormDemo');
         }
+        if (isset($app['intl.fs'])) {
+            $app['intl.fs']->register(__DIR__.'/intl/', 'FormDemo');
+        }
     }
 
     public function connect(Application $app)

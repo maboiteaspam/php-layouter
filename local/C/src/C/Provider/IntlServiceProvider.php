@@ -49,7 +49,8 @@ class IntlServiceProvider implements ServiceProviderInterface
 
         $app['intl.loader'] = $app->share(function(Application $app) {
             $loader = new IntlLoader();
-            $loader->addLoader(new YmlIntlLoader($app['intl-content.cache'], 'yml', 'yaml'));
+            $loader->addLoader(
+                new YmlIntlLoader($app['intl-content.cache'], 'yml'));
             return $loader;
         });
     }

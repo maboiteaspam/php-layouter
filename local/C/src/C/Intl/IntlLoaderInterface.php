@@ -6,8 +6,6 @@ interface IntlLoaderInterface {
 
     public function isExt ($ext);
 
-    public function sfFmt ();
-
     public function clearCache ();
 
     public function loadFromCache ($file);

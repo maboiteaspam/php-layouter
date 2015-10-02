@@ -12,26 +12,17 @@ abstract class AbstractIntlLoader implements IntlLoaderInterface {
      */
     public $ext;
     /**
-     * @var string
-     */
-    public $sfExt;
-    /**
      * @var CacheInterface
      */
     public $cache;
 
-    public function __construct (CacheInterface $cache, $ext, $sfExt) {
+    public function __construct (CacheInterface $cache, $ext) {
         $this->cache = $cache;
         $this->ext = $ext;
-        $this->sfExt = $sfExt;
     }
 
     public function isExt ($ext) {
         return $ext===$this->ext;
-    }
-
-    public function sfFmt () {
-        return $this->sfExt;
     }
 
     public function clearCache () {

@@ -29,7 +29,7 @@ class IntlInjector {
         $content = $extLoader->loadFromCache($file);
 //        var_dump($content);
         $this->translator->addResource(
-            $extLoader->sfFmt(), $content, $locale, $domain);
+            'array', $content, $locale, $domain);
     }
 
 
