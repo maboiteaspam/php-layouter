@@ -577,6 +577,15 @@ interface ConcreteContext {
      * @return mixed
      */
     public function urlAsset($name, $options=[], $only=[]);
+
+    /**
+     * Starts an inline script / css block
+     * $target is top / bottom
+     * @param $target
+     * @return mixed
+     */
+    public function inlineTo($target);
+    public function endInline();
     #endregion
 
     #region LayoutViewHelper

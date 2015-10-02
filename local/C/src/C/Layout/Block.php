@@ -16,10 +16,9 @@ class Block implements TagableResourceInterface{
     public $options = [
     ];
     public $data = [];
-    public $assets = [
-    ];
-    public $intl = [
-    ];
+    public $assets = [];
+    public $inline = [];
+    public $intl = [];
     public $meta = [
         'from' => false,
         'etag' => '',
@@ -86,6 +85,31 @@ class Block implements TagableResourceInterface{
         }
     }
 
+    public function setTemplate($template){
+        $this->options['template'] = $template;
+    }
+    public function getTemplate(){
+        return $this->options['template'];
+    }
+
+    /**
+     * adds a block content of a script/css inline.
+     * $target is first head foot last
+     * @param $target
+     * @param $type
+     * @param $content
+     */
+    public function addInline($target, $type, $content){
+        if (!isset($this->inline[$target]))
+            $this->inline[$target] = [];
+        $this->inline[$target][] = [
+            'type'=>$type,
+            'content'=>$content,
+        ];
+    }
+    public function getInline(){
+        return $this->inline;
+    }
 
     /**
      * @return TagedResource

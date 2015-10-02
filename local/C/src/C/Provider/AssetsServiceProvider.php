@@ -25,13 +25,21 @@ class AssetsServiceProvider implements ServiceProviderInterface
     {
         LocalFs::$record = $app['debug'];
 
+        // relative path to www
         if (!isset($app['assets.www_path']))
             $app['assets.www_path'] = 'www/';
+
+        // it should match the web server
+        // used by your app (http nginx biultin)
         if (!isset($app['assets.bridge_type']))
             $app['assets.bridge_type'] = 'builtin';
+
+        // the path used to record bridge content
         if (!isset($app['assets.bridge_file_path']))
             $app['assets.bridge_file_path'] = '.assets_bridge';
 
+        // bridger will help to bridge assets enclosed into modules
+        // to www web server
         $app['assets.bridger'] = $app->share(function() {
             return new Bridger();
         });
@@ -94,8 +102,13 @@ class AssetsServiceProvider implements ServiceProviderInterface
                 $injector->assetsFS = $app['assets.fs'];
                 $injector->wwwDir = $app['assets.www_dir'];
                 $injector->buildDir = $app['assets.build_dir'];
-                $app['layout']->beforeRender(function () use($injector, $app) {
-                    $injector->applyToLayout($app['layout']);
+                $layout = $app['layout'];
+                /* @var $layout \C\Layout\Layout */
+                $layout->beforeRender(function () use($injector, $app) {
+                    $injector->applyFileAssets($app['layout']);
+                });
+                $layout->afterResolve(function () use($injector, $app) {
+                    $injector->applyInlineAssets($app['layout']);
                 });
                 if ($injector->concatenate) {
                     $app->after(function() use($injector, $app){

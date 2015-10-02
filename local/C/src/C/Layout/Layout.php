@@ -187,11 +187,15 @@ class Layout implements TagableResourceInterface{
         }
     }
     public function render (){
-        $this->emit('before_layout_render');
+        $this->emit('before_layout_resolve');
 //            $this->resolveAllBlocks ();
         $this->resolveInCascade($this->block);
+        $this->emit('after_layout_resolve');
+
+        $this->emit('before_layout_render'); // mhh
         $this->getContent ($this->block);
         $this->emit('after_layout_render');
+
         return $this->getRoot()->body;
     }
 
@@ -317,7 +321,13 @@ class Layout implements TagableResourceInterface{
         if ($this->dispatcher)
             $this->dispatcher->dispatch($id, $event);
     }
-    public function on ($id, $fn){
+    /**
+     * @param string   $eventName The event to listen on
+     * @param callable $listener  The listener
+     * @param int      $priority  The higher this value, the earlier an event
+     *                            listener will be triggered in the chain (defaults to 0)
+     */
+    public function on ($eventName, $listener, $priority=0){
         if ($this->dispatcher)
             call_user_func_array([$this->dispatcher, 'addListener'], func_get_args());
     }
@@ -331,17 +341,27 @@ class Layout implements TagableResourceInterface{
             $fn($event, $layout);
         });
     }
-    public function beforeRender ($fn){
+    /**
+     * @param callable $listener  The listener
+     * @param int      $priority  The higher this value, the earlier an event
+     *                            listener will be triggered in the chain (defaults to 0)
+     */
+    public function beforeRender ($listener, $priority=0) {
         $layout = $this;
-        $this->on('before_layout_render', function($event) use($layout, $fn){
-            $fn($event, $layout);
-        });
+        $this->on('before_layout_render', function($event) use($layout, $listener){
+            $listener($event, $layout);
+        }, $priority);
     }
-    public function afterRender ($fn){
+    /**
+     * @param callable $listener  The listener
+     * @param int      $priority  The higher this value, the earlier an event
+     *                            listener will be triggered in the chain (defaults to 0)
+     */
+    public function afterRender ($listener, $priority=0) {
         $layout = $this;
-        $this->on('after_layout_render', function($event) use($layout, $fn){
-            $fn($event, $layout);
-        });
+        $this->on('after_layout_render', function($event) use($layout, $listener){
+            $listener($event, $layout);
+        }, $priority);
     }
     public function beforeRenderAnyBlock ($fn){
         $layout = $this;
@@ -368,6 +388,19 @@ class Layout implements TagableResourceInterface{
         $this->on('after_render_'.$id, function($event) use($layout, $id, $fn){
             $fn($event, $layout, $id);
         });
+    }
+
+    public function beforeResolve ($listener, $priority=0) {
+        $layout = $this;
+        $this->on('before_layout_resolve', function($event) use($layout, $listener){
+            $listener($event, $layout);
+        }, $priority);
+    }
+    public function afterResolve ($listener, $priority=0) {
+        $layout = $this;
+        $this->on('after_layout_resolve', function($event) use($layout, $listener){
+            $listener($event, $layout);
+        }, $priority);
     }
     public function beforeResolveAnyBlock ($fn){
         $layout = $this;

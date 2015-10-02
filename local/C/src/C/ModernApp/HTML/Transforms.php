@@ -19,19 +19,23 @@ class Transforms extends BaseTransforms{
         $this->setTemplate('root',
             'HTML:/html.php'
         )->set('html_begin', [
-            'body'=>'<html>'
-        ])->setTemplate('head',
+            'body'  => "<!DOCTYPE html>\n<html>\n"
+        ])->setTemplate('html_head',
             'HTML:/head.php'
-        )->set('body', [
+        )->set('html_body_begin', [
+                'body'  => "\n<body>"
+        ])->set('body', [
             'options'=>[
                 'template' => $bodyTemplate
             ],
+        ])->set('html_body_end', [
+            'body'  => "\n</body>"
         ])->setTemplate('footer',
             'HTML:/footer.php'
         )->set('script_bottom',  [
-            'body'=>''
+            'body'  => ''
         ])->set('html_end',[
-            'body'=>'</html>'
+            'body'  => '</html>'
         ]);
         return $this;
     }

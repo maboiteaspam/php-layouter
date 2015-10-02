@@ -72,13 +72,13 @@ class Transforms extends Base{
             $block = $layout->get($id);
             if ($block) {
                 $caller = Utils::findCaller($block->stack, $fromClass);
-                $block->body = "<c_block_node id='$id' caller='".\json_encode($caller)."'>".$block->body;
+                $block->body = "\n<c_block_node id='$id' caller='".\json_encode($caller)."'\n>".$block->body;
             }
         });
         $this->layout->afterRenderAnyBlock(function ($ev, Layout $layout, $id) {
             $block = $layout->get($id);
             if ($block) {
-                $block->body = $block->body."</c_block_node>";
+                $block->body = $block->body."\n</c_block_node>\n";
             }
         });
 

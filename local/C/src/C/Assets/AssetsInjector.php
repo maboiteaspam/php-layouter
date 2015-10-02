@@ -8,6 +8,20 @@ use C\Misc\Utils;
 use Silex\Application;
 use C\Layout\Layout;
 
+/**
+ * Class AssetsInjector
+ * walks through layout's blocks
+ * - generate HTML block containing
+ *   script and link nodes
+ * - it can also generates merged files
+ *  given each asset layout's block
+ *  template_head_css page_head_css template_head_js page_head_js
+ *  template_footer_css page_footer_css template_footer_js page_footer_js
+ * - it will also generates inline scripts/css
+ *  HTML content for each block
+ *
+ * @package C\Assets
+ */
 class AssetsInjector {
 
     /**
@@ -28,10 +42,23 @@ class AssetsInjector {
      */
     public $concatenate;
 
+    /**
+     * given block id, tells if it s a script / css
+     *
+     * @param $target
+     * @return string
+     */
     public function getExtFromTarget ($target){
         return strpos($target, 'js')===false?"css":"js";
     }
 
+    /**
+     * walks through blocks and generate
+     * an array of all assets detected.
+     *
+     * @param Layout $layout
+     * @return array
+     */
     public function mergeAllAssets (Layout $layout) {
         $blockAssets = [];
         foreach ($layout->registry->blocks as $block) {
@@ -45,6 +72,13 @@ class AssetsInjector {
         return $blockAssets;
     }
 
+    /**
+     * create HTML representation of per file scripts/css
+     *
+     * @param $target
+     * @param $assets
+     * @return string
+     */
     public function createBridgedHTMLAssets ($target, $assets) {
         $html = '';
         $assetsFS = $this->assetsFS;
@@ -76,9 +110,17 @@ class AssetsInjector {
         return $html;
     }
 
-
-    public $blockToFile = [];
-
+    /**
+     * create HTML representation of concatenate assets
+     * given each layout's blocks
+     *  template_head_css page_head_css template_head_js page_head_js
+     *  template_footer_css page_footer_css template_footer_js page_footer_js
+     * it generates a file.
+     *
+     * @param $target
+     * @param $assets
+     * @return string
+     */
     public function createMergedHTMLAssets ($target, $assets) {
         $html = '';
         $ext = $this->getExtFromTarget($target);
@@ -118,8 +160,14 @@ class AssetsInjector {
 
         return $html;
     }
+    public $blockToFile = [];
 
-    public function applyToLayout (Layout $layout) {
+    /**
+     * Appropriately parse, transform and injects
+     * assets as files.
+     * @param Layout $layout
+     */
+    public function applyFileAssets (Layout $layout) {
         $allAssets = $this->mergeAllAssets($layout);
 
         foreach( $allAssets as $target => $assets) {
@@ -132,10 +180,55 @@ class AssetsInjector {
             } else {
                 $targetBlock->body .= $this->createMergedHTMLAssets($target, $assets);
             }
-
         }
     }
 
+    /**
+     * walks through blocks and generate
+     * an array of all inline detected.
+     *
+     * @param Layout $layout
+     * @return array
+     */
+    public function mergeAllInline (Layout $layout) {
+        $blockInline = [];
+        foreach ($layout->registry->blocks as $block) {
+            /* @var $block \C\Layout\Block */
+            foreach ($block->inline as $target=>$inline) {
+                if (!isset($blockInline[$target])) {
+                    $blockInline[$target] = [];
+                }
+                $blockInline[$target] = array_merge($blockInline[$target], $inline);
+            }
+        }
+        return $blockInline;
+    }
+
+    /**
+     * Appropriately parse, transform and injects
+     * assets as inline contents.
+     * @param Layout $layout
+     */
+    public function applyInlineAssets (Layout $layout) {
+        foreach ($layout->registry->blocks as $block) {
+            /* @var $block \C\Layout\Block */
+            $blockId = $block->id;
+            foreach ($block->inline as $target=>$inline_items) {
+                foreach ($inline_items as $inline) {
+                    $content = $inline['content'];
+                    $type = $inline['type'];
+                    $targetBlock = $layout->getOrCreate("{$target}_inline_{$type}");
+                    $targetBlock->body .= "\n<!-- {$blockId} -->\n";
+                    $targetBlock->body .= "\n{$content}\n";
+                }
+            }
+        }
+    }
+
+    /**
+     * this method create appropriate merged file given blocks and their assets
+     * @param Layout $layout
+     */
     public function createMergedAssetsFiles (Layout $layout) {
         $blockToFile = $this->blockToFile;
         $blockAssets = $this->mergeAllAssets($layout);
@@ -152,6 +245,22 @@ class AssetsInjector {
         }
     }
 
+    /**
+     * Responsible to transform
+     * the content of a script / css file
+     *
+     * If the file is merged, a css for example,
+     * it lost it s ability to load file relative to its path.
+     * (it has changed to the merged file).
+     * So this function should rewrite the content appropriately
+     * to host the content under a different url.
+     *
+     * Given a JS it will simply inject the script into a function with a
+     * modulePath variable.
+     *
+     * @param $assetFile
+     * @return mixed|string
+     */
     public function readAndMakeAsset ($assetFile){
         $assetsFS = $this->assetsFS;
         $assetItem  = $assetsFS->get($assetFile);
