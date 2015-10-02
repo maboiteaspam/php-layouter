@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "406a27fd0b1229d53be4ed911e4dc8ab",
+    "hash": "6ce1c76fcf21339b8328867dd336be76",
     "packages": [
         {
             "name": "danielstjules/stringy",
@@ -479,6 +479,52 @@
                 "silex"
             ],
             "time": "2013-11-19 11:21:25"
+        },
+        {
+            "name": "joshtronic/php-loremipsum",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/joshtronic/php-loremipsum.git",
+                "reference": "28a4066917d3da0f5d8e704cc617371a1ed94ee4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/joshtronic/php-loremipsum/zipball/28a4066917d3da0f5d8e704cc617371a1ed94ee4",
+                "reference": "28a4066917d3da0f5d8e704cc617371a1ed94ee4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "satooshi/php-coveralls": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "joshtronic\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Josh Sherman",
+                    "email": "josh@gravityblvd.com",
+                    "homepage": "http://joshtronic.com"
+                }
+            ],
+            "description": "Lorem ipsum generator in PHP without dependencies",
+            "homepage": "https://github.com/joshtronic/php-loremipsum",
+            "keywords": [
+                "generator",
+                "ipsum",
+                "lorem"
+            ],
+            "time": "2014-09-13 13:36:20"
         },
         {
             "name": "knplabs/console-service-provider",
