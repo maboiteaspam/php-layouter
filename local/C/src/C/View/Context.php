@@ -2,6 +2,7 @@
 namespace C\View;
 
 use C\Layout\Block;
+use C\View\Helper\ViewHelperInterface;
 
 class Context {
 

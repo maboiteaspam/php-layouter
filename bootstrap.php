@@ -2,7 +2,7 @@
 
 #region runtime configuration update
 $runtime = [
-    'debug'                 => !true,
+    'debug'                 => true,
     'env'                   => getenv('APP_ENV') ? getenv('APP_ENV') : 'dev',
     'project.path'          => __DIR__,
     'run.path'              => __DIR__.'/run/',

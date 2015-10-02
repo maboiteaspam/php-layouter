@@ -1,5 +1,5 @@
 <?php
-namespace C\View;
+namespace C\View\Helper;
 
 use C\Misc\Utils;
 use Symfony\Component\Routing\Generator\UrlGenerator;

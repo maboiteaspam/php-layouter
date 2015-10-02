@@ -1,5 +1,5 @@
 <?php
-namespace C\View;
+namespace C\View\Helper;
 
 use Silex\Translator;
 use Symfony\Component\Config\Definition\Exception\Exception;

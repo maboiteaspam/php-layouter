@@ -1,5 +1,5 @@
 <?php
-namespace C\View;
+namespace C\View\Helper;
 
 use C\Layout\Block;
 use C\Misc\Utils;

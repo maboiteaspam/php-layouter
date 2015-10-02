@@ -7,7 +7,7 @@ use C\FS\Registry;
 use C\FS\LocalFs;
 use C\FS\KnownFs;
 use C\Assets\Bridger;
-use C\View\AssetsViewHelper;
+use C\View\Helper\AssetsViewHelper;
 
 use Silex\Application;
 use Silex\ServiceProviderInterface;

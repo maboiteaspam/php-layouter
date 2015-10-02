@@ -1,7 +1,8 @@
 <?php
-namespace C\View;
+namespace C\View\Helper;
 
 use C\Layout\Block;
+use C\View\Env;
 
 abstract class AbstractViewHelper implements ViewHelperInterface{
     /**
