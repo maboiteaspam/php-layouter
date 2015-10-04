@@ -166,10 +166,41 @@ class FormViewHelper extends AbstractViewHelper {
         foreach ($vars['attr'] as $attr=>$val) {
             if (in_array($attr, ['placeholder', 'title',])) {
                 $str .= " $attr='$val' "; // here should do translation.
-            } else if ($val==true) { // triple eq ? or double eq ?
+            } else if ($val===true) { // triple eq ? or double eq ?
                 $str .= " $attr='$attr' ";
-            } else if ($val!=false) { // triple eq ? or double eq ?
+            } else if ($val!==false) { // triple eq ? or double eq ?
                 $str .= " $attr='$val' ";
+            }
+        }
+        $form->setRendered();
+        return $str;
+    }
+    public function submit_attributes (FormView $form, $variables=[]) {
+        $str = '';
+        $vars = array_merge([
+            'id'=>null,
+            'full_name'=>null,
+            'read_only'=>false,
+            'required'=>false,
+            'disabled'=>false,
+            'attr'=>[],
+        ], $form->vars, $variables);
+
+        $id = ($vars['id']);
+
+        $str .= "id='$id' ";
+        if ($vars['read_only'] && !array_key_exists('readonly', $vars['attr'])) $str .= "readonly='readonly'";
+        if ($vars['disabled']) $str .= "disabled='disabled'";
+
+        foreach ($vars['attr'] as $attr=>$val) {
+            if (!in_array($attr, ['name', 'required'])) {
+                if (in_array($attr, ['placeholder', 'title',])) {
+                    $str .= " $attr='$val' "; // here should do translation.
+                } else if ($val===true) { // triple eq ? or double eq ?
+                    $str .= " $attr='$attr' ";
+                } else if ($val!==false) { // triple eq ? or double eq ?
+                    $str .= " $attr='$val' ";
+                }
             }
         }
         $form->setRendered();
@@ -653,6 +684,7 @@ class FormViewHelper extends AbstractViewHelper {
         ], $form->vars, $variables);
         $id = $vars['id'];
         $label = $vars['label'];
+        $type = $vars['type'];
         $label_format = $vars['label_format'];
         $name = $vars['name']?$vars['name']:$id;
         $translation_domain = $vars['translation_domain'];
@@ -669,12 +701,20 @@ class FormViewHelper extends AbstractViewHelper {
             }
         }
 
-        $str .= "<button type='";
-        $str .= "'";
-        $str .= $this->button_attributes($form, $vars);
-        $str .= ">";
-        $str .= $this->commons->trans($label, [], $translation_domain);
-        $str .= "</button>";
+        if ($type==='submit') {
+            $str .= "<input type='submit'";
+            $str .= $this->submit_attributes($form, $vars);
+            $str .= " value='".$this->commons->trans($label, [], $translation_domain)."'";
+            $str .= "/>";
+        } else {
+            $str .= "<button type='";
+            $str .= "'";
+            $str .= $this->button_attributes($form, $vars);
+            $str .= ">";
+            $str .= $this->commons->trans($label, [], $translation_domain);
+            $str .= "</button>";
+        }
+
         $form->setRendered();
         return $str;
     }

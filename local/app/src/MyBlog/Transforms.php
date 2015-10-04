@@ -42,7 +42,7 @@ class Transforms extends BaseTransforms{
             'body'=>'some'
         ])->then(
             $this->layout->debugEnabled
-            ? Dashboard::transform($this->layout)->forRequest('get')->show($fromClass)
+            ? Dashboard::transform($this->layout)->forRequest('get', 'esi-master')->show($fromClass)
             : null
         )->then(
             jQuery::transform($this->layout)->inject()
@@ -70,10 +70,9 @@ class Transforms extends BaseTransforms{
         $this->setTemplate('body_content_right', 'MyBlog:/right-bar.php'
         )->updateData('body_content_right',[
             'title' => 'Latest comments'
-
         ]);
 
-        $this->insertAfterBlock('body_content_right','rb_latest_comments'
+        $this->insertAfterBlock('right-bar','rb_latest_comments'
         )->setTemplate('rb_latest_comments', 'Blog:/entry-comments.php'
         )->updateData('rb_latest_comments',[
             'comments'  => $latestComments
@@ -111,7 +110,7 @@ class Transforms extends BaseTransforms{
             'title' => ''
         ]);
 
-        $this->insertAfterBlock('body_content_right',  'rb_latest_comments'
+        $this->insertAfterBlock('right-bar',  'rb_latest_comments'
         )->setTemplate('rb_latest_comments', 'Blog:/entry-comments.php'
         )->updateData('rb_latest_comments', [
             'comments'  => $latestComments

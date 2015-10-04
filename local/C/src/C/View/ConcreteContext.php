@@ -593,9 +593,10 @@ interface ConcreteContext {
      * Display a block given it s ID and its configuration.
      *
      * @param $blockId
+     * @param bool $force
      * @return mixed
      */
-    public function display ($blockId);
+    public function display ($blockId, $force=false);
     #endregion
 
     #region FormViewHelper

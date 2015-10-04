@@ -7,6 +7,7 @@ use C\FS\Registry;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 use C\Watch\WatchedRegistry;
+use Symfony\Component\HttpFoundation\Request;
 
 class ModernAppServiceProvider implements ServiceProviderInterface
 {
@@ -100,8 +101,10 @@ class ModernAppServiceProvider implements ServiceProviderInterface
             });
         }
 
-
-        $app->before(function($request, Application $app){
+        $app->before(function(Request $request, Application $app){
+            if ($request->isXmlHttpRequest()) {
+                $app['layout']->requestMatcher->setRequestKind('ajax');
+            }
             $app['modern.fs']->registry->loadFromCache();
         }, Application::EARLY_EVENT);
 

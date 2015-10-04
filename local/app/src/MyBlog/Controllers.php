@@ -4,11 +4,13 @@ namespace MyBlog;
 use C\HTTP\RequestProxy;
 use C\Layout\TransformsInterface;
 use Silex\Application;
+use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 use C\ModernApp\File\Transforms as FileLayout;
 use C\ModernApp\jQuery\Transforms as jQuery;
+use C\Esi\Transforms as PunchHole;
 use C\ModernApp\HTML\Transforms as HTML;
 
 use MyBlog\Transforms as MyBlogLayout;
@@ -80,7 +82,7 @@ class Controllers{
 
             /* @var $form \Symfony\Component\Form\Form */
             $form = $app['form.factory']
-                ->createBuilder($commentForm, ["email"=>"some"])
+                ->createBuilder($commentForm)
                 ->setAction($generator->generate($postCommentUrl, ['id'=>$id]))
                 ->setMethod('POST')
                 ->getForm();
@@ -101,15 +103,17 @@ class Controllers{
                         ->tagable( $commentRepo->tager()->mostRecent([$id]) )
                         ->mostRecent([$id])
                 )->then(function (MyBlogLayout $transform) use($request, $generator) {
-                    jQuery::transform($transform->getLayout())->ajaxify('blog_detail_comments', [
-                        'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
-                    ]);
+                    PunchHole::transform($transform->getLayout())
+                        ->esify('blog_detail_comments', [
+                            'url'   => $generator->generate($request->get('_route'), $request->get('_route_params')),
+                        ]);
                 })->then(function (MyBlogLayout $transform) use($form, $request, $generator) {
-                    jQuery::transform($transform->getLayout())->ajaxify('blog_form_comments', [
-                        'url'   => $generator->generate($request->get('_route'), $request->get('_route_params'))
-                    ])->updateData('blog_form_comments', [
-                        'form' => FormBuilder::createView($form),
-                    ]);
+                    PunchHole::transform($transform->getLayout())
+                        ->esify('blog_form_comments', [
+                            'url'   => $generator->generate($request->get('_route'), $request->get('_route_params')),
+                        ])->updateData('blog_form_comments', [
+                            'form' => FormBuilder::createView($form),
+                        ]);
                 })
                 ->forDevice('mobile')
                 ->baseTemplate(__CLASS__);
@@ -123,11 +127,13 @@ class Controllers{
         return function (Application $app, Request $request, $id) {
             $comment = new MyCommentForm();
             $form = $app['form.factory']
-                ->createBuilder('form', $comment)
+                ->createBuilder($comment)
                 ->getForm();
 
             /* @var $form \Symfony\Component\Form\Form*/
             $form->handleRequest($request);
+
+
 
             if ($form->isValid()) {
                 $data = $form->getData();
@@ -138,8 +144,35 @@ class Controllers{
                 return $app->json($data);
             }
 
-            $form->getErrors();
-            return $app->json($form->getErrors(), 500);
+//            $errors = $app['validator']->validate($form);
+//            dump($form->getData());
+//            dump($form->isValid());
+//            dump($form->getErrors()->getForm());
+//            dump(getFormErrors($form));
+//            dump($comment);
+
+            return $app->json(getFormErrors($form), 500);
         };
     }
+}
+
+function getFormErrors(Form $form)
+{
+    $errors = array();
+
+    // Global
+    foreach ($form->getErrors() as $error) {
+        $errors[$form->getName()][] = $error->getMessage();
+    }
+
+    // Fields
+    foreach ($form as $child /** @var Form $child */) {
+        if (!$child->isValid()) {
+            foreach ($child->getErrors() as $error) {
+                $errors[$child->getName()][] = $error->getMessage();
+            }
+        }
+    }
+
+    return $errors;
 }

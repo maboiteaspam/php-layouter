@@ -14,8 +14,9 @@ class LayoutViewHelper extends AbstractViewHelper {
         $this->layout = $layout;
     }
 
-    public function display ($blockId) {
+    public function display ($blockId, $force=false) {
         $layout = $this->layout;
+        if ($force) $layout->getOrCreate($blockId);
         $layout
             ->registry->get($layout->currentBlockInRender)
             ->displayed_block[] = [

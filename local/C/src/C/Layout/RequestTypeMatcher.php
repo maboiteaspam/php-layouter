@@ -4,7 +4,6 @@ namespace C\Layout;
 
 use C\TagableResource\TagableResourceInterface;
 use C\TagableResource\TagedResource;
-use \Symfony\Component\HttpFoundation\Request;
 
 class RequestTypeMatcher implements TagableResourceInterface{
 
@@ -30,20 +29,6 @@ class RequestTypeMatcher implements TagableResourceInterface{
         $this->langPreferred = 'en';
     }
 
-
-    public function setRequest (Request $request) {
-
-        $this->requestKind = 'get';
-        if ($request->isXmlHttpRequest()) {
-            $this->requestKind = 'ajax';
-        }
-        // @todo add esi slave rendering here
-
-        $this->deviceType = 'desktop';
-
-        $this->langPreferred = 'en';
-    }
-
     public function setRequestKind($kind){
         $this->requestKind = $kind;
     }
@@ -55,15 +40,31 @@ class RequestTypeMatcher implements TagableResourceInterface{
     }
 
     public function isRequestKind ($kind) {
-        return $this->requestKind===$kind;
+        if (in_array('any', func_get_args()))
+            return true;
+        foreach (func_get_args() as $kind) {
+            $negate = false;
+            if (substr($kind,0,1)==='!') {
+                $negate = true;
+                $kind = substr($kind,1);
+            }
+            if (!$negate&&$kind===$this->requestKind) {
+                return true;
+            } else if ($negate&&$kind!==$this->requestKind) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function isDevice($device) {
-        return $this->deviceType===$device;
+        return in_array($this->deviceType, func_get_args())
+        || in_array('any', func_get_args());
     }
 
     public function isLang($language) {
-        return $this->langPreferred===$language;
+        return in_array($this->langPreferred, func_get_args())
+        || in_array('any', func_get_args());
     }
 
     /**

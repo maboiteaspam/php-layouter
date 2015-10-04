@@ -44,7 +44,6 @@ class LayoutServiceProvider implements ServiceProviderInterface
             $request = $app['request'];
 
             $requestMatcher = new RequestTypeMatcher();
-            $requestMatcher->setRequest($request);
             $requestMatcher->setLang($request->getPreferredLanguage($locales));
             $requestMatcher->setDevice('desktop');
             if (isset($app["mobile_detect"])) {
@@ -122,34 +121,14 @@ class LayoutServiceProvider implements ServiceProviderInterface
             /* @var $layout Layout */
             $layout = $app['layout'];
 
-            $layout->emit('controller_build_finish');
-
-            // esi support
-            // https://www.varnish-cache.org/trac/wiki/ESIfeatures
-            // https://www.varnish-software.com/book/3/Content_Composition.html#edge-side-includes
-            // https://www.varnish-cache.org/docs/3.0/tutorial/esi.html
-            // http://blog.lavoie.sl/2013/08/varnish-esi-and-cookies.html
-            // http://symfony.com/doc/current/cookbook/cache/varnish.html
-            // http://silex.sensiolabs.org/doc/providers/http_cache.html
-            // https://github.com/serbanghita/Mobile-Detect
-
-//            $layoutRequestKinds = $layout->collectRequestKinds();
-//            if (in_array('esi', $layoutRequestKinds)) {
-//                if ($request->headers->has('do_esi')) {
-//                    // it means the server is doing an esi request
-//                    // only a fragment of app should be rendered
-//                } else {
-//                    // mean it is not an esi request.
-//                    // as the layout claim to be using
-//                    // esi support, we should set headers
-//                    // to enable esi support on reverse proxy
-//                    $request->headers->set('X-Esi','1');
-//                }
-//
-//            }
+            $layout->emit('controller_build_finish', $response);
 
             $content = $layout->render();
             Utils::stderr('response is new '.$request->getUri());
+
+            $layout->emit('layout_build_finish', $response);
+
+            $response->setProtocolVersion('1.1');
 
             if (isset($app['httpcache.tagger'])) {
                 $TaggedResource = $layout->getTaggedResource();
@@ -164,10 +143,8 @@ class LayoutServiceProvider implements ServiceProviderInterface
                     $app['httpcache.taggedResource'] = $TaggedResource;
                     $response->setETag($etag);
 
-                    $response->setProtocolVersion('1.1');
                     $response->setPublic(true);
-                    $response->mustRevalidate(true);
-                    $response->headers->addCacheControlDirective( 'must-revalidate');
+                    $response->setSharedMaxAge(60);
 //                    $response->setMaxAge(60*10);
                 }
 

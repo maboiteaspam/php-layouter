@@ -178,21 +178,40 @@ class Transforms implements TransformsInterface{
     }
 
 
-
+    /**
+     * switch to a device type
+     * desktop, mobile, tablet
+     * default is desktop
+     *
+     * @param $device
+     * @return $this|VoidTransforms
+     */
     public function forDevice ($device) {
-        if ($this->layout->requestMatcher->isDevice($device)) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isDevice'], func_get_args())) {
             return $this;
         }
         return new VoidTransforms($this);
     }
+
+    /**
+     * switch to a request kind
+     * ajax, get
+     * default is get
+     * esi-slave, esi-master are esi internals.
+     * it can also receive negate kind such
+     * !ajax !esi-master !esi-slave !get
+     *
+     * @param $kind
+     * @return $this|VoidTransforms
+     */
     public function forRequest ($kind) {
-        if ($this->layout->requestMatcher->isRequestKind($kind)) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isRequestKind'], func_get_args())) {
             return $this;
         }
         return new VoidTransforms($this);
     }
     public function forLang ($lang) {
-        if ($this->layout->requestMatcher->isLang($lang)) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isLang'], func_get_args())) {
             return $this;
         }
         return new VoidTransforms($this);

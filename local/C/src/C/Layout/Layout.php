@@ -338,7 +338,13 @@ class Layout implements TagableResourceInterface{
     public function onControllerBuildFinish ($fn){
         $layout = $this;
         $this->on('controller_build_finish', function($event) use($layout, $fn){
-            $fn($event, $layout);
+            $fn($event, $layout, $event->getArgument(0));
+        });
+    }
+    public function onLayoutBuildFinish ($fn){
+        $layout = $this;
+        $this->on('layout_build_finish', function($event) use($layout, $fn){
+            $fn($event, $layout, $event->getArgument(0));
         });
     }
     /**

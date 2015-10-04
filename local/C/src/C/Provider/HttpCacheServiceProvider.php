@@ -1,7 +1,6 @@
 <?php
 namespace C\Provider;
 
-use C\HTTP\RequestProxy;
 use C\Misc\Utils;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
@@ -44,6 +43,11 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
      **/
     public function boot(Application $app)
     {
+        $app->before(function (Request $request, Application $app) {
+            Utils::stderr('-------------');
+            Utils::stderr('receiving url '.$request->getUri());
+        }, Application::EARLY_EVENT);
+
         // before the app is executed, we should check the cache
         // and try to take a shortcut.
         $app->before(function (Request $request, Application $app) {
@@ -82,8 +86,8 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     return false;
                 };
 
-                Utils::stderr('-------------');
                 Utils::stderr('check etag for uri '.$request->getUri());
+
                 // when the request is sent by user
                 // it may contain an if-none-match: header
                 // which means the user is looking for an url page he already seensbefore,
@@ -138,6 +142,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
             return null;
         }, Application::LATE_EVENT);
 
+
         // once app has finished,
         // let s check if the response is cache-able,
         // not a cached response itself,
@@ -162,6 +167,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     $headers = Utils::arrayPick($headers, [
                         'cache-control', 'etag', 'last-modified', 'expires',
                         'date',
+                        'Surrogate-Capability',
                     ]);
                     $app["httpcache.store"]->store(
                         $app["httpcache.taggedResource"],
@@ -169,10 +175,12 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                         'headers'   => $headers,
                         'body'      => $response->getContent()
                     ]);
-                    Utils::stderr('headers ='.var_export($headers, true));
+                    Utils::stderr('headers ='.json_encode($headers));
                 }
             }
             $response->headers->remove("X-CACHED");
         }, Application::LATE_EVENT);
+
+
     }
 }

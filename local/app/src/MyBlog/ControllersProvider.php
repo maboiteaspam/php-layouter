@@ -57,7 +57,7 @@ class ControllersProvider implements
             $app['myblog.controllers']->detail('blog_entry.add_comment')
         )->bind ('blog_entry.detail_comments');
 
-        $controllers->get( '/blog/{id}/add_comment',
+        $controllers->post( '/blog/{id}/add_comment',
             $app['myblog.controllers']->postComment()
         )->bind ('blog_entry.add_comment');
 

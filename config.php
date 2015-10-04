@@ -8,9 +8,12 @@ return [
     'private_build_dir' => '%project.path%/run/',
     'public_build_dir' => '%project.path%/www/run/',
 
+    'esi.secret'           => 'secret',
+    'form.secret'           => md5(__DIR__.'/run/'),
     'blogdata.provider' => "Eloquent",
 //    'blogdata.provider' => "PO",
 
+    "security.firewalls"=>[],
 
     'monolog.logfile'       => '%run.path%/development.log',
 

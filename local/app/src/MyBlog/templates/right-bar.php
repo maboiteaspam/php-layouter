@@ -5,5 +5,5 @@
 ?>
 <div class="right-bar">
     <?php $this->upper($title) ?>
-    <?php $this->display('right-bar') ?>
+    <?php $this->display('right-bar', true) ?>
 </div>
