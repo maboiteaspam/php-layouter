@@ -1,0 +1,55 @@
+---
+
+meta:
+  id: blog_home
+  description: |
+    Layout for Blog Homepage website.
+
+structure:
+
+  body_content:
+    set_template: Blog:/entry-list.php
+    set_default_data:
+      entries:
+        - 0:
+          id: 0
+          date: 2015-10-04 14:39:25
+          author: maboitespam
+          img_alt: alt
+          title: |
+            some title.
+          content: |
+            some content.
+          comments:
+            -
+        - 1:
+          id: 0
+          date: 2015-10-04 14:39:25
+          author: maboitespam
+          img_alt: alt
+          title: |
+            some title.
+          content: |
+            some content.
+          comments:
+            -
+
+  blog-entries-pagination:
+    set_template: Blog:/pagination.php
+    set_default_data:
+      count: 2
+      by: 5
+      labelFormat: '%page%'
+      routeName: 'home'
+      routeParams:
+        -
+
+  body_top:
+    set_template: Blog:/top.php
+    set_default_data:
+      logo:
+
+  body_footer:
+    set_template: Blog:/footer.php
+    set_default_data:
+      year: 2015

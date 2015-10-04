@@ -1,0 +1,32 @@
+---
+
+meta:
+  id: my_blog_home
+  description: |
+    Layout for MyBlog Homepage website.
+
+structure:
+  import:
+    - Blog:/home.yml
+    - MyBlog:/base.yml
+
+  body_content:
+    update_meta:
+      from: home
+
+  body_content_right:
+    set_template: MyBlog:/right-bar.php
+    set_default_data:
+      title: Latest comments
+
+  rb_latest_comments:
+    insert_after: body_content_right
+    set_template: Blog:/entry-comments.php
+    update_meta:
+      from: rb_latest_comments
+
+  for_device_mobile:
+    body_content:
+      body: Hello, this is the mobile layout !!
+    body_content_right:
+      delete: all

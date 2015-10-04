@@ -9,11 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 use C\ModernApp\File\Transforms as FileLayout;
-use C\ModernApp\jQuery\Transforms as jQuery;
 use C\Esi\Transforms as PunchHole;
-use C\ModernApp\HTML\Transforms as HTML;
 
-use MyBlog\Transforms as MyBlogLayout;
+use C\Layout\Transforms as Transforms;
 use \C\Blog\CommentForm as MyCommentForm;
 use \C\Form\FormBuilder;
 
@@ -42,27 +40,31 @@ class Controllers{
             $entryRepo = $app[$this->entryRepo];
             /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
             $commentRepo = $app[$this->commentRepo];
-            /* @var $requestData \C\HTTP\RequestProxy */
-            $requestData = new RequestProxy($app['request']);
-            $listEntryBy = 5;
-            MyBlogLayout::transform($app['layout'])
-                ->forDevice('desktop')
-                ->baseTemplate(__CLASS__)
-                ->home(
-                    $entryRepo
-                        ->tagable( $entryRepo->tager()->lastUpdateDate() )
-                        ->mostRecent($requestData->get('page'), $listEntryBy),
-                    $commentRepo
-                        ->tagable( $commentRepo->tager()->lastUpdateDate() )
-                        ->mostRecent(),
-                    $entryRepo->tagable()->countAll(),
-                    $listEntryBy
-//                )->then(
-//                    FileLayout::transform($app['layout'])->loadFile( "test_layout.yml" )
-                )
-                ->forDevice('mobile')
-                ->baseTemplate(__CLASS__)
-                ->setBody('body_content', 'Hello, this mobile layout !!');
+
+            FileLayout::transform($app)
+                ->importFile("MyBlog:/home.yml")
+                ->then(function (TransformsInterface $transform) use ($app, $entryRepo, $commentRepo) {
+                    /* @var $requestData \C\HTTP\RequestProxy */
+                    $requestData = new RequestProxy($app['request']);
+                    $listEntryBy = 5;
+                    Transforms::transform($app)
+                        ->updateData('body_content',[
+                            'entries'   => $entryRepo
+                                ->tagable( $entryRepo->tager()->lastUpdateDate() )
+                                ->mostRecent($requestData->get('page'), $listEntryBy)
+                        ])
+                        ->updateData('rb_latest_comments',[
+                            'comments'  => $commentRepo
+                                ->tagable( $commentRepo->tager()->lastUpdateDate() )
+                                ->mostRecent()
+
+                        ])
+                        ->updateData('blog-entries-pagination', [
+                            'count'         => $entryRepo->tagable()->countAll(),
+                            'by'            => $listEntryBy,
+                        ]);
+                })
+            ;
 
             $response = new Response();
             return $app['layout.responder']($response);
@@ -75,48 +77,62 @@ class Controllers{
             $entryRepo = $app[$this->entryRepo];
             /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
             $commentRepo = $app[$this->commentRepo];
-            /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
-            $generator = $app["url_generator"];
 
-            $commentForm = new MyCommentForm();
-
-            /* @var $form \Symfony\Component\Form\Form */
-            $form = $app['form.factory']
-                ->createBuilder($commentForm)
-                ->setAction($generator->generate($postCommentUrl, ['id'=>$id]))
-                ->setMethod('POST')
-                ->getForm();
-
-            $form->handleRequest($request);
-
-            MyBlogLayout::transform($app['layout'])
+            FileLayout::transform($app)
+                ->importFile("MyBlog:/detail.yml")
                 ->forDevice('desktop')
-                ->baseTemplate(__CLASS__)
-                ->detail(
-                    $entryRepo
-                        ->tagable( $entryRepo->tager()->byId($id) )
-                        ->byId($id),
-                    $commentRepo
-                        ->tagable( $commentRepo->tager()->lastUpdatedByEntryId($id) )
-                        ->byEntryId($id),
-                    $commentRepo
-                        ->tagable( $commentRepo->tager()->mostRecent([$id]) )
-                        ->mostRecent([$id])
-                )->then(function (MyBlogLayout $transform) use($request, $generator) {
-                    PunchHole::transform($transform->getLayout())
+                ->then(function (TransformsInterface $transform) use ($app, $id, $entryRepo, $commentRepo) {
+                    Transforms::transform($app)
+                        ->updateData('body_content',[
+                            'entry' => $entryRepo
+                                    ->tagable( $entryRepo->tager()->byId($id) )
+                                    ->byId($id)
+                        ])
+                        ->updateData('blog_detail_comments',[
+                            'comments'  => $commentRepo
+                                ->tagable( $commentRepo->tager()->lastUpdatedByEntryId($id) )
+                                ->byEntryId($id)
+
+                        ])
+                        ->updateData('rb_latest_comments', [
+                            'comments'  => $commentRepo
+                                ->tagable( $commentRepo->tager()->mostRecent([$id]) )
+                                ->mostRecent([$id]),
+                        ]);
+
+                })->then(function (TransformsInterface $transform) use($app, $request) {
+
+                    /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
+                    $generator = $app["url_generator"];
+
+                    PunchHole::transform($app)
                         ->esify('blog_detail_comments', [
                             'url'   => $generator->generate($request->get('_route'), $request->get('_route_params')),
                         ]);
-                })->then(function (MyBlogLayout $transform) use($form, $request, $generator) {
-                    PunchHole::transform($transform->getLayout())
+                })->then(function (TransformsInterface $transform) use($app, $request, $postCommentUrl, $id) {
+
+                    /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
+                    $generator = $app["url_generator"];
+
+                    $commentForm = new MyCommentForm();
+
+                    /* @var $form \Symfony\Component\Form\Form */
+                    $form = $app['form.factory']
+                        ->createBuilder($commentForm)
+                        ->setAction($generator->generate($postCommentUrl, ['id'=>$id]))
+                        ->setMethod('POST')
+                        ->getForm();
+
+                    $form->handleRequest($request);
+
+                    PunchHole::transform($app)
                         ->esify('blog_form_comments', [
                             'url'   => $generator->generate($request->get('_route'), $request->get('_route_params')),
                         ])->updateData('blog_form_comments', [
                             'form' => FormBuilder::createView($form),
                         ]);
                 })
-                ->forDevice('mobile')
-                ->baseTemplate(__CLASS__);
+            ;
 
             $response = new Response();
             return $app['layout.responder']($response);

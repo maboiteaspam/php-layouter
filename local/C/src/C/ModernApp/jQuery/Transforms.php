@@ -2,16 +2,15 @@
 namespace C\ModernApp\jQuery;
 
 use C\Layout\Transforms as base;
-use C\Layout\Layout;
 
 class Transforms extends base{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout){
-        return new self($layout);
+    public static function transform($options){
+        return new self($options);
     }
 
     public function inject($options=[]){

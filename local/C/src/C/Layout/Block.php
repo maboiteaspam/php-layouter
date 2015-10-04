@@ -6,6 +6,7 @@ use C\TagableResource\TagableResourceInterface;
 use C\TagableResource\UnwrapableResourceInterface;
 use C\View\Context;
 use C\FS\KnownFs;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Block implements TagableResourceInterface{
 
@@ -44,6 +45,9 @@ class Block implements TagableResourceInterface{
                 'template' => ''
             ];
         } else {
+            if (strpos($what, "template")) {
+                $this->options['template'] = '';
+            }
             if (strpos($what, "data")) {
                 $this->data = [];
             }
@@ -77,7 +81,11 @@ class Block implements TagableResourceInterface{
                 if ($fn) {
                     $context->setBlockToRender($this);
                     $boundFn = \Closure::bind($fn, $context);
-                    $boundFn($this);
+                    try{
+                        $boundFn($this);
+                    }catch(\Exception $ex) {
+                        throw new Exception("'{$this->id}' has failed to execute: {$ex->getMessage()}", 0, $ex);
+                    }
                 } else {
                     // weird stuff in template.
                 }

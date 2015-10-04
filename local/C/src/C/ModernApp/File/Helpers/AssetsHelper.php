@@ -2,21 +2,25 @@
 namespace C\ModernApp\File\Helpers;
 
 use C\Layout\Transforms;
-use C\Layout\Layout;
 use C\ModernApp\File\AbstractStaticLayoutHelper;
+use C\ModernApp\File\FileTransformsInterface;
 
-class AssetsHelper extends  AbstractStaticLayoutHelper{
+class AssetsHelper extends AbstractStaticLayoutHelper{
 
-    public function executeStructureNode (Layout $layout, $blockSubject, $nodeAction, $nodeContents) {
+    public function executeBlockNode (FileTransformsInterface $T, $blockSubject, $nodeAction, $nodeContents) {
         if ($nodeAction==="add_assets") {
-            Transforms::transform($layout)->addAssets($blockSubject, $nodeContents);
+            Transforms::transform($T->getOptions())->addAssets($blockSubject, $nodeContents);
+            return true;
 
         } else if ($nodeAction==="remove_assets") {
-            Transforms::transform($layout)->removeAssets($blockSubject, $nodeContents);
+            Transforms::transform($T->getOptions())->removeAssets($blockSubject, $nodeContents);
+            return true;
 
         } else if ($nodeAction==="replace_assets") {
-            Transforms::transform($layout)->replaceAssets($blockSubject, $nodeContents);
+            Transforms::transform($T->getOptions())->replaceAssets($blockSubject, $nodeContents);
+            return true;
 
         }
+        return !true;
     }
 }

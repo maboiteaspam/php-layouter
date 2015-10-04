@@ -1,7 +1,6 @@
 <?php
 namespace C\ModernApp\Dashboard;
 
-use \C\ModernApp\jQuery\Transforms as jQuery;
 use C\Layout\Transforms as Base;
 use C\Layout\Layout;
 use C\Misc\Utils;
@@ -9,11 +8,11 @@ use C\Misc\Utils;
 class Transforms extends Base{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout){
-        return new self($layout);
+    public static function transform($options){
+        return new self($options);
     }
 
     /**
@@ -21,9 +20,6 @@ class Transforms extends Base{
      * @return \C\Layout\Transforms
      */
     public function show ($fromClass=''){
-        /* @var $layout \C\Layout\Layout */
-        $layout = $this->layout;
-
         $this->insertBeforeBlock('html_end', 'dashboard', [
             'options' => [
                 'template'=>'Dashboard:/dashboard.php'
@@ -66,7 +62,7 @@ class Transforms extends Base{
                 'options'=> []
             ]
         ])->addAssets('dashboard-options', [
-        ])->then( jQuery::transform($layout)->inject() );
+        ]);
 
         $this->layout->beforeRenderAnyBlock(function ($ev, Layout $layout, $id) use($fromClass) {
             $block = $layout->get($id);
@@ -90,21 +86,25 @@ class Transforms extends Base{
             // the block needs to be generated after ALL blocks,
             // then re injected into the document.
             $this->layout->afterRender(function ($ev, Layout $layout) use($serializer) {
-                $content = $layout->getRoot()->body;
+                $rootBlock = $layout->getRoot();
 
-                $this->set('dashboard-layout-structure', [
-                    'options' => [
-                        'template'=>'Dashboard:/layout-structure.php'
-                    ],
-                    'data' => [
-                        'serialized'=> $serializer->serialize($layout)
-                    ]
-                ]);
+                if ($rootBlock) {
+                    $content = $rootBlock->body;
 
-                $layout->getRoot()->body = str_replace(
-                    "<!-- layout_structure_placeholder -->",
-                    $layout->resolve('dashboard-layout-structure')->body,
-                    $content);
+                    $this->set('dashboard-layout-structure', [
+                        'options' => [
+                            'template'=>'Dashboard:/layout-structure.php'
+                        ],
+                        'data' => [
+                            'serialized'=> $serializer->serialize($layout)
+                        ]
+                    ]);
+
+                    $rootBlock->body = str_replace(
+                        "<!-- layout_structure_placeholder -->",
+                        $layout->resolve('dashboard-layout-structure')->body,
+                        $content);
+                }
             });
         }
 

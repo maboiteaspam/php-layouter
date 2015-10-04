@@ -2,9 +2,9 @@
 namespace C\FormDemo;
 
 use Silex\Application;
-use C\ModernApp\HTML\Transforms as HTML;
 use C\ModernApp\Dashboard\Transforms as Dashboard;
 use Symfony\Component\HttpFoundation\Request;
+use C\ModernApp\File\Transforms as FileLayout;
 
 class Controllers {
 
@@ -20,14 +20,14 @@ class Controllers {
                 ->setMethod('POST')
                 ->getForm();
 
-            HTML::transform($app['layout'])
-                ->baseTemplate()
+            FileLayout::transform($app)
+                ->importFile("HTML:/1-column.yml")
                 ->addIntl('body_content', 'FormDemo:/en.yml', 'en')
                 ->setTemplate('body_content', __DIR__.'/templates/form-demo.php')
                 ->updateData('body_content', [
                     'form'=>$form->createView()
                 ])
-                ->then(Dashboard::transform($app['layout'])->forRequest('get')->show());
+                ->then(Dashboard::transform($app)->forRequest('get')->show());
             return $app['layout']->render();
         };
     }
@@ -59,13 +59,13 @@ class Controllers {
             }
             var_dump($form->isValid());
 
-            HTML::transform($app['layout'])
-                ->baseTemplate()
+            FileLayout::transform($app)
+                ->importFile("HTML:/1-column.yml")
                 ->setTemplate('body_content', __DIR__.'/templates/form-demo.php')
                 ->updateData('body_content', [
                     'form'=>$form->createView()
                 ])
-                ->then(Dashboard::transform($app['layout'])->forRequest('get')->show());
+                ->then(Dashboard::transform($app)->forRequest('get')->show());
             return $app['layout']->render();
         };
     }

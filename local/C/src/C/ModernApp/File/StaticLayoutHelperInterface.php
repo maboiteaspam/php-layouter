@@ -5,10 +5,16 @@ use C\Layout\Layout;
 
 interface StaticLayoutHelperInterface {
 
-    public function setStaticLayoutBaseDir ($baseDir);
-
     public function executeMetaNode (Layout $layout, $nodeAction, $nodeContents);
 
-    public function executeStructureNode (Layout $layout, $blockTarget, $nodeAction, $nodeContents);
+    /**
+     * @param FileTransformsInterface $T
+     * @param $nodeAction
+     * @param $nodeContents
+     * @return FileTransformsInterface
+     */
+    public function executeStructureNode (FileTransformsInterface $T, $nodeAction, $nodeContents);
+
+    public function executeBlockNode (FileTransformsInterface $T, $blockTarget, $nodeAction, $nodeContents);
 
 }

@@ -1,24 +1,36 @@
 <?php
 namespace C\ModernApp\File;
 
-use C\FS\KnownFs;
 use C\Layout\Transforms as BaseTransforms;
-use C\FS\LocalFs;
+use C\ModernApp\File\Helpers\FileHelper;
 use C\TagableResource\TagedResource;
-use Moust\Silex\Cache\CacheInterface;
-use Symfony\Component\Yaml\Yaml;
 
-class Transforms extends BaseTransforms{
+class Transforms extends BaseTransforms implements FileTransformsInterface{
 
     /**
-     * @var KnownFs
+     * @param mixed $options
+     * @return Transforms
      */
-    protected $modernFS;
+    public static function transform($options){
+        $T = new self($options);
+        $T->options = $options;
+        $helpers = array_merge($options['modern.layout.helpers'],[
+            new FileHelper()
+        ]);
+        return $T
+            ->setStore($options['modern.layout.store'])
+            ->setHelpers($helpers);
+    }
 
     /**
-     * @var CacheInterface
+     * @var array
      */
-    protected $cache;
+    protected $options;
+
+    /**
+     * @var Store
+     */
+    protected $store;
 
     protected $helpers = [];
 
@@ -26,102 +38,142 @@ class Transforms extends BaseTransforms{
         $this->helpers[] = $helper;
     }
 
-    public function setModernLayoutFS (KnownFs $fs) {
-        $this->modernFS = $fs;
+    public function setStore(Store $store) {
+        $this->store = $store;
+        return $this;
     }
 
-    public function setCache(CacheInterface $cache) {
-        $this->cache = $cache;
+    public function getOptions() {
+        return $this->options;
     }
 
-//    protected function resolveFilePath ($baseDir, $fileToResolve) {
-//        $item = $this->templateFS->get($fileToResolve);
-//        if ($item) {
-//            return $item['absolute_path'];
-//        }
-//        if (substr($fileToResolve, 0, 1)==="/"
-//            || preg_match("/[a-z]:[\\\]/i", substr($fileToResolve, 0, 3))>0) { // it s an absolute path, pass.
-//            // nothing to do in current impl.
-//        } else {
-//            // let s assume their are relative to the path of the loaded YML file.
-//            $fileToResolve = "$baseDir/$fileToResolve";
-//        }
-//        return $fileToResolve;
-//    }
+    /**
+     * switch to a device type
+     * desktop, mobile, tablet
+     * default is desktop
+     *
+     * @param $device
+     * @return $this|VoidFileTransforms
+     */
+    public function forDevice ($device) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isDevice'],
+            func_get_args())) {
+            return $this;
+        }
+        return new VoidFileTransforms($this);
+    }
+    /**
+     * switch to a request kind
+     * ajax, get
+     * default is get
+     * esi-slave, esi-master are esi internals.
+     * it can also receive negate kind such
+     * !ajax !esi-master !esi-slave !get
+     *
+     * @param $kind
+     * @return $this|VoidFileTransforms
+     */
+    public function forRequest ($kind) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isRequestKind'], func_get_args())) {
+            return $this;
+        }
+        return new VoidFileTransforms($this);
+    }
+    public function forLang ($lang) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isLang'], func_get_args())) {
+            return $this;
+        }
+        return new VoidFileTransforms($this);
+    }
+
+    public function setHelpers(array $helpers) {
+        $this->helpers = [];
+        foreach ($helpers as $helper) {
+            $this->addHelper($helper);
+        }
+        return $this;
+    }
 
     public function buildFile ($filePath) {
-        $layoutFile = $this->modernFS->get($filePath);
-        if( $layoutFile===false) {
-            throw new \Exception("File not found $filePath");
-        }
-        $layoutStruct   = Yaml::parse (LocalFs::file_get_contents ($filePath), true, false, true);
-        $this->cache->store($layoutFile['dir'].'/'.$layoutFile['name'], $layoutStruct);
+        return $this->store->buildFile($filePath);
     }
     public function importFile ($filePath) {
-        $layoutFile = $this->modernFS->get($filePath);
-        if( $layoutFile===false) {
-            throw new \Exception("File not found $filePath");
-        }
-        $ymlDir         = $layoutFile['dir'];
-        $layoutStruct   = $this->cache->fetch($layoutFile['dir'].'/'.$layoutFile['name']);
+        $layoutStruct = $this->store->get($filePath);
 
         $resourceTag = new TagedResource();
-        $resourceTag->addResource('modern.layout', $filePath);
+        $resourceTag->addResource($filePath, 'modern.layout');
         $this->layout->addGlobalResourceTag($resourceTag);
-
-        foreach ($this->helpers as $helper) {
-            /* @var $helper StaticLayoutHelperInterface */
-            $helper->setStaticLayoutBaseDir($ymlDir);
-        }
 
         if (isset($layoutStruct['meta'])) {
             foreach ($layoutStruct['meta'] as $nodeAction=>$nodeContent) {
-                foreach ($this->helpers as $helper) {
-                    /* @var $helper StaticLayoutHelperInterface */
-                    $helper->executeMetaNode($this->layout, $nodeAction, $nodeContent);
+                if (!$this->executeMetaNode($nodeAction, $nodeContent)) {
+                    // mhh
                 }
             }
         }
 
+        $structure = Transforms::transform($this->options);
         if (isset($layoutStruct['structure'])) {
             foreach ($layoutStruct['structure'] as $subject=>$nodeActions) {
-                foreach ($nodeActions as $nodeAction=>$nodeContent) {
-                    foreach ($this->helpers as $helper) {
-                        /* @var $helper StaticLayoutHelperInterface */
-                        $helper->executeStructureNode($this->layout, $subject, $nodeAction, $nodeContent);
-                    }
+                $sub = $this->executeStructureNode($structure, $subject, $nodeActions);
+
+                if ($sub!==false) {
+                    $structure = $sub;
+                    $structure->then(function (FileTransformsInterface $T) use($nodeActions) {
+                        foreach ($nodeActions as $subject2=>$nodeActions2) {
+                            foreach ($nodeActions2 as $nodeAction=>$nodeContent) {
+                                if (!$this->executeBlockNode($T, $subject2, $nodeAction, $nodeContent)) {
+                                    // mhh
+                                }
+                            }
+                        }
+                    });
+
+                } else if (is_array($nodeActions)) {
+                    $structure->then(function (FileTransformsInterface $T) use($subject, $nodeActions) {
+                        foreach ($nodeActions as $nodeAction=>$nodeContent) {
+                            if (!$this->executeBlockNode($T, $subject, $nodeAction, $nodeContent)) {
+                                // mhh
+                            }
+                        }
+                    });
                 }
+
 
             }
         }
-//        // search paths, if they are relative, make them absolute.
-//        foreach ($layoutStruct["structure"] as $blockId => $block) {
-//            if (isset($block["set_template"])) {
-//                $block["set_template"] = $this->resolveFilePath($ymlDir, $block["set_template"]);
-//            }
-//            if (isset($block["add_assets"])) {
-//                foreach ($block["add_assets"] as $targetAssetsBlock => $assets) {
-//                    foreach ( $assets as $i => $asset) {
-//                        $assets[$i] = $this->resolveFilePath($ymlDir, $asset);
-//                    }
-//                }
-//            }
-//            if (isset($block["insert_before"])) {
-//            }
-//        }
-//        // Definitely apply the static-file-layout to the Layout instance.
-//        foreach ($layoutStruct["structure"] as $blockId => $block) {
-//            if (isset($block["set_template"])) {
-//                $this->setTemplate($blockId, $block["set_template"] );
-//            }
-//            if (isset($block["add_assets"])) {
-//                $this->updateAssets($blockId, $block["add_assets"] );
-//            }
-//            if (isset($block["insert_before_block"])) {
-//                $this->insertBeforeBlock($block["insert_before"], $blockId, []);
-//            }
-//        }
         return $this;
+    }
+
+    public function executeMetaNode ($nodeAction, $nodeContent) {
+        foreach ($this->helpers as $helper) {
+            /* @var $helper StaticLayoutHelperInterface */
+            if ($helper->executeMetaNode($this->layout, $nodeAction, $nodeContent)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function executeStructureNode (FileTransformsInterface $T, $nodeAction, $nodeContent) {
+        foreach ($this->helpers as $helper) {
+            /* @var $helper StaticLayoutHelperInterface */
+            $sub = $helper->executeStructureNode($T, $nodeAction, $nodeContent);
+            if ($sub!==false) {
+                return $sub;
+            }
+        }
+        return false;
+    }
+
+    public function executeBlockNode (FileTransformsInterface $T, $subject, $nodeAction, $nodeContent) {
+        foreach ($this->helpers as $helper) {
+            /* @var $helper StaticLayoutHelperInterface */
+            if ($helper->executeBlockNode($T, $subject, $nodeAction, $nodeContent)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

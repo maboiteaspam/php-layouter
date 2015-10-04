@@ -33,28 +33,27 @@ class ModernAppServiceProvider implements ServiceProviderInterface
         if (!isset($app['modern.layout_store_name']))
             $app['modern.layout_store_name'] = "modern-layout-store";
 
-        $app['modern.layout'] = $app->share(function (Application $app) {
-            $transform = new \C\ModernApp\File\Transforms();
-            $transform->setLayout($app['layout']);
-            $transform->setModernLayoutFS($app['modern.fs']);
+        $app['modern.layout.store'] = $app->share(function (Application $app) {
+            $store = new \C\ModernApp\File\Store();
 
-            $helpers = $app['modern.layout.helpers'];
-            foreach($helpers as $helper){
-                $transform->addHelper($helper);
-            }
+            $store->setModernLayoutFS($app['modern.fs']);
 
             $storeName = $app['modern.layout_store_name'];
             if (isset($app['caches'][$storeName])) $cache = $app['caches'][$storeName];
             else $cache = $app['cache'];
-            $transform->setCache($cache);
+            $store->setCache($cache);
 
-            return $transform;
+            return $store;
         });
         $app['modern.layout.helpers'] = $app->share(function (Application $app) {
             // @todo this should probably be moved away into separate service providers, for now on it s only inlined
             $helpers = [];
             $helpers[] = new \C\ModernApp\File\Helpers\LayoutHelper();
             $helpers[] = new \C\ModernApp\File\Helpers\AssetsHelper();
+            $helpers[] = new \C\ModernApp\File\Helpers\jQueryHelper();
+            $helpers[] = new \C\ModernApp\File\Helpers\IntlHelper();
+            $helpers[] = new \C\ModernApp\File\Helpers\DashboardHelper();
+            $helpers[] = new \C\ModernApp\File\Helpers\RequestHelper();
             return $helpers;
         });
     }
@@ -75,6 +74,9 @@ class ModernAppServiceProvider implements ServiceProviderInterface
             $app['layout.fs']->register(__DIR__.'/../ModernApp/HTML/templates/', 'HTML');
             $app['layout.fs']->register(__DIR__.'/../ModernApp/Dashboard/templates/', 'Dashboard');
             $app['layout.fs']->register(__DIR__.'/../ModernApp/jQuery/templates/', 'jQuery');
+        }
+        if (isset($app['modern.fs'])) {
+            $app['modern.fs']->register(__DIR__.'/../ModernApp/HTML/layouts/', 'HTML');
         }
 
         if (isset($app['httpcache.tagger'])) {

@@ -3,16 +3,15 @@ namespace C\ModernApp\HTML;
 
 use C\Layout\Transforms as BaseTransforms;
 use Silex\Application;
-use C\Layout\Layout;
 
 class Transforms extends BaseTransforms{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout){
-        return new self($layout);
+    public static function transform($options){
+        return new self($options);
     }
 
     public function baseTemplate ($bodyTemplate='HTML:/1-column.php') {

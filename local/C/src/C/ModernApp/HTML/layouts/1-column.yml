@@ -1,0 +1,41 @@
+---
+
+meta:
+  id: html_1_column
+  description: |
+    1 column base template.
+
+structure:
+
+  root:
+    set_template: HTML:/html.php
+
+  html_begin:
+    body: >
+      <!DOCTYPE html>
+      <html>
+
+  html_head:
+    set_template: HTML:/head.php
+
+  html_body_begin:
+    body: |
+      <body>
+
+  body:
+    set_template: HTML:/1-column.php
+
+  footer:
+    set_template: HTML:/footer.php
+
+  script_bottom:
+    body:
+
+  html_body_end:
+    body: |
+      </body>
+
+  html_end:
+    body: |
+      </html>
+

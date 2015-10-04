@@ -4,18 +4,18 @@ namespace C\Layout;
 class Transforms implements TransformsInterface{
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      */
-    public function __construct(Layout $layout=null){
-        if ($layout) $this->setLayout($layout);
+    public function __construct($options=[]){
+        if (isset($options['layout'])) $this->setLayout($options['layout']);
     }
 
     /**
-     * @param Layout $layout
+     * @param mixed $options
      * @return Transforms
      */
-    public static function transform(Layout $layout){
-        return new self($layout);
+    public static function transform($options){
+        return new self($options);
     }
 
     /**
@@ -23,11 +23,18 @@ class Transforms implements TransformsInterface{
      */
     public $layout;
 
+    /**
+     * @param Layout $layout
+     * @return $this
+     */
     public function setLayout (Layout $layout) {
         $this->layout = $layout;
         return $this;
     }
 
+    /**
+     * @return Layout
+     */
     public function getLayout () {
         return $this->layout;
     }
@@ -66,6 +73,7 @@ class Transforms implements TransformsInterface{
     public function setBody($id, $body){
         $block = $this->layout->getOrCreate($id);
         if ($block) {
+            $block->clear();
             $block->body = $body;
         }
         return $this;
@@ -187,7 +195,8 @@ class Transforms implements TransformsInterface{
      * @return $this|VoidTransforms
      */
     public function forDevice ($device) {
-        if (call_user_func_array([$this->layout->requestMatcher, 'isDevice'], func_get_args())) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isDevice'],
+            func_get_args())) {
             return $this;
         }
         return new VoidTransforms($this);
