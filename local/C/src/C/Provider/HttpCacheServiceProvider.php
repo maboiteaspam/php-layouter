@@ -64,8 +64,8 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     if ($res) {
                         Utils::stderr('found resource for etag: '.$etag);
                         $originalTag = $res->originalTag;
-                        $fresh = $tagger->isFresh($res);
-                        if (!$checkFreshness || $checkFreshness && $fresh) {
+                        $fresh = $checkFreshness && $tagger->isFresh($res);
+                        if ($fresh) {
                             $content = $store->getContent($etag);
                             $body = $content['body'];
                             $response = new Response();
@@ -77,8 +77,6 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                             Utils::stderr('headers ='.json_encode($content['headers']));
                             return $response;
 
-                        } else if(!$fresh) {
-                            Utils::stderr("etag is outdated");
                         } else {
                             Utils::stderr('is etag fresh:'.json_encode($fresh));
                             Utils::stderr('original Tag:'.json_encode($originalTag));
