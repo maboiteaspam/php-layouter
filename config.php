@@ -21,32 +21,39 @@ return [
 
     'caches.options' => [
         'http-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/http/',
 //            'driver' => 'redis', // if you prefer
         ],
         'assets-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/assets/',
         ],
         'intl-fs-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/intl-fs/',
         ],
         'intl-content-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/intl-content/',
         ],
         'capsule-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/capsule/',
         ],
         'layout-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/layout/',
         ],
         'modern-layout-store'=>[
-            'driver' => 'file',
+//            'driver' => 'file',
+            'driver' => 'include',
             'cache_dir' => __DIR__ . '/run/modern-layout/',
         ],
     ],
