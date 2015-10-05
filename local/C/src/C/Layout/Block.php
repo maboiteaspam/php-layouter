@@ -27,7 +27,7 @@ class Block implements TagableResourceInterface{
 
     // this are runtime data to help debug and so on.
     public $stack = [];
-    public $displayed_block = [
+    public $displayed_blocks = [
         /* [array,of,block,id,displayed]*/
     ];
 
@@ -174,5 +174,17 @@ class Block implements TagableResourceInterface{
             }
         }
         return $unwrapped;
+    }
+
+    public function getDisplayedBlocksId () {
+        $displayed = [];
+        foreach ($this->displayed_blocks as $d) {
+            $displayed[] = $d['id'];
+        }
+        return $displayed;
+    }
+
+    public function registerDisplayedBlock($id, $shown=true) {
+        $this->displayed_blocks[] = ["id"=>$id, "shown"=>$shown];
     }
 }
