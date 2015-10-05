@@ -107,9 +107,6 @@ class Transforms extends BaseTransforms implements FileTransformsInterface{
         return $this;
     }
 
-    public function buildFile ($filePath) {
-        return $this->store->buildFile($filePath);
-    }
     public function importFile ($filePath) {
         $layoutStruct = $this->store->get($filePath);
 
