@@ -21,6 +21,6 @@ class AssetsHelper extends AbstractStaticLayoutHelper{
             return true;
 
         }
-        return !true;
+        return false;
     }
 }
