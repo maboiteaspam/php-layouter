@@ -53,7 +53,6 @@ $app->register(new \Igorw\Silex\ConfigServiceProvider(__DIR__ . "/config.php", $
 
 #region service providers
 
-
 $app->register(new \Moust\Silex\Provider\CacheServiceProvider(), [
     'caches.default' => 'default',
     'caches.options' => array_merge([
@@ -62,11 +61,6 @@ $app->register(new \Moust\Silex\Provider\CacheServiceProvider(), [
         ],
     ], $app['caches.options']),
 ]);
-
-//$app['cache.drivers'] = $app->extend('cache.drivers', function ($drivers) {
-//    $drivers[] = '\\Moust\\Silex\\Cache\\WincacheCache';
-//    return $drivers;
-//});
 
 //$app->register(new MonologServiceProvider([]));
 $app->register(new \Silex\Provider\SessionServiceProvider( ));
@@ -78,6 +72,7 @@ $app->register(new \Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new \Silex\Provider\ValidatorServiceProvider());
 $app->register(new \Silex\Provider\FormServiceProvider());
 
+$app->register(new \C\Provider\CacheProvider());
 $app->register(new \C\Provider\EsiServiceProvider());
 $app->register(new \C\Provider\IntlServiceProvider());
 $app->register(new \C\Provider\AssetsServiceProvider());
