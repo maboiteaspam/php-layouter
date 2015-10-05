@@ -67,6 +67,19 @@ class RequestTypeMatcher implements TagableResourceInterface{
         || in_array('any', func_get_args());
     }
 
+    public function isFacets($facets) {
+        if (isset($facets['device'])
+            && !$this->isDevice($facets['device']))
+            return false;
+        if (isset($facets['lang'])
+            && !$this->isLang($facets['lang']))
+            return false;
+        if (isset($facets['request'])
+            && !$this->isRequestKind($facets['request']))
+            return false;
+        return true;
+    }
+
     /**
      * @return TagedResource
      * @throws \Exception
