@@ -10,22 +10,24 @@ $layoutData = $serialized['layout'];
 <div class="dashboard-block-content">
     <?php foreach ($blocks as $blockPath=>$blockInfo) { ?>
         <div class="layout-block">
-            <div>
-                <?php echo str_repeat(" -", substr_count($blockPath, '/')-1); ?>
-                <span class="layout-block-path"><?php echo $blockInfo['id']; ?></span>
-                -
+            <div class="block-head">
                 <?php echo $blockInfo['isCacheable']?'✓':'✖'; ?>
-                <?php if (count($blockInfo['data'])) { ?>
-                    - <b>D</b>
-                <?php } ?>
-                <?php if (count($blockInfo['assets'])) { ?>
-                    - <b>A</b>
-                <?php } ?>
-                -
-                <span class="enable-help" target="<?php echo $blockInfo['id']; ?>">
-                    <span class="enabled-text">mask</span>
-                    <span class="disabled-text">reveal</span>
-                </span>
+                |<?php echo str_repeat("-", substr_count($blockPath, '/')-1); ?>&rsaquo;
+                <span class="layout-block-path"><?php echo $blockInfo['id']; ?></span>
+                <div class="block-head-tools">
+                    <?php if (count($blockInfo['data'])) { ?>
+                        <b>D</b>
+                        -
+                    <?php } ?>
+                    <?php if (count($blockInfo['assets'])) { ?>
+                        <b>A</b>
+                        -
+                    <?php } ?>
+                    <span class="enable-help" target="<?php echo $blockInfo['id']; ?>">
+                        <span class="enabled-text">mask</span>
+                        <span class="disabled-text">reveal</span>
+                    </span>
+                </div>
             </div>
             <div class="layout-block-meta">
                 <div class="layout-block-meta-content">
