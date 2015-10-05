@@ -80,7 +80,7 @@ module.exports = function (grunt) {
       ignorePermissionErrors: false,
       atomic: true
     }).on('all', function(event, filePath){
-      spawnPhp('php cli.php cache:update '+event+' '+filePath, function (error) {
+      spawnPhp('php -c php.ini cli.php cache:update '+event+' '+filePath, function (error) {
         grunt.log.ok('cache is now up to date');
       });
     })
@@ -88,25 +88,25 @@ module.exports = function (grunt) {
 
   grunt.registerTask('db-init', function() {
     var done = this.async();
-    spawnPhp('php cli.php db:init', function (error) {
+    spawnPhp('php -c php.ini cli.php db:init', function (error) {
       done(error);
     });
   });
   grunt.registerTask('cache-init', function() {
     var done = this.async();
-    spawnPhp('php cli.php cache:init', function (error) {
+    spawnPhp('php -c php.ini cli.php cache:init', function (error) {
       done(error);
     });
   });
   grunt.registerTask('http-init', function() {
     var done = this.async();
-    spawnPhp('php cli.php http:bridge', function (error) {
+    spawnPhp('php -c php.ini cli.php http:bridge', function (error) {
       done(error);
     });
   });
   grunt.registerTask('check-schema', function() {
     var done = this.async();
-    spawnPhp('php cli.php db:refresh', function (error) {
+    spawnPhp('php -c php.ini cli.php db:refresh', function (error) {
       done(error);
     });
   });
@@ -114,7 +114,7 @@ module.exports = function (grunt) {
     var done = this.async();
     var path_to_watch = [];
 
-    spawnPhp('php cli.php fs-cache:dump', function (error, stdout, stderr) {
+    spawnPhp('php -c php.ini cli.php fs-cache:dump', function (error, stdout, stderr) {
       var data = JSON.parse(stdout);
       data.forEach(function(cache){
         if (cache.config
@@ -143,14 +143,14 @@ module.exports = function (grunt) {
 
   grunt.registerTask('classes-dump', function() {
     var done = this.async();
-    spawnPhp('php composer.phar dumpautoload', function () {
+    spawnPhp('php -c php.ini composer.phar dumpautoload', function () {
       done();
     });
   });
 
   grunt.registerTask('start', function() {
     var done = this.async();
-    spawnPhp('php -S localhost:8000 -t www app.php', function () {
+    spawnPhp('php -c php.ini -S localhost:8000 -t www app.php', function () {
       done();
     });
   });
