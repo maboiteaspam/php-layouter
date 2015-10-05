@@ -20,13 +20,7 @@ $(document).ready(function layoutStructure () {
       var btn = target.parent();
       btn.toggleClass('enabled');
       var targetId = btn.attr('target')
-      var el = $('#'+targetId+"");
-      if (el.children().length>0) {
-        el.children()
-          .toggleClass('preview-enabled')
-      } else {
-        el.toggleClass('preview-enabled')
-      }
+      $('#'+targetId+"").toggleClass('preview-enabled')
     }
 
   })
