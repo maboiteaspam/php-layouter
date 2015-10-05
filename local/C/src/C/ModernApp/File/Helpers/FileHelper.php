@@ -14,7 +14,7 @@ class FileHelper extends  AbstractStaticLayoutHelper{
             foreach ($nodeContents as $n) {
                 $T->importFile($n);
             }
+            return true;
         }
-        return false;
     }
 }

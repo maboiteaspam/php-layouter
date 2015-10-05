@@ -6,27 +6,23 @@ meta:
     Base layout for MyBlog website.
 
 structure:
-  import: HTML:/1-column.yml
-
-  body_top:
-    set_template: MyBlog:/top.php
-    add_intl: MyBlog:/en.yml
-    set_default_data:
-      logo: 'ddsfdsf'
-
-  body:
-    add_assets:
-      template_head_css:
-        - MyBlog:/blog.css
-        - MyBlog:/template.css
-      page_footer_js:
-        - MyBlog:/index.js
-    inject_jquery:
-      version: 2.1.3
-      target: page_footer_js
-
-  extra_footer:
-    insert_after: body_footer
-    body: some
-
-  show_dashboard: yes
+  - import: HTML:/1-column.yml
+  - body_top:
+      set_template: MyBlog:/top.php
+      add_intl: MyBlog:/en.yml
+      set_default_data:
+        logo: 'ddsfdsf'
+  - body:
+      add_assets:
+        template_head_css:
+          - MyBlog:/blog.css
+          - MyBlog:/template.css
+        page_footer_js:
+          - MyBlog:/index.js
+      inject_jquery:
+        version: 2.1.3
+        target: page_footer_js
+  - extra_footer:
+      insert_after: body_footer
+      body: some
+  - show_dashboard: yes

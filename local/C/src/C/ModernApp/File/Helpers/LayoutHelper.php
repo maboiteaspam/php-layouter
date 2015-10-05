@@ -5,7 +5,7 @@ use C\Layout\Layout;
 use C\Layout\Transforms;
 use C\ModernApp\File\AbstractStaticLayoutHelper;
 use C\ModernApp\File\FileTransformsInterface;
-use Symfony\Component\Form\FormView;
+//use Symfony\Component\Form\FormView;
 
 class LayoutHelper extends  AbstractStaticLayoutHelper{
 
@@ -18,7 +18,6 @@ class LayoutHelper extends  AbstractStaticLayoutHelper{
             $layout->setDescription($nodeContents);
             return true;
         }
-        return !true;
     }
 
     public function executeBlockNode (FileTransformsInterface $T, $blockSubject, $nodeAction, $nodeContents) {
@@ -88,6 +87,5 @@ class LayoutHelper extends  AbstractStaticLayoutHelper{
             return true;
 
         }
-        return !true;
     }
 }

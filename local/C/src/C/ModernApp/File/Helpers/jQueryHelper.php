@@ -33,6 +33,5 @@ class jQueryHelper extends  AbstractStaticLayoutHelper{
         } else if ($nodeAction==="dom_remove") {
 
         }
-        return !true;
     }
 }

@@ -4,6 +4,7 @@ namespace C\ModernApp\File;
 interface FileTransformsInterface{
     public function getOptions();
     public function then($fn);
+    public function forFacets($options);
     public function forDevice($device);
     public function forLang($lang);
     public function executeMetaNode ($nodeAction, $nodeContent);

@@ -3,16 +3,13 @@ meta:
   id: id_of_the_layout
   description: |
     Static layout update encapsuled into a file.
+
 structure:
-  body_top:
-    set_template: MyBlog:/top.php
-    add_assets:
-      template_head_js:
-        - MyBlog:/index.js
-      template_footer_css:
-        - MyBlog:/template.css
-        - MyBlog:/blog.css
-    insert_before:
-      target: some_id
-      options:
-        - some
+  -  body_top:
+      set_template: MyBlog:/top.php
+      add_assets:
+        template_head_js:
+          - MyBlog:/index.js
+        template_footer_css:
+          - MyBlog:/template.css
+          - MyBlog:/blog.css

@@ -38,6 +38,5 @@ class IntlHelper extends  AbstractStaticLayoutHelper{
 
             return true;
         }
-        return !true;
     }
 }

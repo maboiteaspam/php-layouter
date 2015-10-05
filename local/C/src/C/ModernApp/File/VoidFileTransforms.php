@@ -5,6 +5,13 @@ use C\Layout\VoidTransforms;
 
 class VoidFileTransforms extends VoidTransforms implements FileTransformsInterface{
 
+    public function forFacets ($options) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isFacets'],
+            func_get_args())) {
+            return $this->innerTransform;
+        }
+        return $this;
+    }
     public function executeMetaNode ($nodeAction, $nodeContents) {}
 
     /**

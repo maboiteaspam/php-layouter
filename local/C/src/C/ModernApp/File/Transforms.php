@@ -2,6 +2,7 @@
 namespace C\ModernApp\File;
 
 use C\Layout\Transforms as BaseTransforms;
+use C\Layout\TransformsInterface;
 use C\ModernApp\File\Helpers\FileHelper;
 use C\TagableResource\TagedResource;
 
@@ -45,6 +46,18 @@ class Transforms extends BaseTransforms implements FileTransformsInterface{
 
     public function getOptions() {
         return $this->options;
+    }
+
+    /**
+     * @param $facets
+     * @return $this|VoidFileTransforms
+     */
+    public function forFacets ($facets) {
+        if (call_user_func_array([$this->layout->requestMatcher, 'isFacets'],
+            func_get_args())) {
+            return $this;
+        }
+        return new VoidFileTransforms($this);
     }
 
     /**
@@ -114,32 +127,28 @@ class Transforms extends BaseTransforms implements FileTransformsInterface{
 
         $structure = Transforms::transform($this->options);
         if (isset($layoutStruct['structure'])) {
-            foreach ($layoutStruct['structure'] as $subject=>$nodeActions) {
-                $sub = $this->executeStructureNode($structure, $subject, $nodeActions);
+            foreach ($layoutStruct['structure'] as $actions) {
 
-                if ($sub!==false) {
-                    $structure = $sub;
-                    $structure->then(function (FileTransformsInterface $T) use($nodeActions) {
-                        foreach ($nodeActions as $subject2=>$nodeActions2) {
-                            foreach ($nodeActions2 as $nodeAction=>$nodeContent) {
-                                if (!$this->executeBlockNode($T, $subject2, $nodeAction, $nodeContent)) {
-                                    // mhh
+                foreach ($actions as $action => $options) {
+
+                    $structure->then(function (FileTransformsInterface $T) use(&$structure, $action, $options) {
+
+                        $sub = $this->executeStructureNode($structure, $action, $options);
+                        if ($sub instanceof TransformsInterface) {
+                            $structure = $sub;
+                        } else if($sub===false) {
+                            $subject = $action;
+                            $nodeActions = $options;
+                            $structure->then(function (FileTransformsInterface $T) use($subject, $nodeActions) {
+                                foreach ($nodeActions as $nodeAction=>$nodeContent) {
+                                    if (!$this->executeBlockNode($T, $subject, $nodeAction, $nodeContent)) {
+                                        // mhh
+                                    }
                                 }
-                            }
-                        }
-                    });
-
-                } else if (is_array($nodeActions)) {
-                    $structure->then(function (FileTransformsInterface $T) use($subject, $nodeActions) {
-                        foreach ($nodeActions as $nodeAction=>$nodeContent) {
-                            if (!$this->executeBlockNode($T, $subject, $nodeAction, $nodeContent)) {
-                                // mhh
-                            }
+                            });
                         }
                     });
                 }
-
-
             }
         }
         return $this;
@@ -159,9 +168,7 @@ class Transforms extends BaseTransforms implements FileTransformsInterface{
         foreach ($this->helpers as $helper) {
             /* @var $helper StaticLayoutHelperInterface */
             $sub = $helper->executeStructureNode($T, $nodeAction, $nodeContent);
-            if ($sub!==false) {
-                return $sub;
-            }
+            if ($sub) return $sub;
         }
         return false;
     }

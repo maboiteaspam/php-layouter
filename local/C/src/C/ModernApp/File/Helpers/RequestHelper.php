@@ -15,7 +15,10 @@ class RequestHelper extends  AbstractStaticLayoutHelper{
             $lang = substr($nodeAction, strlen("for_lang_"));
             return $T->forLang($lang);
 
+
+        } else if ($nodeAction==="for_facets") {
+            return $T->forFacets($nodeContents);
+
         }
-        return false;
     }
 }
