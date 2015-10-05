@@ -129,6 +129,7 @@ class AssetsServiceProvider implements ServiceProviderInterface
 //            $app['assets.fs']->registry->loadFromCache();
             /* @var $responder \C\Assets\BuiltinResponder */
             $responder = $app['assets.responder'];
+            $app['assets.fs']->registry->loadFromCache();
             $responder->respond($app['assets.verbose']);
         }
 
