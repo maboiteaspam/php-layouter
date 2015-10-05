@@ -153,9 +153,9 @@ class Layout implements TagableResourceInterface{
             $this->emit('before_block_render', $id);
             $this->emit('before_render_' . $id);
             $body = $block->body;
-            foreach($block->displayed_block as $displayedBlock) {
-                $body = str_replace("<!-- placeholder for block ".$displayedBlock['id']." -->",
-                    $this->getContent($displayedBlock['id']),
+            foreach($block->getDisplayedBlocksId() as $displayedBlock) {
+                $body = str_replace("<!-- placeholder for block $displayedBlock -->",
+                    $this->getContent($displayedBlock),
                     $body);
             }
             $block->body = $body;
@@ -181,8 +181,8 @@ class Layout implements TagableResourceInterface{
         $layout->resolve($startBlock);
         $block = $this->get($startBlock);
         if ($block) {
-            foreach ($block->displayed_block as $displayed) {
-                $this->resolveInCascade($displayed['id']);
+            foreach ($block->getDisplayedBlocksId() as $id) {
+                $this->resolveInCascade($id);
             }
         }
     }
@@ -287,11 +287,23 @@ class Layout implements TagableResourceInterface{
         $this->globalResourceTags[] = $res;
     }
 
+    public function excludedBlocksFromTagResource() {
+        $excluded = [];
+        foreach($this->registry->blocks as $block /* @var $block Block */) {
+            if (isset($block->options['tagresource_excluded'])
+                && $block->options['tagresource_excluded']) {
+                $excluded = array_merge($excluded, [$block->id], $block->getDisplayedBlocksId());
+            }
+        }
+        return array_unique($excluded);
+    }
+
     /**
      * @return bool|TagedResource
      */
     public function getTaggedResource () {
         $res = new TagedResource();
+        $excluded = $this->excludedBlocksFromTagResource();
         try{
             $res->addResource($this->block);
             $res->addResource($this->requestMatcher->getTaggedResource());
@@ -299,7 +311,8 @@ class Layout implements TagableResourceInterface{
                 $res->addTaggedResource($extra);
             }
             foreach($this->registry->blocks as $block) {
-                if ($block->resolved) {
+                if ($block->resolved
+                    && !in_array($block->id, $excluded)) {
                     /* @var $block Block */
                     $res->addTaggedResource($block->getTaggedResource());
                 }
@@ -455,11 +468,17 @@ class Layout implements TagableResourceInterface{
             $path = "/$parentId";
             $then($parentId, null, $path, ['block'=>$block,'shown'=>true,'exists'=>true]);
         }
-        foreach ($block->displayed_block as $displayed_block) {
+        foreach ($block->displayed_blocks as $displayed_block) {
+
             $subId = $displayed_block['id'];
             $sub = $layout->get($subId);
             if ($sub) $subId = $sub->id;
-            $then($subId, $parentId, "$path/$subId", ['block'=>$sub,'shown'=>$displayed_block['shown'],'exists'=>!!$sub]);
+
+            $then($subId,
+                $parentId,
+                "$path/$subId",
+                ['block'=>$sub,'shown'=>$displayed_block['shown'],'exists'=>!!$sub]);
+
             if ($sub) $this->traverseBlocksWithStructure($sub, $layout, $then, "$path/$subId");
         }
     }
