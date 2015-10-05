@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use C\ModernApp\File\Transforms as FileLayout;
 use C\Esi\Transforms as PunchHole;
+use C\ModernApp\jQuery\Transforms as jQuery;
 
 use C\Layout\Transforms as Transforms;
 use \C\Blog\CommentForm as MyCommentForm;
@@ -125,8 +126,8 @@ class Controllers{
 
                     $form->handleRequest($request);
 
-                    PunchHole::transform($app)
-                        ->esify('blog_form_comments', [
+                    jQuery::transform($app)
+                        ->ajaxify('blog_form_comments', [
                             'url'   => $generator->generate($request->get('_route'), $request->get('_route_params')),
                         ])->updateData('blog_form_comments', [
                             'form' => FormBuilder::createView($form),
