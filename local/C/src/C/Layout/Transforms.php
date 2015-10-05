@@ -78,6 +78,13 @@ class Transforms implements TransformsInterface{
         }
         return $this;
     }
+    public function excludeFromTagResource($id){
+        $block = $this->layout->getOrCreate($id);
+        if ($block) {
+            $block->options['tagresource_excluded'] = true;
+        }
+        return $this;
+    }
     public function updateOptions($id, $options=[]){
         $block = $this->layout->getOrCreate($id);
         $block->options = array_merge($options, $block->options);
@@ -235,7 +242,7 @@ class Transforms implements TransformsInterface{
             $block = $layout->registry->get($target);
             if ($block) {
                 $block->body = $block->body.$layout->getContent($id);
-                $block->displayed_block[] = ["id"=>$id, "shown"=>true];
+                $block->registerDisplayedBlock($id, true);
             }
         });
         return $this;
@@ -250,7 +257,7 @@ class Transforms implements TransformsInterface{
 //            $layout->displayBlock($id);
             $block = $layout->registry->get($beforeTarget);
             $block->body = $layout->getContent($id).$block->body;
-            $block->displayed_block[] = ["id"=>$id, "shown"=>true];
+            $block->registerDisplayedBlock($id, true);
         });
         return $this;
     }
