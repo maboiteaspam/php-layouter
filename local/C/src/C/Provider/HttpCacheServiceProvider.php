@@ -74,19 +74,23 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                             $response->setContent($body);
                             $response->headers->set("X-CACHED", "true");
                             Utils::stderr('responding from cache a content length ='.strlen($body));
-                            Utils::stderr('headers ='.var_export($content['headers'], true));
+                            Utils::stderr('headers ='.json_encode($content['headers']));
                             return $response;
+
+                        } else if(!$fresh) {
+                            Utils::stderr("etag is outdated");
                         } else {
-                            Utils::stderr('is etag fresh:'.var_export($fresh, true));
-                            Utils::stderr('original Tag:'.var_export($originalTag, true));
-                            Utils::stderr('new Tag:'.var_export($res->originalTag, true));
-                            Utils::stderr('require fresh:'.var_export($checkFreshness, true));
+                            Utils::stderr('is etag fresh:'.json_encode($fresh));
+                            Utils::stderr('original Tag:'.json_encode($originalTag));
+                            Utils::stderr('new Tag:'.json_encode($res->originalTag));
+                            Utils::stderr('require fresh:'.json_encode($checkFreshness));
                         }
+                    } else {
+                        Utils::stderr("etag does not exists in cache");
                     }
                     return false;
                 };
 
-                Utils::stderr('check etag for uri '.$request->getUri());
 
                 // when the request is sent by user
                 // it may contain an if-none-match: header
@@ -98,9 +102,11 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                 foreach ($etags as $etag) {
                     if (!in_array($etag, ['*'])) {
                         $etag = str_replace(['"',"'"], '', $etag);
+                        Utils::stderr("check etag {$etag} for uri {$request->getUri()}");
                         $resultResponse = $respondEtagedResource($etag);
                         $hasFoundAnyResource = true;
                         if ($resultResponse!==false) {
+                            Utils::stderr("found valid etag");
                             $resultResponse->setNotModified();
                             return $resultResponse;
                         }
