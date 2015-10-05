@@ -31,7 +31,7 @@ class Transforms extends Base{
             'page_footer_js'=>[
                 'Dashboard:/dashboard.js'
             ],
-        ]);
+        ])->excludeFromTagResource('dashboard');
 
         $this->set('dashboard-layout', [
             'body' => "<!-- layout_structure_placeholder -->",
@@ -98,7 +98,7 @@ class Transforms extends Base{
                         'data' => [
                             'serialized'=> $serializer->serialize($layout)
                         ]
-                    ]);
+                    ])->excludeFromTagResource('dashboard-layout-structure');
 
                     $rootBlock->body = str_replace(
                         "<!-- layout_structure_placeholder -->",
