@@ -26,11 +26,20 @@ class Store {
         $this->cache = $cache;
     }
 
-    public function buildFile ($filePath) {
+    public function storeFile ($filePath) {
         $layoutFile     = $this->getFileMeta($filePath);
         $layoutStruct   = Yaml::parse (LocalFs::file_get_contents ($layoutFile['absolute_path']), true, false, true);
         $this->cache->store($layoutFile['dir'].'/'.$layoutFile['name'], $layoutStruct);
         return $layoutStruct;
+    }
+
+    public function removeFile ($filePath) {
+        $layoutFile = $this->getFileMeta($filePath);
+        return $this->cache->delete($layoutFile['dir'].'/'.$layoutFile['name']);
+    }
+
+    public function clearCache () {
+        return $this->cache->clear();
     }
 
     public function getFileMeta ($filePath) {
@@ -45,7 +54,7 @@ class Store {
         $layoutFile     = $this->getFileMeta($filePath);
         $layoutStruct   = $this->cache->fetch($layoutFile['dir'].'/'.$layoutFile['name']);
         if (!$layoutStruct) {
-            $layoutStruct = $this->buildFile($filePath);
+            $layoutStruct = $this->storeFile($filePath);
         }
         return $layoutStruct;
     }

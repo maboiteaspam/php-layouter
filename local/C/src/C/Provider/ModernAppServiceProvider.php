@@ -4,9 +4,9 @@ namespace C\Provider;
 use C\FS\KnownFs;
 use C\FS\LocalFs;
 use C\FS\Registry;
+use C\Watch\WatchedModernLayout;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
-use C\Watch\WatchedRegistry;
 use Symfony\Component\HttpFoundation\Request;
 
 class ModernAppServiceProvider implements ServiceProviderInterface
@@ -112,7 +112,8 @@ class ModernAppServiceProvider implements ServiceProviderInterface
 
         if (isset($app['watchers.watched'])) {
             $app['watchers.watched'] = $app->extend('watchers.watched', function($watched, Application $app) {
-                $w = new WatchedRegistry();
+                $w = new WatchedModernLayout();
+                $w->setStore($app['modern.layout.store']);
                 $w->setRegistry($app['modern.fs']->registry);
                 $w->setName("modern.fs");
                 $watched[] = $w;
