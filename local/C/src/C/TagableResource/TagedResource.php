@@ -49,4 +49,11 @@ class TagedResource implements \Serializable{
         $this->resources    = $data['resources'];
     }
 
+    public static function __set_state($data) // As of PHP 5.1.0
+    {
+        $obj = new TagedResource;
+        $obj->originalTag  = $data['originalTag'];
+        $obj->resources    = $data['resources'];
+        return $obj;
+    }
 }
