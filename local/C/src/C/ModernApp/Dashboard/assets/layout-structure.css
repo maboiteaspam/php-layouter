@@ -32,6 +32,15 @@
     margin-top: 10px;
     margin-bottom: 5px;
 }
+.layout-block .block-head {
+    position: relative;
+}
+.layout-block .block-head-tools {
+    display: block;
+    position: absolute;
+    right: 30px;
+    top: 0;
+}
 .layout-block .enable-help{
     cursor: pointer;
 }
@@ -46,7 +55,8 @@
 }
 
 
-.preview-enabled{
+.preview-enabled *:not(input):not(textarea)
+{
     background-color: lightgrey;
     transition-property: background-color;
     transition-duration: .5s;
