@@ -200,7 +200,6 @@ class Registry {
         $this->addItem($path);
     }
     public function get($itemPath){
-        $itemPath = reliablePath($itemPath);
         $basePath = $this->config['basePath'];
 
         $aliasPos = strpos($itemPath, ":");
@@ -209,6 +208,14 @@ class Registry {
         if ($aliasPos>2 && array_key_exists($alias, $this->config['alias'])) {
             $itemPath = str_replace($alias, $this->config['alias'][$alias], $itemPath);
         }
+
+        if (isset($this->items[$itemPath])) {
+            $item = $this->items[$itemPath];
+            $item['absolute_path'] = "$basePath".DIRECTORY_SEPARATOR.$item['dir'].$item['name'];
+            return $item;
+        }
+
+        $itemPath = reliablePath($itemPath);
 
         if (isset($this->items[$itemPath])) {
             $item = $this->items[$itemPath];
