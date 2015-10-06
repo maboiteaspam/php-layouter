@@ -286,18 +286,25 @@ class Layout implements TagableResourceInterface{
         $res->addResource($tag, $type);
         $this->globalResourceTags[] = $res;
     }
-
+    public function getDisplayedBlocksId($blockId) {
+        $displayed = [];
+        $block = $this->get($blockId);
+        $displayed = array_merge($displayed, $block->getDisplayedBlocksId());
+        foreach ($displayed as $d) {
+            $displayed = array_merge($displayed, $this->getDisplayedBlocksId($d));
+        }
+        return ($displayed);
+    }
     public function excludedBlocksFromTagResource() {
         $excluded = [];
         foreach($this->registry->blocks as $block /* @var $block Block */) {
             if (isset($block->options['tagresource_excluded'])
                 && $block->options['tagresource_excluded']) {
-                $excluded = array_merge($excluded, [$block->id], $block->getDisplayedBlocksId());
+                $excluded = array_merge($excluded, [$block->id], $this->getDisplayedBlocksId($block->id));
             }
         }
         return array_unique($excluded);
     }
-
     /**
      * @return bool|TagedResource
      */
@@ -305,6 +312,7 @@ class Layout implements TagableResourceInterface{
         $res = new TagedResource();
         $excluded = $this->excludedBlocksFromTagResource();
         try{
+            $res->addResource($this->debugEnabled?'with-debug':'without-debug');
             $res->addResource($this->block);
             $res->addResource($this->requestMatcher->getTaggedResource());
             foreach($this->globalResourceTags as $extra) {

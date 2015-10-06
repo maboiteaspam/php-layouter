@@ -6,8 +6,10 @@ use C\FS\LocalFs;
 use C\FS\Registry;
 
 use C\Layout\Layout;
+use C\Layout\LayoutResponder;
 use C\Layout\LayoutSerializer;
 use C\Layout\RequestTypeMatcher;
+use C\Layout\TaggedLayoutResponder;
 use C\Misc\Utils;
 use C\View\Env;
 use C\View\Context;
@@ -115,47 +117,13 @@ class LayoutServiceProvider implements ServiceProviderInterface
             return new Context();
         });
 
-        $app['layout.responder'] = $app->protect(function (Response $response) use ($app) {
-            $request = $app['request'];
-            /* @var $request \Symfony\Component\HttpFoundation\Request */
-            /* @var $layout Layout */
-            $layout = $app['layout'];
-
-            $layout->emit('controller_build_finish', $response);
-
-            $content = $layout->render();
-            Utils::stderr('response is new '.$request->getUri());
-
-            $layout->emit('layout_build_finish', $response);
-
-            $response->setProtocolVersion('1.1');
-
+        $app['layout.responder'] = $app->share(function(Application $app) {
+            $responder = new LayoutResponder();
             if (isset($app['httpcache.tagger'])) {
-                $TaggedResource = $layout->getTaggedResource();
-                if ($TaggedResource===false) {
-                    Utils::stderr('this layout prevents caching');
-                    // this layout contains resource which prevent from being cached.
-                    // we shall not let that happen.
-                } else {
-                    $TaggedResource->addResource($app['env']);
-                    $TaggedResource->addResource($app['debug']?'with-debug':'without-debug');
-                    $etag = $app['httpcache.tagger']->sign($TaggedResource);
-                    $app['httpcache.taggedResource'] = $TaggedResource;
-                    $response->setETag($etag);
-
-                    $response->setPublic(true);
-                    $response->setSharedMaxAge(60);
-//                    $response->setMaxAge(60*10);
-                }
-
+                $responder = new TaggedLayoutResponder();
+                $responder->setTagger($app['httpcache.tagger']);
             }
-
-            if (!$response->isNotModified($request)) {
-                Utils::stderr('response is modified '.$request->getUri());
-                $response->setContent($content);
-            }
-
-            return $response;
+            return $responder;
         });
 
         $app['layout.serializer'] = $app->share(function (Application $app) {

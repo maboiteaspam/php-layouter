@@ -36,13 +36,14 @@ class Controllers{
     }
 
     public function home() {
-        return function (Application $app) {
+        return function (Application $app, Request $request) {
             /* @var $entryRepo \C\BlogData\EntryRepositoryInterface */
             $entryRepo = $app[$this->entryRepo];
             /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
             $commentRepo = $app[$this->commentRepo];
+            $response = new Response();
 
-            FileLayout::transform($app)
+            return FileLayout::transform($app)
                 ->importFile("MyBlog:/home.yml")
                 ->then(function (TransformsInterface $transform) use ($app, $entryRepo, $commentRepo) {
                     /* @var $requestData \C\HTTP\RequestProxy */
@@ -64,11 +65,9 @@ class Controllers{
                             'count'         => $entryRepo->tagable()->countAll(),
                             'by'            => $listEntryBy,
                         ]);
-                })
-            ;
 
-            $response = new Response();
-            return $app['layout.responder']($response);
+                })->respond($request, $response)
+            ;
         };
     }
 
@@ -78,10 +77,12 @@ class Controllers{
             $entryRepo = $app[$this->entryRepo];
             /* @var $commentRepo \C\BlogData\CommentRepositoryInterface */
             $commentRepo = $app[$this->commentRepo];
+            $response = new Response();
 
-            FileLayout::transform($app)
+            return FileLayout::transform($app)
                 ->importFile("MyBlog:/detail.yml")
                 ->forDevice('desktop')
+
                 ->then(function (TransformsInterface $transform) use ($app, $id, $entryRepo, $commentRepo) {
                     Transforms::transform($app)
                         ->updateData('body_content',[
@@ -102,7 +103,6 @@ class Controllers{
                         ]);
 
                 })->then(function (TransformsInterface $transform) use($app, $request) {
-
                     /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
                     $generator = $app["url_generator"];
 
@@ -110,8 +110,8 @@ class Controllers{
                         ->esify('blog_detail_comments', [
                             'url'   => $generator->generate($request->get('_route'), $request->get('_route_params')),
                         ]);
-                })->then(function (TransformsInterface $transform) use($app, $request, $postCommentUrl, $id) {
 
+                })->then(function (TransformsInterface $transform) use($app, $request, $postCommentUrl, $id) {
                     /* @var $generator \Symfony\Component\Routing\Generator\UrlGenerator */
                     $generator = $app["url_generator"];
 
@@ -132,11 +132,9 @@ class Controllers{
                         ])->updateData('blog_form_comments', [
                             'form' => FormBuilder::createView($form),
                         ]);
-                })
-            ;
 
-            $response = new Response();
-            return $app['layout.responder']($response);
+                })->respond($request, $response)
+            ;
         };
     }
 

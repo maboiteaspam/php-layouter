@@ -8,6 +8,7 @@ class Transforms implements TransformsInterface{
      */
     public function __construct($options=[]){
         if (isset($options['layout'])) $this->setLayout($options['layout']);
+        if (isset($options['layout.responder'])) $this->setResponder($options['layout.responder']);
     }
 
     /**
@@ -29,6 +30,20 @@ class Transforms implements TransformsInterface{
      */
     public function setLayout (Layout $layout) {
         $this->layout = $layout;
+        return $this;
+    }
+
+    /**
+     * @var LayoutResponder
+     */
+    public $responder;
+
+    /**
+     * @param LayoutResponder $responder
+     * @return $this
+     */
+    public function setResponder (LayoutResponder $responder) {
+        $this->responder = $responder;
         return $this;
     }
 
@@ -262,4 +277,9 @@ class Transforms implements TransformsInterface{
         return $this;
     }
 
+    public function respond ($request, $response=null){
+        $args = func_get_args();
+        array_unshift($args, $this->layout);
+        return call_user_func_array([$this->responder, 'respond'], $args);
+    }
 }

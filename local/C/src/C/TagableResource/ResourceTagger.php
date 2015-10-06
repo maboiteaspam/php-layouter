@@ -5,22 +5,37 @@ class ResourceTagger{
 
     public $taggers = [];
 
+    /**
+     * @var TagedResource
+     */
+    public $taggedResource;
+
     public function __construct () {
         $this->taggers['po'] = function ($value) {
             return $value;
         };
     }
 
+    public function setTaggedResource (TagedResource $resource) {
+        $this->taggedResource = $resource;
+    }
+
+    public function getTaggedResource () {
+        return $this->taggedResource;
+    }
+
     public function tagDataWith ($dataType, $computer) {
         $this->taggers[$dataType] = $computer;
     }
 
-    public function isFresh (TagedResource $resource) {
+    public function isFresh () {
+        $resource = $this->taggedResource;
         $originalTag = $resource->originalTag;
-        return $originalTag&&$originalTag===$this->sign($resource);
+        return $originalTag&&$originalTag===$this->sign();
     }
 
-    public function sign (TagedResource $resource) {
+    public function sign () {
+        $resource = $this->taggedResource;
         $h = '';
         foreach ($resource->resources as $res) {
             $tagger = $res['type'];

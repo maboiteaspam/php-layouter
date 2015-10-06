@@ -84,7 +84,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                             Utils::stderr('require fresh:'.json_encode($checkFreshness));
                         }
                     } else {
-                        Utils::stderr("etag does not exists in cache");
+                        Utils::stderr("etag $etag does not exists in cache");
                     }
                     return false;
                 };
@@ -96,13 +96,11 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                 // he knows its etag.
                 // We should check the cache to know how to handle this request
                 // in the best response time possible.
-                $hasFoundAnyResource = false;
                 foreach ($etags as $etag) {
                     if (!in_array($etag, ['*'])) {
                         $etag = str_replace(['"',"'"], '', $etag);
                         Utils::stderr("check etag {$etag} for uri {$request->getUri()}");
                         $resultResponse = $respondEtagedResource($etag);
-                        $hasFoundAnyResource = true;
                         if ($resultResponse!==false) {
                             Utils::stderr("found valid etag");
                             $resultResponse->setNotModified();
@@ -111,19 +109,10 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                     }
                 }
 
-                // there request have no etag.
-                if(count($etags)) {
-                    Utils::stderr('request has etag but '.
-                        (!$hasFoundAnyResource?
-                            'there is no cache to serve':
-                            'there is some keys, but they are outdated..'
-                        ));
-                }
-                else Utils::stderr('no etag in this request');
-
                 // here can exists a FPC cache layer.
                 // using url+ua+lang+request kind.
                 if(!count($etags) && false) {
+                    Utils::stderr('no etag in this request');
                     // @todo check if resource explicitly wants fresh version
                     // when user press ctl+f5, it sends request with max-age=0 (+/-),
                     // it means the user wants fresh version of the document.
@@ -141,7 +130,6 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                         }
                     }
                 }
-                //$request->getUri()
             }
             return null;
         }, Application::LATE_EVENT);
@@ -155,12 +143,14 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
         $app->after(function (Request $request, Response $response, Application $app) {
 
             Utils::stderr('is response cache-able '.var_export($response->isCacheable(), true));
+            Utils::stderr('response code '.var_export($response->getStatusCode(), true));
+            Utils::stderr('response is from cache '.var_export($response->headers->has("X-CACHED"), true));
 
             if ($request->isMethodSafe()
                 && $response->isCacheable()
                 && !$response->getStatusCode()!==304
                 && !$response->headers->has("X-CACHED")
-                && $app["httpcache.taggedResource"]) {
+                && $app["httpcache.tagger"]->getTaggedResource()) {
                 $etag = $response->getEtag();
                 Utils::stderr('saving resource '.$request->getUri());
                 Utils::stderr(' etag '.$etag);
@@ -174,7 +164,7 @@ class HttpCacheServiceProvider implements ServiceProviderInterface
                         'Surrogate-Capability',
                     ]);
                     $app["httpcache.store"]->store(
-                        $app["httpcache.taggedResource"],
+                        $app["httpcache.tagger"]->getTaggedResource(),
                         $request->getUri(), [
                         'headers'   => $headers,
                         'body'      => $response->getContent()

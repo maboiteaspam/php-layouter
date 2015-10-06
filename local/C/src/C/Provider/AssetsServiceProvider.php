@@ -131,11 +131,11 @@ class AssetsServiceProvider implements ServiceProviderInterface
             $responder = $app['assets.responder'];
             $app['assets.fs']->registry->loadFromCache();
             $responder->respond($app['assets.verbose']);
+        } else {
+            $app->before(function($request, Application $app){
+                $app['assets.fs']->registry->loadFromCache();
+            }, Application::EARLY_EVENT);
         }
-
-        $app->before(function($request, Application $app){
-            $app['assets.fs']->registry->loadFromCache();
-        }, Application::EARLY_EVENT);
 
         if (isset($app['watchers.watched'])) {
             $app['watchers.watched'] = $app->extend('watchers.watched', function($watched, Application $app) {
