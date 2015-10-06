@@ -43,23 +43,25 @@ class EsiServiceProvider implements ServiceProviderInterface
         }
         $app->before(function(Request $request, Application $app){
 
-            $secret = $app['esi.secret'];
+            if (!$request->isXmlHttpRequest()) {
+                $secret = $app['esi.secret'];
 
-            if ($request->headers->get("x-esi-secret") && $request->query->has("target")) {
-                $rsecret = $request->headers->get("x-esi-secret");
-                if ($rsecret===$secret) {
-                    Utils::stderr("slave found");
-                    $app['layout']->requestMatcher->setRequestKind('esi-slave');
-                } else {
-                    Utils::stderr("esi secret mismatch");
-                    Utils::stderr("request secret was $rsecret");
+                if ($request->headers->get("x-esi-secret") && $request->query->has("target")) {
+                    $rsecret = $request->headers->get("x-esi-secret");
+                    if ($rsecret===$secret) {
+                        Utils::stderr("slave found");
+                        $app['layout']->requestMatcher->setRequestKind('esi-slave');
+                    } else {
+                        Utils::stderr("esi secret mismatch");
+                        Utils::stderr("request secret was $rsecret");
+                    }
+
+                } else if ($request->headers->has("Surrogate-Capability")) {
+                    $app['layout']->requestMatcher->setRequestKind('esi-master');
+                    $app['layout']->onLayoutBuildFinish(function ($ev, $layout, $response) {
+                        $response->headers->set("Surrogate-Control", "ESI/1.0");
+                    });
                 }
-
-            } else if ($request->headers->has("Surrogate-Capability")) {
-                $app['layout']->requestMatcher->setRequestKind('esi-master');
-                $app['layout']->onLayoutBuildFinish(function ($ev, $layout, $response) {
-                    $response->headers->set("Surrogate-Control", "ESI/1.0");
-                });
             }
         });
 
