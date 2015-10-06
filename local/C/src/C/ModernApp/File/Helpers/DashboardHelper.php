@@ -10,7 +10,7 @@ class DashboardHelper extends  AbstractStaticLayoutHelper{
     public function executeStructureNode (FileTransformsInterface $T, $nodeAction, $nodeContents) {
         if ($nodeAction==="show_dashboard") {
             if ($T->getOptions()['debug']) {
-                Dashboard::transform($T->getOptions())->show(__CLASS__);
+                Dashboard::transform($T->getOptions())->show(__CLASS__, $nodeContents);
             }
             return true;
         }
