@@ -32,7 +32,7 @@ structure:
               some content.
             comments:
               -
-  - blog-entries-pagination:
+    blog-entries-pagination:
       set_template: Blog:/pagination.php
       set_default_data:
         count: 2
@@ -41,11 +41,11 @@ structure:
         routeName: 'home'
         routeParams:
           -
-  - body_top:
+    body_top:
       set_template: Blog:/top.php
       set_default_data:
         logo:
-  - body_footer:
+    body_footer:
       set_template: Blog:/footer.php
       set_default_data:
         year: 2015

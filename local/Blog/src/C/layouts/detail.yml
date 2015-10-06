@@ -20,7 +20,7 @@ structure:
               some content.
             comments:
               -
-  - blog_detail_comments:
+    blog_detail_comments:
       set_template: Blog:/entry-comments.php
       set_default_data:
         comments:
@@ -36,15 +36,15 @@ structure:
             created_at: 2015-10-04 14:39:25
             content: |
               some content.
-  - blog_form_comments:
+    blog_form_comments:
       set_template: Blog:/form-comment.php
       set_form:
         form: C\Blog\CommentForm
-  - body_top:
+    body_top:
       set_template: Blog:/top.php
       set_default_data:
         logo:
-  - body_footer:
+    body_footer:
       set_template: Blog:/footer.php
       set_default_data:
         year: 2015
