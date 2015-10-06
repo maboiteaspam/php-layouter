@@ -8,18 +8,22 @@ meta:
 structure:
   - import: Blog:/detail.yml
   - import: MyBlog:/base.yml
+
     body_content:
       update_meta:
         from: blog_detail
+
     blog_detail_comments:
       update_meta:
         from: blog_detail_comments
+
     body_content_right:
       set_template: MyBlog:/right-bar.php
-      set_default_data:
-        title: Latest commentscwxcvwxv
+
     rb_latest_comments:
       insert_after: right-bar
       set_template: Blog:/entry-comments.php
+      set_default_data:
+        title: Latest comments
       update_meta:
         from: rb_latest_comments

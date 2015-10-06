@@ -108,13 +108,7 @@ class Transforms implements TransformsInterface{
 
     public function addAssets($id, $assets=[], $first=false){
         $block = $this->layout->getOrCreate($id);
-        foreach($assets as $targetAssetGroupName => $files) {
-            if(!isset($block->assets[$targetAssetGroupName]))
-                $block->assets[$targetAssetGroupName] = [];
-            $block->assets[$targetAssetGroupName] = $first
-                ? array_merge($files, $block->assets[$targetAssetGroupName])
-                : array_merge($block->assets[$targetAssetGroupName], $files);
-        }
+        $block->addAssets($assets, $first);
         return $this;
     }
     public function removeAssets($id, $assets=[]){

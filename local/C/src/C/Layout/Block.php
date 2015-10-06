@@ -120,6 +120,20 @@ class Block implements TagableResourceInterface{
     }
 
     /**
+     * @param array $assets
+     * @param bool|false $first
+     */
+    public function addAssets($assets=[], $first=false){
+        foreach($assets as $targetAssetGroupName => $files) {
+            if(!isset($this->assets[$targetAssetGroupName]))
+                $this->assets[$targetAssetGroupName] = [];
+            $this->assets[$targetAssetGroupName] = $first
+                ? array_merge($files, $this->assets[$targetAssetGroupName])
+                : array_merge($this->assets[$targetAssetGroupName], $files);
+        }
+    }
+
+    /**
      * @return TagedResource
      * @throws \Exception
      */

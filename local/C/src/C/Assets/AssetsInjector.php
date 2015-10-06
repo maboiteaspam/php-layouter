@@ -175,6 +175,7 @@ class AssetsInjector {
 
             $targetBlock->body .= "\n";
 
+            $assets = array_unique($assets);
             if ($this->concatenate===false) {
                 $targetBlock->body .= $this->createBridgedHTMLAssets($target, $assets);
             } else {

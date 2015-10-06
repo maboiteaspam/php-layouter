@@ -23,6 +23,7 @@ structure:
     blog_detail_comments:
       set_template: Blog:/entry-comments.php
       set_default_data:
+        title: comments
         comments:
           - 0:
             id: 0

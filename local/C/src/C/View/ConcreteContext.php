@@ -579,6 +579,17 @@ interface ConcreteContext {
     public function urlAsset($name, $options=[], $only=[]);
 
     /**
+     * Inject js/css asset into the document.
+     * <?php $this->useAsset('template_head_css', 'Module:/asset.css') ?>
+     *
+     * @param $target
+     * @param $asset
+     * @param bool|false $first
+     * @return mixed
+     */
+    public function useAsset($target, $asset, $first=false);
+
+    /**
      * Starts an inline script / css block
      * $target is top / bottom
      * @param $target

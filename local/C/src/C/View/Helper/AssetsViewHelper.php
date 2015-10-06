@@ -63,5 +63,9 @@ class AssetsViewHelper implements ViewHelperInterface {
         $this->currentInline = null;
     }
 
+    public function useAsset($target, $asset, $first=false) {
+        $this->block->addAssets([$target=>[$asset]], $first);
+    }
+
 
 }
