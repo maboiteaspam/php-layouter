@@ -56,6 +56,12 @@ class ModernAppServiceProvider implements ServiceProviderInterface
             $helpers[] = new \C\ModernApp\File\Helpers\RequestHelper();
             return $helpers;
         });
+
+        $app['modern.dashboard.extensions'] = $app->share(function (Application $app) {
+            // @todo this should probably be moved away into separate service providers, for now on it s only inlined
+            $helpers = [];
+            return $helpers;
+        });
     }
     /**
      * Boot the Capsule service.
