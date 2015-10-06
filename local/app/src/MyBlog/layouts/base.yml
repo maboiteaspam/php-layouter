@@ -25,7 +25,7 @@ structure:
     extra_footer:
       insert_after: body_footer
       body: some
-    show_dashboard:
+  - show_dashboard:
       - time_travel
       - structure_visualizer
       - stats
