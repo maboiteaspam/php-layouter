@@ -61,10 +61,12 @@ $app->register(new \Moust\Silex\Provider\CacheServiceProvider(), [
         ],
     ], $app['caches.options']),
 ]);
+$app->register(new \C\Provider\CacheProvider());
+$app->register(new \C\Provider\HttpCacheServiceProvider());
 
 //$app->register(new MonologServiceProvider([]));
 $app->register(new \Silex\Provider\SessionServiceProvider( ));
-$app->register(new \Silex\Provider\SecurityServiceProvider([]));
+//$app->register(new \Silex\Provider\SecurityServiceProvider([]));
 //$app->register(new RememberMeServiceProvider([]));
 
 $app->register(new \Silex\Provider\TranslationServiceProvider( ));
@@ -72,15 +74,14 @@ $app->register(new \Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new \Silex\Provider\ValidatorServiceProvider());
 $app->register(new \Silex\Provider\FormServiceProvider());
 
-$app->register(new \C\Provider\CacheProvider());
 $app->register(new \C\Provider\EsiServiceProvider());
 $app->register(new \C\Provider\IntlServiceProvider());
 $app->register(new \C\Provider\AssetsServiceProvider());
-$app->register(new \C\Provider\HttpCacheServiceProvider());
 $app->register(new \C\Provider\CapsuleServiceProvider());
 $app->register(new \C\Provider\RepositoryServiceProvider());
 $app->register(new \C\Provider\LayoutServiceProvider());
 $app->register(new \C\Provider\ModernAppServiceProvider());
+$app->register(new \C\Provider\DashboardExtensionProvider());
 $app->register(new \Binfo\Silex\MobileDetectServiceProvider());
 #endregion
 
