@@ -11,7 +11,7 @@ $layoutData = $serialized['layout'];
     <?php foreach ($blocks as $blockPath=>$blockInfo) { ?>
         <div class="layout-block">
             <div class="block-head">
-                <?php echo $blockInfo['isCacheable']?'✓':'✖'; ?>
+                <?php echo $blockInfo['cacheExcluded']?'&otimes;':($blockInfo['isCacheable']?'✓':'✖'); ?>
                 |<?php echo str_repeat("-", substr_count($blockPath, '/')-1); ?>&rsaquo;
                 <span class="layout-block-path"><?php echo $blockInfo['id']; ?></span>
                 <div class="block-head-tools">

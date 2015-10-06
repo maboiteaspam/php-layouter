@@ -8,17 +8,7 @@
     <div class="dashboard-content">
         <h2>Dashboard</h2>
         <div class="dashboard-body">
-            <ul>
-                <li>
-                    <?php $this->display("dashboard-options"); ?>
-                </li>
-                <li>
-                    <?php $this->display("dashboard-stats"); ?>
-                </li>
-                <li>
-                    <?php $this->display("dashboard-layout"); ?>
-                </li>
-            </ul>
+            <?php $this->display("dashboard-body", true); ?>
         </div>
     </div>
 </div>

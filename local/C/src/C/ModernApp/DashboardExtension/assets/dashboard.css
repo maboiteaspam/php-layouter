@@ -1,0 +1,68 @@
+.dashboard {
+    position: fixed;
+    left: 100%;
+    top: 0;
+    width: 450px;
+    height: 100%;
+    transition-property: margin-left;
+    transition-duration: .5s;
+    z-index: 500;
+    background-color: white;
+}
+.dashboard.close {
+    margin-left: 0px;
+}
+.dashboard.open {
+    margin-left: -450px;
+}
+.dashboard .dashboard-handle{
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: .5s;
+}
+.dashboard.close .dashboard-handle{
+    background-color: grey;
+    position: absolute;
+    width: 15px;
+    left: -20px;
+    height: 75px;
+    top: 50%;
+    margin-top: -50px;
+}
+.dashboard.open .dashboard-handle{
+    opacity: 0;
+}
+.dashboard .dashboard-content{
+    position: absolute;
+    height: 94%;
+    width: 94%;
+    margin: 2%;
+    padding: 1%;
+    background-color: lightgrey;
+}
+.dashboard .dashboard-content .dashboard-body{
+    height: 84%;
+    overflow-y: scroll;
+}
+.dashboard .dashboard-body > ul{
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+.dashboard .dashboard-body > ul > li{
+    list-style-type: none;
+}
+.dashboard-title{
+    font-weight: bold;
+    cursor: pointer;
+}
+.dashboard-block-content {
+    height: 0px;
+    overflow:hidden;
+    padding-left: 10px;
+    transition-property: padding-left, height;
+    transition-duration: .5s;
+}
+.dashboard-block-content.open {
+    padding-left: 10px;
+}
