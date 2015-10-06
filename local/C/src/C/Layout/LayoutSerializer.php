@@ -64,93 +64,100 @@ class LayoutSerializer {
 
         $app = $this->app;
         $root = $layout->get($layout->block);
-        $layout->traverseBlocksWithStructure($root, $layout, function ($blockId, $parentId, $path, $options) use($app, &$blocks, $modernFS, $layoutFS, $assetsFS, $intlFS) {
-            $block = $options['block'];
-            /* @var $block Block */
-            $template = 'inlined body';
-            $templateFile = '';
-            $assets = [];
-            $data = [];
-            $isCacheable = true;
+        $cacheExcludedBlocks = $layout->excludedBlocksFromTagResource();
 
-            if ($block) {
-                if (isset($block->options['template'])) {
-                    $template = $block->options['template'];
-                    $templateFile = $layoutFS->get($block->options['template']);
-                    $templateFile = Utils::shorten($templateFile['absolute_path']);
-                }
-                if ($this->assetsFS) {
-                    foreach ($block->assets as $assetGroup=>$assetsGroup) {
-                        if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
-                        foreach ($assetsGroup as $asset) {
-                            $item = $this->assetsFS->get($asset);
-                            $assets[$assetGroup][] = [
-                                'name'=>$asset,
-                                'path'=> $item?$item['dir'].$item['name']:'not found'
-                            ];
+        $layout->traverseBlocksWithStructure($root, $layout,
+            function ($blockId, $parentId, $path, $options)
+            use($app, &$blocks, $modernFS, $layoutFS, $assetsFS, $intlFS, $cacheExcludedBlocks) {
+                $block = $options['block'];
+                /* @var $block Block */
+                $template = 'inlined body';
+                $templateFile = '';
+                $assets = [];
+                $data = [];
+                $isCacheExcluded = in_array($block->id, $cacheExcludedBlocks);
+
+                $isCacheable = true;
+
+                if ($block) {
+                    if (isset($block->options['template'])) {
+                        $template = $block->options['template'];
+                        $templateFile = $layoutFS->get($block->options['template']);
+                        $templateFile = Utils::shorten($templateFile['absolute_path']);
+                    }
+                    if ($this->assetsFS) {
+                        foreach ($block->assets as $assetGroup=>$assetsGroup) {
+                            if (!isset($assets[$assetGroup])) $assets[$assetGroup] = [];
+                            foreach ($assetsGroup as $asset) {
+                                $item = $this->assetsFS->get($asset);
+                                $assets[$assetGroup][] = [
+                                    'name'=>$asset,
+                                    'path'=> $item?$item['dir'].$item['name']:'not found'
+                                ];
+                            }
                         }
                     }
-                }
 
-                $blockTags = null;
-                try{
-                    $blockTags = $block->getTaggedResource();
-                }catch(\Exception $ex){
+                    $blockTags = null;
+                    try{
+                        $blockTags = $block->getTaggedResource();
+                    }catch(\Exception $ex){
 
-                }
-                $unWrapped = $block->unwrapData();
+                    }
+                    $unWrapped = $block->unwrapData();
 
-                foreach( $unWrapped as $k=>$v) {
-                    $tags = !$blockTags?[]:$blockTags->getResourcesByName($k);
-                    $tagsClear = [];
-                    foreach ($tags as $tag) {
-                        $t = [
-                            'type'=>$tag['type'],
-                            'value'=>''
-                        ];
-                        if ($tag['type']==='repository') {
-                            $t['value'] = $tag['value'][0]."->".$tag['value'][1][0];
-                            $t['type'] = get_class($app[$tag['value'][0]]);
-                        } else if ($tag['type']==='asset' || $tag['type']==='modern.layout') {
-                            // @todo to complete, check tagDataWith('asset'...
+                    foreach( $unWrapped as $k=>$v) {
+                        $tags = !$blockTags?[]:$blockTags->getResourcesByName($k);
+                        $tagsClear = [];
+                        foreach ($tags as $tag) {
+                            $t = [
+                                'type'=>$tag['type'],
+                                'value'=>''
+                            ];
+                            if ($tag['type']==='repository') {
+                                $t['value'] = $tag['value'][0]."->".$tag['value'][1][0];
+                                $t['type'] = get_class($app[$tag['value'][0]]);
+                            } else if ($tag['type']==='asset' || $tag['type']==='modern.layout') {
+                                // @todo to complete, check tagDataWith('asset'...
 //                            var_dump($tag);
 //                            $t['file'] = $tag['value'][0]."->".$tag['value'][1][0];
-                        } else if ($tag['type']==='sql') {
-                            // @todo to complete, check tagDataWith('sql'...
+                            } else if ($tag['type']==='sql') {
+                                // @todo to complete, check tagDataWith('sql'...
 //                            var_dump($tag);
-                        } else if ($tag['type']==='po') {
-                            $t['value'] = var_export($tag['value'], true);
+                            } else if ($tag['type']==='po') {
+                                $t['value'] = var_export($tag['value'], true);
+                            }
+                            $tagsClear[] = $t;
                         }
-                        $tagsClear[] = $t;
-                    }
-                    $data[] = [
-                        'name' =>$k,
-                        'tags' => $tagsClear,
-                        'value' => is_object($v)? get_class($v):
-                            is_array($v) ? "Array(".gettype($v).")[".count($v)."]" : var_export($v, true)
+                        $data[] = [
+                            'name' =>$k,
+                            'tags' => $tagsClear,
+                            'value' => is_object($v)? get_class($v):
+                                is_array($v) ? "Array(".gettype($v).")[".count($v)."]" : var_export($v, true)
                             ,
-                    ];
+                        ];
+                    }
+
+                    try{
+                        serialize($unWrapped);
+                    }catch(\Exception $ex){
+                        $isCacheable = false;
+                    }
                 }
 
-                try{
-                    serialize($unWrapped);
-                }catch(\Exception $ex){
-                    $isCacheable = false;
-                }
-            }
-
-            $blocks[$path] = [
-                'template'=>$template,
-                'templateFile'=>$templateFile,
-                'assets'=>$assets,
-                'id'=>$blockId,
-                'data'=>$data,
-                'exists'=>$options['exists'],
-                'shown'=>$options['shown'],
-                'isCacheable'=>$isCacheable,
-                'parentId'=>$parentId,
-            ];
-        });
+                $blocks[$path] = [
+                    'template'=>$template,
+                    'templateFile'=>$templateFile,
+                    'assets'=>$assets,
+                    'id'=>$blockId,
+                    'data'=>$data,
+                    'exists'=>$options['exists'],
+                    'shown'=>$options['shown'],
+                    'cacheExcluded'=>$isCacheExcluded,
+                    'isCacheable'=>$isCacheable,
+                    'parentId'=>$parentId,
+                ];
+            });
 
         $serialized['blocks'] = $blocks;
 
