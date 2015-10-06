@@ -6,16 +6,14 @@ use C\FS\LocalFs;
 
 class Utils{
 
+    public static $stdoutHandle;
+    public static $stderrHandle;
     public static function stderr ($message) {
-        $handle = fopen('php://stderr', 'w+');
-        fwrite($handle, "$message\n");
-        fclose($handle);
+        fwrite(self::$stderrHandle, "$message\n");
     }
 
     public static function stdout ($message) {
-        $handle = fopen('php://stdout', 'w+');
-        fwrite($handle, "$message\n");
-        fclose($handle);
+        fwrite(self::$stdoutHandle, "$message\n");
     }
 
     public static function fileToEtag ($file) {
@@ -154,3 +152,5 @@ class Utils{
         return $caller;
     }
 }
+Utils::$stderrHandle = fopen('php://stderr', 'w+');
+Utils::$stdoutHandle = fopen('php://stdout', 'w+');
