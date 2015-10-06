@@ -12,7 +12,7 @@ structure:
       add_intl: MyBlog:/en.yml
       set_default_data:
         logo: 'ddsfdsf'
-  - body:
+    body:
       add_assets:
         template_head_css:
           - MyBlog:/blog.css
@@ -22,7 +22,10 @@ structure:
       inject_jquery:
         version: 2.1.3
         target: page_footer_js
-  - extra_footer:
+    extra_footer:
       insert_after: body_footer
       body: some
-  - show_dashboard: yes
+    show_dashboard:
+      - time_travel
+      - structure_visualizer
+      - stats

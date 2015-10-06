@@ -8,14 +8,14 @@ meta:
 structure:
   - import: Blog:/home.yml
   - import: MyBlog:/base.yml
-  - body_content:
+    body_content:
       update_meta:
         from: home
-  - body_content_right:
+    body_content_right:
       set_template: MyBlog:/right-bar.php
       set_default_data:
         title: Latest comments
-  - rb_latest_comments:
+    rb_latest_comments:
       insert_after: right-bar
       set_template: Blog:/entry-comments.php
       update_meta:
@@ -23,7 +23,7 @@ structure:
 
   - for_facets:
       device: mobile
-  - body_content:
+    body_content:
       body: Hello, this is the mobile layout !!
-  - body_content_right:
+    body_content_right:
       delete: all
