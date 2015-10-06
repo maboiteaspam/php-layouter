@@ -83,13 +83,15 @@ class IntlServiceProvider implements ServiceProviderInterface
         });
 
         $app->before(function ($request, Application $app) {
-            $injector = new IntlInjector();
-            $injector->translator = $app['translator'];
-            $injector->intlFS = $app['intl.fs'];
-            $injector->loader = $app['intl.loader'];
-            $app['layout']->beforeRender(function () use($injector, $app) {
-                $injector->applyToLayout($app['layout']);
-            }, Application::EARLY_EVENT);
+            if (isset($app['translator'])) {
+                $injector = new IntlInjector();
+                $injector->translator = $app['translator'];
+                $injector->intlFS = $app['intl.fs'];
+                $injector->loader = $app['intl.loader'];
+                $app['layout']->beforeRender(function () use($injector, $app) {
+                    $injector->applyToLayout($app['layout']);
+                }, Application::EARLY_EVENT);
+            }
         });
 
         if (isset($app['httpcache.tagger'])) {
